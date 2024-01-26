@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstring>
+#include <cstdlib>
 #include <unistd.h>
 #include <arpa/inet.h>
 
@@ -30,7 +31,7 @@ int main(int argc, char** argv)
     std::cerr << "Usage: " << argv[0] << " <port> <message>" << std::endl;
     return EXIT_FAILURE;
   }
-  const int port = std::stoi(argv[1]);
+  const int port = std::atoi(argv[1]);
   const char* message = argv[2];
 
   if (strlen(message) > 1024)

@@ -1,5 +1,6 @@
 #include "common.hpp"
 
+#include <cstdlib>
 #include <iostream>
 #include <unistd.h>
 #include <arpa/inet.h>
