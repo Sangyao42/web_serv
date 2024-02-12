@@ -27,5 +27,7 @@ int main() {
     t[1].print();
     t[2].print();
 
+    arena.print();
+
     return EXIT_SUCCESS;
 }

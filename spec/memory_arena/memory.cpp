@@ -50,6 +50,29 @@ void Arena::rollback(const Snapshot& snapshot) {
     offset_ = snapshot.offset();
 }
 
+void  Arena::print() const {
+  unsigned char *memory = memory_;
+  std::cout << "Arena of size " << size_ << " with " << offset_ << " bytes allocated:" << std::endl;
+  for (size_t i = 0; i < size_; i++)
+  {
+    print(*memory);
+    if (i == offset_)
+      std::cout << "\033[1;32m" << "<" << "\033[0m";
+    memory++;
+  }
+  std::cout << std::endl;
+}
+
+void Arena::print(unsigned char c) const
+{
+  if (c == ' ')
+    std::cout << "\033[1;33m" << "." << "\033[0m";
+  else if (std::isprint(c))
+    std::cout << c;
+  else
+    std::cout << "\033[1;31m" << static_cast<unsigned char>(c + 33) << "\033[0m";
+}
+
 uintptr_t Arena::align(uintptr_t ptr, size_t alignment) {
     return (ptr + alignment - 1) & ~(alignment - 1);
 }

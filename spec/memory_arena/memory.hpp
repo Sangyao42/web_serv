@@ -40,6 +40,9 @@ public:
   Snapshot snapshot();
   void rollback(const Snapshot &snapshot);
 
+  void print() const;
+  void print(unsigned char c) const;
+
 private:
   unsigned char *memory_;
   size_t size_;
