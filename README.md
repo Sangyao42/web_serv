@@ -66,6 +66,7 @@ http {
     include mime.types;
     server {
         listen 8080;
+		server_name my.com;
         root /var/www/html;
         index index.html;
         autoindex on;
@@ -108,6 +109,11 @@ http {
 - `include` - Include another configuration file
 - `cgi` - Specify a cgi script
 - `allow` - Specify the allowed methods
+
+## External materials
+
+- [Memory allocation strategies](https://www.gingerbill.org/series/memory-allocation-strategies/)
+- [RFC 7231](https://datatracker.ietf.org/doc/html/rfc7231)
 
 ## TODO
 
