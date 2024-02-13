@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/goinfre/${env:USER}/.brew/opt/googletest/include"
+            ],
+        }
+    ],
+    "version": 4
+}
