@@ -113,7 +113,8 @@ http {
 ## External materials
 
 - [Memory allocation strategies](https://www.gingerbill.org/series/memory-allocation-strategies/)
-- [RFC 7231](https://datatracker.ietf.org/doc/html/rfc7231)
+- [RFC 9112](https://datatracker.ietf.org/doc/html/rfc9112)
+- [RFC 9110 HTTP Semantics](https://datatracker.ietf.org/doc/html/rfc9110)
 
 ## TODO
 
