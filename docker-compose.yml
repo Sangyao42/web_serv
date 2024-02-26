@@ -4,7 +4,7 @@ networks:
   web_serv:
 
 services:
-  nginx:
+  web_serv:
     container_name: web_serv
     image: web_serv
     platform: linux/amd64
