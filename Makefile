@@ -117,4 +117,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: clean fclean re docker_test docker_stop
+.PHONY: clean fclean re docker_start docker_test
