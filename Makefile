@@ -94,6 +94,16 @@ lib$(NAME).a: $(OBJ)
 	@ar rcs $@ $(OBJ)
 
 ###############################
+######      Docker      #######
+###############################
+
+docker_start:
+	@docker compose up -d --build
+
+docker_test:
+	@docker exec -it web_serv make -C spec run
+
+###############################
 ######     Cleaning     #######
 ###############################
 
@@ -107,4 +117,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: clean fclean re
+.PHONY: clean fclean re docker_start docker_test
