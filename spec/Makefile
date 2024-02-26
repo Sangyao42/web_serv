@@ -35,6 +35,8 @@ SRC:= $(shell echo **/*.cpp)
 ######     Library files     #######
 ####################################
 
+SYSTEM:= $(shell uname -s)
+
 # To compile a library, store a variable for their library file like this
 # and add a rule for it after the main rules:
 # LIBRARY_NAME=lib/LIBRARY_NAME/LIBRARY_NAME.a
@@ -42,12 +44,17 @@ LIBWEBSERV=../libwebserv.a
 
 # To add a library, add the library header file like this:
 # INCLUDE_DIR+= lib/LIBRARY_NAME/include
-LIB_INCLUDE_DIR += $(shell brew --prefix googletest)/include
+ifeq ($(SYSTEM),Linux)
+	LDFLAGS+= -lgtest -lgtest_main
+
+else ifeq ($(SYSTEM),Darwin)
+	LIB_INCLUDE_DIR += $(shell brew --prefix googletest)/include
+	LDFLAGS+= -L$(shell brew --prefix googletest)/lib -lgtest  -L$(shell brew --prefix googletest)/lib -lgtest_main
+endif
 
 # Then add the library to the linking process in one of the following ways:
 # LDFLAGS+= -Llib/LIBRARY_NAME -lLIBRARY_NAME
 # LDFLAGS+= lib/LIBRARY_NAME/libLIBRARY_NAME.a
-LDFLAGS+= -L$(shell brew --prefix googletest)/lib -lgtest  -L$(shell brew --prefix googletest)/lib -lgtest_main
 # the archive also includes a main function, which should be overridden by the gtest_main library. So the order of the libraries is important
 LDFLAGS+= -L.. -lwebserv
 
@@ -96,6 +103,9 @@ $(OBJ): $(OBJS_DIR)
 $(OBJS_DIR):
 	@mkdir -p $(OBJS_DIR)
 
+run: re
+	./$(NAME)
+
 ###############################
 ######     Cleaning     #######
 ###############################
@@ -106,6 +116,7 @@ clean:
 fclean: clean
 	@rm -rf $(OBJS_DIR)
 	@rm -f $(NAME)
+	@rm -f $(LIBWEBSERV)
 
 re: fclean all
 

@@ -1,0 +1,17 @@
+version: '3'
+
+networks:
+  web_serv:
+
+services:
+  nginx:
+    container_name: web_serv
+    image: web_serv
+    platform: linux/amd64
+    build:
+      context: .
+    networks:
+      - web_serv
+    ports:
+      - "80:80"
+    restart: unless-stopped
