@@ -1,0 +1,31 @@
+; ABNF from RFC 9112 (https://datatracker.ietf.org/doc/html/rfc9112)
+
+HTTP-message   = start-line CRLF
+                *( field-line CRLF )
+                CRLF
+                [ message-body ]
+
+start-line     = request-line / status-line
+
+HTTP-version   = HTTP-name "/" DIGIT "." DIGIT
+HTTP-name      = %s"HTTP"
+
+request-line   = method SP request-target SP HTTP-version
+
+request-target = origin-form
+                / absolute-form
+                / authority-form
+                / asterisk-form
+
+origin-form    = absolute-path [ "?" query ] ;e.g. /where?q=now
+absolute-form  = absolute-URI ;e.g. http://www.example.org/pub/WWW/TheProject.html
+authority-form = uri-host ":" port ;e.g. www.example.org:80
+asterisk-form  = "*"
+
+status-line    = HTTP-version SP status-code SP [ reason-phrase ]
+status-code    = 3DIGIT
+reason-phrase  = 1*( HTAB / SP / VCHAR / obs-text )
+
+field-line    = field-name ":" OWS field-value OWS
+
+message-body  = *OCTET
