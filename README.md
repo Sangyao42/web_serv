@@ -79,12 +79,12 @@ http {
         }
         location /images {
             allow GET;
+			redirect /new;
         }
         location /cgi-bin {
             allow GET;
             allow POST;
         }
-        redirect /old /new;
     }
 }
 ```
@@ -109,6 +109,33 @@ http {
 - `include` - Include another configuration file
 - `cgi` - Specify a cgi script
 - `allow` - Specify the allowed methods
+
+## Specification
+
+### HTTP fields
+
+Body fields
+
+- Content-Type
+- Content-Length
+- Content-Location
+
+Request fields
+
+- Host
+- Referer
+- User-Agent
+- Authorization (optional)
+- Accept (optional)
+
+Response fields
+
+- Last-Modified
+- Allow
+- Location
+- Retry-After (maybe for CGI)
+- Server
+- WWW-Authenticate, Authentication-Info (optional)
 
 ## External materials
 

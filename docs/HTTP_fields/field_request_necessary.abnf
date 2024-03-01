@@ -1,0 +1,112 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Field   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; RFC9110 7.2
+Host                = uri-host [ ":" port ]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Message Forwarding (RFC9110 7.6)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Connection          = [ connection-option *( OWS "," OWS connection-option ) ]
+; connection-option   = token
+
+; //// for keep-alive and close tokens?
+; //// but keep-alive is not necessary in HTTP1.1
+; //// and don't know it we have any use case of close
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Representation Data and Metadata (RFC9110 8)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+Content-Type        = media-type
+media-type          = type "/" subtype parameters
+type                = token
+subtype             = token
+
+; Content-Language    = [ language-tag *( OWS "," OWS language-tag ) ]
+; language-tag        = <Language-Tag, see [RFC5646], Section 2.1>
+
+Content-Length      = 1*DIGIT
+Content-Location    = absolute-URI / partial-URI
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Request Context fields (RFC9110 10.1)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Expect              = [ expectation *( OWS "," OWS expectation ) ]
+; expectation         = token [ "=" ( token / quoted-string ) parameters ]
+
+Referer             = absolute-URI / partial-URI
+
+User-Agent          = product *( RWS ( product / comment ) )
+product             = token [ "/" product-version ]
+product-version     = token
+
+; //// not sure about Referer
+; //// Expect for a 100-continue expectation
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Validator fields (RFC9110 8.8)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Last-Modified       = HTTP-date
+
+; ETag                = entity-tag
+; entity-tag          = [ weak ] opaque-tag
+; etagc               =
+;  "!"
+;  / %x23-7E ; '#'-'~'
+;  / obs-text
+; opaque-tag          = DQUOTE *etagc DQUOTE
+; weak                = %x57.2F ; W/
+
+; //// when we use If-Modified-Since / If-None-Match header header in GET
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Methods (RFC9110 9)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+method              = token
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   HTTP Authentication (RFC9110 11)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+auth-scheme         = token
+auth-param          = token BWS "=" BWS ( token / quoted-string )
+token68             = 1*( ALPHA / DIGIT / "-" / "." / "_" / "~" / "+" / "/" ) *"=" ; used for authentication
+
+credentials         = auth-scheme [ 1*SP ( token68 / [ auth-param *( OWS "," OWS auth-param ) ] ) ]
+
+Authorization       = credentials
+
+//// optional
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Conditional Request (RFC9110 13)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; If-Match            = "*" / [ entity-tag *( OWS "," OWS entity-tag ) ]
+; If-None-Match       = "*" / [ entity-tag *( OWS "," OWS entity-tag ) ]
+; If-Modified-Since   = HTTP-date
+; If-Unmodified-Since = HTTP-date
+; If-Range            = entity-tag / HTTP-date
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Content Negotiation (RFC9110 12.5)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+Accept              = [ ( media-range [ weight ] )     *( OWS "," OWS ( media-range [ weight ] ) ) ]
+media-range         = ( "*/*" / ( type "/*" ) / ( type "/" subtype ) ) parameters
+weight              = OWS ";" OWS "q=" qvalue
+qvalue              = ( "0" [ "." *3DIGIT ] ) / ( "1" [ "." *3"0" ] )
+
+Accept-Charset      = [ ( ( token / "*" ) [ weight ] ) *( OWS "," OWS ( (token / "*" ) [ weight ] ) ) ]
+
+Accept-Language     = [ ( language-range [ weight ] )  *( OWS "," OWS (language-range [ weight ] ) ) ]
+language-range      = <language-range, see [RFC4647], Section 2.1>
+
+//// optional
