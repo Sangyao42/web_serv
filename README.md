@@ -75,6 +75,27 @@ http {
 }
 ```
 
+- `limit_except` - Allow or deny methods
+
+- `types` - The types block of the server
+- `http` - The http block of the server
+- `server` - The server block of the server
+- `events` - The events block of the server
+
+- `listen` - The port the server will listen on
+- `root` - The root directory of the server
+- `index` - The index file of the server
+- `autoindex` - Specify whether to show directory listings
+- `error_page` - The error page of the server
+- `access_log` - The access log file of the server
+- `error_log` - The error log file of the server
+- `location` - The location block of the server
+- `server_name` - The server name of the server
+- `client_max_body_size` - The maximum body size of the client
+- `include` - Include another configuration file
+- `cgi` - Specify a cgi script
+- `allow` - Specify the allowed methods
+
 ## External materials
 
 - [Memory allocation strategies](https://www.gingerbill.org/series/memory-allocation-strategies/)
