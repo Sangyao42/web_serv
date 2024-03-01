@@ -30,6 +30,13 @@ Trailer             = [ field-name *( OWS "," OWS field-name ) ]
 ;;;;;;;;;;;;   Message Forwarding (RFC9110 7.6)   ;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+Connection          = [ connection-option *( OWS "," OWS connection-option ) ]
+connection-option   = token
+
+//// for keep-alive and close tokens?
+//// but keep-alive is not necessary in HTTP1.1
+//// and don't know it we have any use case of close
+
 Max-Forwards        = 1*DIGIT
 
 Via                 = [ ( received-protocol RWS received-by [ RWS comment ] )
@@ -47,6 +54,23 @@ protocol            = protocol-name [ "/" protocol-version ]
 protocol-name       = token
 protocol-version    = token
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Validator fields (RFC9110 8.8)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+Last-Modified       = HTTP-date
+
+ETag                = entity-tag
+entity-tag          = [ weak ] opaque-tag
+etagc               =
+ "!"
+ / %x23-7E ; '#'-'~'
+ / obs-text
+opaque-tag          = DQUOTE *etagc DQUOTE
+weak                = %x57.2F ; W/
+
+//// when we use If-Modified-Since / If-None-Match header header in GET
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;   Representation Data and Metadata (RFC9110 8)   ;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -57,6 +81,10 @@ content-coding      = token
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;   Request Context fields (RFC9110 10.1)   ;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+Expect              = [ expectation *( OWS "," OWS expectation ) ]
+expectation         = token [ "=" ( token / quoted-string ) parameters ]
+//// Expect for a 100-continue expectation
 
 From                = mailbox
 mailbox             = <mailbox, see [RFC5322], Section 3.4>
@@ -84,6 +112,16 @@ codings             = content-coding / "identity" / "*"
 Vary                = [ ( "*" / field-name )           *( OWS "," OWS ( "*" / field-name ) ) ]
 
 //// no idea about Vary
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Conditional Request (RFC9110 13)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+If-Match            = "*" / [ entity-tag *( OWS "," OWS entity-tag ) ]
+If-None-Match       = "*" / [ entity-tag *( OWS "," OWS entity-tag ) ]
+If-Modified-Since   = HTTP-date
+If-Unmodified-Since = HTTP-date
+If-Range            = entity-tag / HTTP-date
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;   Range request (RFC9110 14)   ;;;;;;;;;;;;
