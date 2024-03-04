@@ -18,6 +18,10 @@ Fields when the HTTP message has a body:
 - Content-Length
 - Content-Location
 
+Fields in both HTTP request and response:
+
+- Connection
+
 Fields only in HTTP request:
 
 - Host

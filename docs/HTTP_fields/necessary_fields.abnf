@@ -16,6 +16,14 @@ Content-Length      = 1*DIGIT
 Content-Location    = absolute-URI / partial-URI
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   HTTP general fields   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Check RFC 9110 7.6
+Connection          = [ connection-option *( OWS "," OWS connection-option ) ]
+connection-option   = token ; only for close. Keep Alive is by default in HTTP1.1
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;   HTTP request fields   ;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
