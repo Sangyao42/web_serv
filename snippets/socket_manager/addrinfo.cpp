@@ -50,6 +50,7 @@ int main(void)
 		void *addr;
         char *ipver;
 
+
         // get the pointer to the address itself,
         // different fields in IPv4 and IPv6:
         if (p->ai_family == AF_INET) { // IPv4
@@ -70,6 +71,7 @@ int main(void)
 	}
 	struct addrinfo *p_v4, *p_v6;
 	int sockfd_v4, sockfd_v6;
+	int yes = 1; // for setsockopt() SO_REUSEADDR, below
 	p_v4 = res;
 	p_v6 = res->ai_next;
 	sockfd_v4 = socket(p_v4->ai_family, p_v4->ai_socktype, p_v4->ai_protocol);
@@ -85,6 +87,7 @@ int main(void)
 	if (bind(sockfd_v4, p_v4->ai_addr, p_v4->ai_addrlen) == -1) {
 		perror("bind_v4");
 	}
+	setsockopt(sockfd_v4, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 	if (bind(sockfd_v6, p_v6->ai_addr, p_v6->ai_addrlen) == -1) {
 		// bind_v6: Address already in use when binding to ipv6 address
 		perror("bind_v6");
