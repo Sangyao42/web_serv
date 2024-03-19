@@ -56,7 +56,7 @@ http {
     include mime.types;
     server {
         listen 8080;
-		server_name my.com;
+        server_name my.com;
         root /var/www/html;
         index index.html;
         autoindex on;
@@ -69,11 +69,11 @@ http {
         }
         location /images {
             allow GET;
-			redirect /new;
+            redirect /new permanent;
         }
         location /cgi-bin {
-            allow GET;
-            allow POST;
+            allow GET POST;
+            redirect /new redirect;
         }
     }
 }
@@ -99,6 +99,7 @@ http {
 - `include` - Include another configuration file
 - `cgi` - Specify a cgi script
 - `allow` - Specify the allowed methods
+- `redirect` - temporily (307) or permanantly (301) redirect a request
 
 ## External materials
 
