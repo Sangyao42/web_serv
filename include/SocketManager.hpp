@@ -30,13 +30,15 @@ class SocketManager
 	~SocketManager();
 
 	//methods
+	int accept_client(int server_socket);
 	ssize_t recv_append(int socket, char *buf);
 	ssize_t send_all(int socket, char *buf, ssize_t *len);
 	//getters and setters
 	int	set_servers(std::vector<int> serv_ports);
 	std::vector<struct ServerSocket> & get_servers();
-	int	get_clients();
-	struct ClientSocket get_one_client(int socket);
+	set::vector<struct ClientSocket> & get_clients();
+	struct ClientSocket get_one_client(int socket); //query client by socket
+	struct ServerSocket get_one_server(int socket); //query server by socket
 	private:
 		std::vector<struct ServerSocket> servers_;
 		std::vector<struct ClientSocket> clients_;

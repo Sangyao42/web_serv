@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 			{
 				if (pfds[i].fd == sm.get_servers()[i].socket)
 				{
-					//accept connection
+					//accept connection if max clients not reached
 					//add client to pollfd
 				}
 				else
