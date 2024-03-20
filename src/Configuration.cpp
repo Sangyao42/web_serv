@@ -1,6 +1,11 @@
 #include <Configuration.hpp>
+
 #include <vector>
 #include <iostream>
+
+Configuration::Configuration() : max_clients(10), serv_ports({8080, 8081, 8082, 8083, 8084})
+{
+}
 
 //getters
 int Configuration::getMaxClients() const
@@ -10,5 +15,5 @@ int Configuration::getMaxClients() const
 
 std::vector<int> Configuration::getPorts() const
 {
-	return ports;
+	return serv_ports;
 }
