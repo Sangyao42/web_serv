@@ -5,14 +5,15 @@
 #include <netdb.h>
 
 #include <vector>
-
-#define MAX_SOCKETS 20
+#include <iostream>
 
 struct ClientSocket
 {
 	int socket;
 	struct sockaddr_storage ip_addr;
 	int &server_socket;
+	std::string req_buf;
+	std::string res_buf;
 };
 
 struct ServerSocket
@@ -25,9 +26,18 @@ class SocketManager
 {
 	public:
 
+	SocketManager();
+	~SocketManager();
+
+	//methods
+	ssize_t recv_append(int socket, char *buf);
+	ssize_t send_all(int socket, char *buf, ssize_t *len);
 	//getters and setters
-	
+	int	set_servers(std::vector<int> serv_ports);
+	std::vector<struct ServerSocket> & get_servers();
+	int	get_clients();
+	struct ClientSocket get_one_client(int socket);
 	private:
-		struct ServerSocket server;
-		std::vector<struct ClientSocket> clients[MAX_SOCKETS];
+		std::vector<struct ServerSocket> servers_;
+		std::vector<struct ClientSocket> clients_;
 };
