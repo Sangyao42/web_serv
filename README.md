@@ -65,27 +65,26 @@ http {
         error_log /var/log/error.log;
         location / {
             allow GET POST;
-            cgi /cgi-bin;
+            cgi py /cgi-bin;
         }
         location /images {
-            allow GET;
+			deny_methods GET;
             redirect /new permanent;
         }
         location /cgi-bin {
-            allow GET POST;
+            allow_methods DELETE;
             redirect /new redirect;
         }
     }
 }
 ```
 
-- `limit_except` - Allow or deny methods
-
-- `types` - The types block of the server
 - `http` - The http block of the server
 - `server` - The server block of the server
 - `events` - The events block of the server
+- `location` - The location block of the server
 
+- `types` - Map response file name extensions to MIME types
 - `listen` - The port the server will listen on
 - `root` - The root directory of the server
 - `index` - The index file of the server
@@ -93,13 +92,35 @@ http {
 - `error_page` - The error page of the server
 - `access_log` - The access log file of the server
 - `error_log` - The error log file of the server
-- `location` - The location block of the server
 - `server_name` - The server name of the server
 - `client_max_body_size` - The maximum body size of the client
 - `include` - Include another configuration file
 - `cgi` - Specify a cgi script
-- `allow` - Specify the allowed methods
+- `allow_methods` - Specify the allowed methods
+- `deny_methods` - Specify the denied methods
 - `redirect` - temporily (307) or permanantly (301) redirect a request
+
+| Directive            | Type   | Contexts                  | default_values     |
+| -------------------- | ------ | ------------------------- | ------------------ |
+| http                 | Block  | main                      | N/A                |
+| server               | Block  | http                      | N/A                |
+| events               | Block  | main                      | worker_connections |
+| location             | Block  | server,location           | N/A                |
+| types                | Simple | http,server,location      | N/A                |
+| listen               | Simple | server                    | *:80 *:8000        |
+| root                 | Simple | http,server,location      | html               |
+| index                | Simple | http,server,location      | index.html         |
+| autoindex            | Simple | http,server,location      | off                |
+| error_page           | Simple | http,server,location      | N/A                |
+| access_log           | Simple | http,server,location      | logs/access.log    |
+| error_log            | Simple | main,http,server,location | logs/error.log     |
+| server_name          | Simple | server                    | ""                 |
+| client_max_body_size | Simple | http,server,location      | 1m                 |
+| include              | Simple | main,http,server,location | N/A                |
+| cgi                  | Simple | http,server,location      | N/A                |
+| allow_methods        | Simple | http,server,location      | GET POST           |
+| deny_methods         | Simple | http,server,location      | DELETE             |
+| redirect             | Simple | server,location           | N/A                |
 
 ## External materials
 
