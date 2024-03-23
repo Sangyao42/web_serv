@@ -1,0 +1,313 @@
+; ABNF from RFC 9110 (https://datatracker.ietf.org/doc/html/rfc9110)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   basic token   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+token                = 1*tchar
+tchar                =
+ "!" / "#" / "$" / "%" / "&" / "'" / "*" / "+" / "-" / "." /
+ "^" / "_" / "`" / "|" / "~" / DIGIT / ALPHA
+
+; Quoted Strings (RFC9110 5.6.4)
+quoted-string        = DQUOTE *( qdtext / quoted-pair ) DQUOTE
+qdtext               =
+ HTAB / SP / "!" / %x23-5B ; '#'-'['
+ / %x5D-7E ; ']'-'~'
+ / obs-text
+quoted-pair          = "\" ( HTAB / SP / VCHAR / obs-text )
+
+; comment (RFC9110 5.6.5)
+comment              = "(" *( ctext / quoted-pair / comment ) ")"
+ctext                =
+ HTAB / SP / %x21-27 ; '!'-'''
+ / %x2A-5B ; '*'-'['
+ / %x5D-7E ; ']'-'~'
+ / obs-text
+
+; Parameters a.k.a key and value pairs delimited by '=' and delimited by ';' (RFC9110 5.6.6) 
+parameters           = *( OWS ";" OWS [ parameter ] )
+parameter            = parameter-name "=" parameter-value
+parameter-name       = token
+parameter-value      = ( token / quoted-string )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Date   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+time-of-day          = hour ":" minute ":" second
+second               = 2DIGIT
+minute               = 2DIGIT
+hour                 = 2DIGIT
+
+Date                 = HTTP-date
+HTTP-date            = IMF-fixdate / obs-date
+obs-date             = rfc850-date / asctime-date
+
+IMF-fixdate          = day-name "," SP date1 SP time-of-day SP GMT
+rfc850-date          = day-name-l "," SP date2 SP time-of-day SP GMT
+asctime-date         = day-name SP date3 SP time-of-day SP year
+
+date1                = day SP month SP year
+date2                = day "-" month "-" 2DIGIT
+date3                = month SP ( 2DIGIT / ( SP DIGIT ) )
+
+GMT                  = %x47.4D.54 ; GMT
+day-name =
+ / %x4D.6F.6E ; Mon
+ / %x54.75.65 ; Tue
+ / %x57.65.64 ; Wed
+ / %x54.68.75 ; Thu
+ / %x46.72.69 ; Fri
+ / %x53.61.74 ; Sat
+ / %x53.75.6E ; Sun
+day-name-l =
+ / %x4D.6F.6E.64.61.79 ; Monday
+ / %x54.75.65.73.64.61.79 ; Tuesday
+ / %x57.65.64.6E.65.73.64.61.79 ; Wednesday
+ / %x54.68.75.72.73.64.61.79 ; Thursday
+ / %x46.72.69.64.61.79 ; Friday
+ / %x53.61.74.75.72.64.61.79 ; Saturday
+ / %x53.75.6E.64.61.79 ; Sunday
+
+month =
+ / %x4A.61.6E ; Jan
+ / %x46.65.62 ; Feb
+ / %x4D.61.72 ; Mar
+ / %x41.70.72 ; Apr
+ / %x4D.61.79 ; May
+ / %x4A.75.6E ; Jun
+ / %x4A.75.6C ; Jul
+ / %x41.75.67 ; Aug
+ / %x53.65.70 ; Sep
+ / %x4F.63.74 ; Oct
+ / %x4E.6F.76 ; Nov
+ / %x44.65.63 ; Dec
+
+day                 = 2DIGIT
+year                = 4DIGIT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   whitespaces   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+OWS                 = *( SP / HTAB ) ; "optional" whitespace
+RWS                 = 1*( SP / HTAB ) ; "required" whitespace
+BWS                 = OWS ; "bad" whitespace
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   URI   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+URI-reference       = <URI-reference, see [URI], Section 4.1>
+absolute-URI        = <absolute-URI, see [URI], Section 4.3>
+relative-part       = <relative-part, see [URI], Section 4.2>
+authority           = <authority, see [URI], Section 3.2>
+uri-host            = <host, see [URI], Section 3.2.2>
+port                = <port, see [URI], Section 3.2.3>
+path-abempty        = <path-abempty, see [URI], Section 3.3>
+segment             = <segment, see [URI], Section 3.3>
+query               = <query, see [URI], Section 3.4>
+
+absolute-path       = 1*( "/" segment )
+partial-URI         = relative-part [ "?" query ]
+
+http-URI            = "http://" authority path-abempty [ "?" query ]
+https-URI           = "https://" authority path-abempty [ "?" query ]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Field   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+field-name          = token
+field-content       = field-vchar [ 1*( SP / HTAB / field-vchar ) field-vchar ]
+field-value         = *field-content
+field-vchar         = VCHAR / obs-text
+obs-text            = %x80-FF
+
+; RFC9110 6.6.2
+Trailer             = [ field-name *( OWS "," OWS field-name ) ]
+
+; RFC9110 7.2
+Host                = uri-host [ ":" port ]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Message Forwarding (RFC9110 7.6)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+Connection          = [ connection-option *( OWS "," OWS connection-option ) ]
+connection-option   = token
+
+Max-Forwards        = 1*DIGIT
+
+Via                 = [ ( received-protocol RWS received-by [ RWS comment ] )
+ *( OWS "," OWS ( received-protocol RWS received-by [ RWS comment ] ) ) ]
+received-by         = pseudonym [ ":" port ]
+received-protocol   = [ protocol-name "/" ] protocol-version
+pseudonym           = token
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Upgrade (RFC 9110 7.8)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+Upgrade             = [ protocol *( OWS "," OWS protocol ) ]
+protocol            = protocol-name [ "/" protocol-version ]
+protocol-name       = token
+protocol-version    = token
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Representation Data and Metadata (RFC9110 8)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+Content-Type        = media-type
+media-type          = type "/" subtype parameters
+type                = token
+subtype             = token
+
+Content-Encoding    = [ content-coding *( OWS "," OWS content-coding ) ]
+content-coding      = token
+
+Content-Language    = [ language-tag *( OWS "," OWS language-tag ) ]
+language-tag        = <Language-Tag, see [RFC5646], Section 2.1>
+
+Content-Length      = 1*DIGIT
+Content-Location    = absolute-URI / partial-URI
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Validator fields (RFC9110 8.8)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+Last-Modified       = HTTP-date
+
+ETag                = entity-tag
+entity-tag          = [ weak ] opaque-tag
+etagc               =
+ "!"
+ / %x23-7E ; '#'-'~'
+ / obs-text
+opaque-tag          = DQUOTE *etagc DQUOTE
+weak                = %x57.2F ; W/
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Methods (RFC9110 9)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+method              = token
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Request Context fields (RFC9110 10.1)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+Expect              = [ expectation *( OWS "," OWS expectation ) ]
+expectation         = token [ "=" ( token / quoted-string ) parameters ]
+
+From                = mailbox
+mailbox             = <mailbox, see [RFC5322], Section 3.4>
+
+Referer             = absolute-URI / partial-URI
+
+TE                  = [ t-codings *( OWS "," OWS t-codings ) ]
+t-codings           = "trailers" / ( transfer-coding [ weight ] )
+transfer-coding     = token *( OWS ";" OWS transfer-parameter )
+transfer-parameter  = token BWS "=" BWS ( token / quoted-string )
+
+User-Agent          = product *( RWS ( product / comment ) )
+product             = token [ "/" product-version ]
+product-version     = token
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;   Response Context fields (RFC9110 10.2)   ;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+Allow               = [ method *( OWS "," OWS method ) ]
+
+Location            = URI-reference
+
+Retry-After         = HTTP-date / delay-seconds
+delay-seconds       = 1*DIGIT
+
+Server              = product *( RWS ( product / comment ) )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   HTTP Authentication (RFC9110 11)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+auth-scheme         = token
+auth-param          = token BWS "=" BWS ( token / quoted-string )
+token68             = 1*( ALPHA / DIGIT / "-" / "." / "_" / "~" / "+" / "/" ) *"=" ; used for authentication
+
+challenge           = auth-scheme [ 1*SP ( token68 / [ auth-param *( OWS "," OWS auth-param ) ] ) ]
+credentials         = auth-scheme [ 1*SP ( token68 / [ auth-param *( OWS "," OWS auth-param ) ] ) ]
+
+WWW-Authenticate    = [ challenge *( OWS "," OWS challenge ) ]
+Authorization       = credentials
+Authentication-Info = [ auth-param *( OWS "," OWS auth-param ) ]
+
+Proxy-Authenticate        = [ challenge *( OWS "," OWS challenge ) ]
+Proxy-Authorization       = credentials
+Proxy-Authentication-Info = [ auth-param *( OWS "," OWS auth-param ) ]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Content Negotiation (RFC9110 12.5)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+Accept              = [ ( media-range [ weight ] )     *( OWS "," OWS ( media-range [ weight ] ) ) ]
+media-range         = ( "*/*" / ( type "/*" ) / ( type "/" subtype ) ) parameters
+weight              = OWS ";" OWS "q=" qvalue
+qvalue              = ( "0" [ "." *3DIGIT ] ) / ( "1" [ "." *3"0" ] )
+
+Accept-Charset      = [ ( ( token / "*" ) [ weight ] ) *( OWS "," OWS ( (token / "*" ) [ weight ] ) ) ]
+
+Accept-Encoding     = [ ( codings [ weight ] )         *( OWS "," OWS ( codings [ weight ] ) ) ]
+codings             = content-coding / "identity" / "*"
+
+Accept-Language     = [ ( language-range [ weight ] )  *( OWS "," OWS (language-range [ weight ] ) ) ]
+language-range      = <language-range, see [RFC4647], Section 2.1>
+
+Vary                = [ ( "*" / field-name )           *( OWS "," OWS ( "*" / field-name ) ) ]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Conditional Request (RFC9110 13)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+If-Match            = "*" / [ entity-tag *( OWS "," OWS entity-tag ) ]
+If-None-Match       = "*" / [ entity-tag *( OWS "," OWS entity-tag ) ]
+If-Modified-Since   = HTTP-date
+If-Unmodified-Since = HTTP-date
+If-Range            = entity-tag / HTTP-date
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   Range request (RFC9110 14)   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Range header field (RFC9110 14.2)
+Range               = ranges-specifier
+
+; Accept-Ranges header field (RFC9110 14.3)
+Accept-Ranges       = acceptable-ranges
+acceptable-ranges   = range-unit *( OWS "," OWS range-unit )
+
+; Content-Range header field (RFC9110 14.4)
+Content-Range       = range-unit SP ( range-resp / unsatisfied-range )
+range-resp          = incl-range "/" ( complete-length / "*" )
+incl-range          = first-pos "-" last-pos
+unsatisfied-range   = "*/" complete-length
+complete-length     = 1*DIGIT
+
+; Range units (RFC9110 14.1)
+range-unit          = token
+
+ranges-specifier    = range-unit "=" range-set
+range-set           = range-spec *( OWS "," OWS range-spec )
+range-spec          = int-range / suffix-range / other-range
+
+first-pos           = 1*DIGIT
+last-pos            = 1*DIGIT
+int-range           = first-pos "-" [ last-pos ]
+suffix-length       = 1*DIGIT
+suffix-range        = "-" suffix-length
+other-range         = 1*(
+   %x21-2B ; '!'-'+'
+ / %x2D-7E ; '-'-'~'
+)

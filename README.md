@@ -2,50 +2,44 @@
 
 > A HTTP server written in C++ from scratch
 
-# Structure
+## Design
 
-nginx configuration read by socker manager
+> In construction (see [the current plan](docs/planning.md))
 
-request -> parser -> socket manager
+## Specification
 
-socket manager -> create response
+### Supported HTTP Fields
 
-## socket manager
+The syntax for each fields are specified in [necessary_fields.abnf](docs/HTTP_fields/necessary_fields.abnf)
 
-- read from appropriate files
-- return back the file content or call the cgi program
-- handle error (send proper error code)
+Fields when the HTTP message has a body:
 
-### multiplexing library
+- Content-Type
+- Content-Length
+- Content-Location
 
-- select
-- poll
-- epoll (linux)
-- kqueue (BSD or mac)
+Fields in both HTTP request and response:
 
-## cgi
+- Connection
 
-cgi program is a script that when executed, will produce a html response on the stdout.
+Fields only in HTTP request:
 
-www.hi.com/hi.php
+- Host
+- Referer
+- User-Agent
+- Authorization (optional)
+- Accept (optional)
 
-## Configuration file
+Fields only in HTTP response:
 
-The configuration file is a nginx styled file. It is used to configure the server. The file is read at the start of the server and the server will use the configuration specified in the file.
+- Last-Modified
+- Allow
+- Location
+- Retry-After (maybe for CGI)
+- Server
+- WWW-Authenticate, Authentication-Info (optional)
 
-Supported configuration options:
-
-### Events block
-
-```nginx
-events {
-    use poll;
-}
-```
-
-- kqueue: https://habr.com/en/articles/600123/
-
-### Types block
+### Supported server configuration directives
 
 ```nginx
 types {
@@ -57,16 +51,12 @@ types {
     image/gif gif;
     application/json json;
 }
-```
 
-### Http block
-
-```nginx
 http {
     include mime.types;
     server {
         listen 8080;
-		server_name my.com;
+        server_name my.com;
         root /var/www/html;
         index index.html;
         autoindex on;
@@ -79,12 +69,12 @@ http {
         }
         location /images {
             allow GET;
+            redirect /new permanent;
         }
         location /cgi-bin {
-            allow GET;
-            allow POST;
+            allow GET POST;
+            redirect /new redirect;
         }
-        redirect /old /new;
     }
 }
 ```
@@ -109,21 +99,12 @@ http {
 - `include` - Include another configuration file
 - `cgi` - Specify a cgi script
 - `allow` - Specify the allowed methods
+- `redirect` - temporily (307) or permanantly (301) redirect a request
 
 ## External materials
 
 - [Memory allocation strategies](https://www.gingerbill.org/series/memory-allocation-strategies/)
 - [RFC 9112](https://datatracker.ietf.org/doc/html/rfc9112)
-- [RFC 9110 HTTP Semantics](https://datatracker.ietf.org/doc/html/rfc9110)
-
-## TODO
-
-1. Understand socket-related unix system calls
-2. Understand select, poll and kqueue
-
-3. Agree on the data structure of the http request and response
-4. Agree on the data structure of the nginx configuration file
-5. CGI
 
 # Collaboration notes
 
