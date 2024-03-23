@@ -64,7 +64,6 @@ http {
         access_log /var/log/access.log;
         error_log /var/log/error.log;
         location / {
-            allow GET POST;
             cgi py /cgi-bin;
         }
         location /images {
@@ -79,26 +78,45 @@ http {
 }
 ```
 
+#### Block directives
+
 - `http` - The http block of the server
 - `server` - The server block of the server
 - `events` - The events block of the server
 - `location` - The location block of the server
 
-- `types` - Map response file name extensions to MIME types
-- `listen` - The port the server will listen on
-- `root` - The root directory of the server
-- `index` - The index file of the server
-- `autoindex` - Specify whether to show directory listings
-- `error_page` - The error page of the server
-- `access_log` - The access log file of the server
-- `error_log` - The error log file of the server
+#### Directives related to HTTP requests
+
+- `listen` - The port that the server will listen on
 - `server_name` - The server name of the server
-- `client_max_body_size` - The maximum body size of the client
-- `include` - Include another configuration file
-- `cgi` - Specify a cgi script
 - `allow_methods` - Specify the allowed methods
 - `deny_methods` - Specify the denied methods
+
+#### Directives for HTTP response generation
+
+Generating a response from a requested file:
+
+- `root` - The root directory of the server.
+- `index` - The index files of the server. If autonindex is off, a HTTP request that ends with a '/' will try to return the first found index file instead.
+- `types` - Map response file name extensions to MIME types
+- `error_page` - The error page of the server
+
+Generating a response by other means:
+
+- `client_max_body_size` - The maximum body size of the client. If the size in a request exceeds the configured value, the 413 (Request Entity Too Large) error is returned to the client.
 - `redirect` - temporily (307) or permanantly (301) redirect a request
+- `autoindex` - Specify whether to show directory listings
+- `cgi` - Specify a cgi script
+
+#### Misc directives
+
+For logging information:
+
+- `access_log` - The access log file of the server
+- `error_log` - The error log file of the server
+
+- `include` - Include another configuration file
+- `worker_connections` - Maximum amount of connections that the server will handle at any given point of time 
 
 | Directive            | Type   | Contexts                  | default_values     |
 | -------------------- | ------ | ------------------------- | ------------------ |
@@ -106,21 +124,22 @@ http {
 | server               | Block  | http                      | N/A                |
 | events               | Block  | main                      | worker_connections |
 | location             | Block  | server,location           | N/A                |
-| types                | Simple | http,server,location      | N/A                |
 | listen               | Simple | server                    | *:80 *:8000        |
-| root                 | Simple | http,server,location      | html               |
-| index                | Simple | http,server,location      | index.html         |
-| autoindex            | Simple | http,server,location      | off                |
-| error_page           | Simple | http,server,location      | N/A                |
-| access_log           | Simple | http,server,location      | logs/access.log    |
-| error_log            | Simple | main,http,server,location | logs/error.log     |
 | server_name          | Simple | server                    | ""                 |
-| client_max_body_size | Simple | http,server,location      | 1m                 |
-| include              | Simple | main,http,server,location | N/A                |
-| cgi                  | Simple | http,server,location      | N/A                |
 | allow_methods        | Simple | http,server,location      | GET POST           |
 | deny_methods         | Simple | http,server,location      | DELETE             |
+| root                 | Simple | http,server,location      | html               |
+| index                | Simple | http,server,location      | index.html         |
+| types                | Simple | http,server,location      | N/A                |
+| error_page           | Simple | http,server,location      | N/A                |
+| client_max_body_size | Simple | http,server,location      | 1m                 |
 | redirect             | Simple | server,location           | N/A                |
+| autoindex            | Simple | http,server,location      | off                |
+| cgi                  | Simple | http,server,location      | N/A                |
+| access_log           | Simple | http,server,location      | logs/access.log    |
+| error_log            | Simple | main,http,server,location | logs/error.log     |
+| include              | Simple | main,http,server,location | N/A                |
+| worker_connections   | Simple | events                    | 512                |
 
 ## External materials
 
