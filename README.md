@@ -118,28 +118,28 @@ For logging information:
 - `include` - Include another configuration file
 - `worker_connections` - Maximum amount of connections that the server will handle at any given point of time 
 
-| Directive            | Type   | Contexts                  | default_values     |
-| -------------------- | ------ | ------------------------- | ------------------ |
-| http                 | Block  | main                      | N/A                |
-| server               | Block  | http                      | N/A                |
-| events               | Block  | main                      | worker_connections |
-| location             | Block  | server,location           | N/A                |
-| listen               | Simple | server                    | *:80 *:8000        |
-| server_name          | Simple | server                    | ""                 |
-| allow_methods        | Simple | http,server,location      | GET POST           |
-| deny_methods         | Simple | http,server,location      | DELETE             |
-| root                 | Simple | http,server,location      | html               |
-| index                | Simple | http,server,location      | index.html         |
-| types                | Simple | http,server,location      | N/A                |
-| error_page           | Simple | http,server,location      | N/A                |
-| client_max_body_size | Simple | http,server,location      | 1m                 |
-| redirect             | Simple | server,location           | N/A                |
-| autoindex            | Simple | http,server,location      | off                |
-| cgi                  | Simple | http,server,location      | N/A                |
-| access_log           | Simple | http,server,location      | logs/access.log    |
-| error_log            | Simple | main,http,server,location | logs/error.log     |
-| include              | Simple | main,http,server,location | N/A                |
-| worker_connections   | Simple | events                    | 512                |
+| Directive            | Type   | Contexts                  | Default values     | On repeat |
+| -------------------- | ------ | ------------------------- | ------------------ | --------- |
+| http                 | Block  | main                      | N/A                | error     |
+| server               | Block  | http                      | N/A                | append    |
+| events               | Block  | main                      | worker_connections | error     |
+| location             | Block  | server,location           | N/A                | append    |
+| listen               | Simple | server                    | *:80 *:8000        | append    |
+| server_name          | Simple | server                    | ""                 | append    |
+| allow_methods        | Simple | http,server,location      | GET POST           | append    |
+| deny_methods         | Simple | http,server,location      | DELETE             | append    |
+| root                 | Simple | http,server,location      | html               | overwrite |
+| index                | Simple | http,server,location      | index.html         | append    |
+| types                | Simple | http,server,location      | N/A                | overwrite |
+| error_page           | Simple | http,server,location      | N/A                | append    |
+| client_max_body_size | Simple | http,server,location      | 1m                 | overwrite |
+| redirect             | Simple | server,location           | N/A                | append    |
+| autoindex            | Simple | http,server,location      | off                | overwrite |
+| cgi                  | Simple | http,server,location      | N/A                | append    |
+| access_log           | Simple | http,server,location      | logs/access.log    | overwrite |
+| error_log            | Simple | main,http,server,location | logs/error.log     | overwrite |
+| include              | Simple | main,http,server,location | N/A                | N/A       |
+| worker_connections   | Simple | events                    | 512                | overwrite |
 
 ## External materials
 
