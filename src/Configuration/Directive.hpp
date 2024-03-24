@@ -9,44 +9,6 @@
 
 namespace configuration
 {
-  class Directive;
-  class DirectiveServer;
-  class DirectiveLocation;
-
-  /**
-   * @brief Directives is a map of directive names to their corresponding
-   * Directive objects. It is possible to have multiple entry for the same
-   * directive name, in which case the order of insertion is preserved. Therefore
-   * multimap is used.
-  */
-  typedef std::multimap<std::string, Directive*> Directives;
-
-  /**
-   * @brief Servers points to a range of Directives that are of type
-   * DirectiveServer.
-  */
-  typedef std::pair<Directives::iterator, Directives::iterator> Servers;
-
-  /**
-   * @brief Locations points to a range of Directives that are of type
-   * DirectiveLocation.
-  */
-  typedef std::pair<Directives::iterator, Directives::iterator> Locations;
-
-  struct Methods
-  {
-    int get_bit : 1;
-    int post_bit : 1;
-    int delete_bit : 1;
-  };
-
-  enum Method
-  {
-    kMethodGet,
-    kMethodPost,
-    kMethodDelete,
-  };
-
   class Directive
   {
     public:
@@ -85,13 +47,13 @@ namespace configuration
         kDirectiveErrorLog,
         kDirectiveInclude,
         // only in events block
-        kDirectiveWorkerConnections,
+        kDirectiveWorkerConnections
       };
       Directive();
       Directive(const Context& context);
       Directive(const Directive& other);
       Directive& operator=(const Directive& other);
-      virtual ~Directive() {};
+      virtual ~Directive();
 
       virtual bool          is_block() const = 0;
       virtual Type          type() const = 0;
@@ -100,6 +62,45 @@ namespace configuration
 
     protected:
       Context context_;
+  };
+
+  class DirectiveServer;
+  class DirectiveLocation;
+
+  /**
+   * @brief Directives is a map of directive names to their corresponding
+   * Directive objects. It is possible to have multiple entry for the same
+   * directive name, in which case the order of insertion is preserved. Therefore
+   * multimap is used.
+  */
+  typedef std::multimap<Directive::Type, Directive*> Directives;
+
+  typedef std::pair<Directives::const_iterator, Directives::const_iterator> DirectivesRange;
+
+  /**
+   * @brief Servers points to a range of Directives that are of type
+   * DirectiveServer.
+  */
+  typedef DirectivesRange Servers;
+
+  /**
+   * @brief Locations points to a range of Directives that are of type
+   * DirectiveLocation.
+  */
+  typedef DirectivesRange Locations;
+
+  struct Methods
+  {
+    int get_bit : 1;
+    int post_bit : 1;
+    int delete_bit : 1;
+  };
+
+  enum Method
+  {
+    kMethodGet,
+    kMethodPost,
+    kMethodDelete
   };
 
   class DirectiveBlock : public Directive
@@ -111,17 +112,17 @@ namespace configuration
       DirectiveBlock& operator=(const DirectiveBlock& other);
       virtual ~DirectiveBlock();
 
-      virtual bool          is_block() const;
-      virtual Type          type() const = 0;
+      virtual bool            is_block() const;
+      virtual Type            type() const = 0;
 
-      virtual bool          add_directive(Directive* directive);
-      virtual Directive*    get_directive(Type type) const;
+      virtual bool            add_directive(Directive* directive);
+      virtual DirectivesRange get_directive(Type type) const;
 
     protected:
       Directives directives_;
   };
 
-  template <typename T, Directive::Type type>
+  template <typename T, Directive::Type TypeEnum>
   class DirectiveSimple : public Directive
   {
     public:
@@ -141,20 +142,20 @@ namespace configuration
       T value_;
   };
 
-  template <typename T, Directive::Type type>
-  DirectiveSimple<T, type>::DirectiveSimple()
+  template <typename T, Directive::Type TypeEnum>
+  DirectiveSimple<T, TypeEnum>::DirectiveSimple()
     : Directive(), value_() {}
   
-  template <typename T, Directive::Type type>
-  DirectiveSimple<T, type>::DirectiveSimple(const Context& context)
+  template <typename T, Directive::Type TypeEnum>
+  DirectiveSimple<T, TypeEnum>::DirectiveSimple(const Context& context)
     : Directive(context), value_() {}
 
-  template <typename T, Directive::Type type>
-  DirectiveSimple<T, type>::DirectiveSimple(const DirectiveSimple& other)
+  template <typename T, Directive::Type TypeEnum>
+  DirectiveSimple<T, TypeEnum>::DirectiveSimple(const DirectiveSimple& other)
     : Directive(other), value_(other.value_) {}
   
-  template <typename T, Directive::Type type>
-  DirectiveSimple<T, type>& DirectiveSimple<T, type>::operator=(const DirectiveSimple& other)
+  template <typename T, Directive::Type TypeEnum>
+  DirectiveSimple<T, TypeEnum>& DirectiveSimple<T, TypeEnum>::operator=(const DirectiveSimple& other)
   {
     if (this != &other)
     {
@@ -164,29 +165,29 @@ namespace configuration
     return *this;
   }
 
-  template <typename T, Directive::Type type>
-  DirectiveSimple<T, type>::~DirectiveSimple() {}
+  template <typename T, Directive::Type TypeEnum>
+  DirectiveSimple<T, TypeEnum>::~DirectiveSimple() {}
 
-  template <typename T, Directive::Type type>
-  bool DirectiveSimple<T, type>::is_block() const
+  template <typename T, Directive::Type TypeEnum>
+  bool DirectiveSimple<T, TypeEnum>::is_block() const
   {
     return false;
   }
 
-  template <typename T, Directive::Type type>
-  Directive::Type DirectiveSimple<T, type>::type() const
+  template <typename T, Directive::Type TypeEnum>
+  Directive::Type DirectiveSimple<T, TypeEnum>::type() const
   {
-    return type;
+    return TypeEnum;
   }
 
-  template <typename T, Directive::Type type>
-  void DirectiveSimple<T, type>::set(const T& value)
+  template <typename T, Directive::Type TypeEnum>
+  void DirectiveSimple<T, TypeEnum>::set(const T& value)
   {
     value_ = value;
   }
 
-  template <typename T, Directive::Type type>
-  const T& DirectiveSimple<T, type>::get() const
+  template <typename T, Directive::Type TypeEnum>
+  const T& DirectiveSimple<T, TypeEnum>::get() const
   {
     return value_;
   }

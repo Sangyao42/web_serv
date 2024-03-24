@@ -9,6 +9,28 @@
 
 namespace configuration
 {
+
+  //////////////////////////////////////////////////////
+  ////////////   All supported directives   ////////////
+  //////////////////////////////////////////////////////
+
+  class DirectiveListen;
+  class DirectiveServerName;
+  class DirectiveAllowMethods;
+  class DirectiveDenyMethods;
+  typedef DirectiveSimple<std::string, Directive::Type::kDirectiveRoot> DirectiveRoot;
+  typedef DirectiveSimple<std::string, Directive::Type::kDirectiveIndex> DirectiveIndex;
+  class DirectiveMimeTypes;
+  class DirectiveErrorPage;
+  typedef DirectiveSimple<size_t, Directive::Type::kDirectiveClientMaxBodySize> DirectiveClientMaxBodySize;
+  class DirectiveRedirect;
+  typedef DirectiveSimple<bool, Directive::Type::kDirectiveAutoindex> DirectiveAutoindex;
+  class DirectiveCgi;
+  typedef DirectiveSimple<std::string, Directive::Type::kDirectiveAccessLog> DirectiveAccessLog;
+  typedef DirectiveSimple<std::string, Directive::Type::kDirectiveErrorLog> DirectiveErrorLog;
+  typedef DirectiveSimple<Directive*, Directive::Type::kDirectiveInclude> DirectiveInclude;
+  typedef DirectiveSimple<size_t, Directive::Type::kDirectiveWorkerConnections> DirectiveWorkerConnections;
+
   class DirectiveListen : public Directive
   {
     public:
@@ -82,9 +104,6 @@ namespace configuration
       Methods  denied_methods_;
   };
 
-  typedef DirectiveSimple<std::string, Directive::Type::kDirectiveRoot> DirectiveRoot;
-  typedef DirectiveSimple<std::string, Directive::Type::kDirectiveIndex> DirectiveIndex;
-
   class DirectiveMimeTypes : public Directive
   {
     public:
@@ -122,8 +141,6 @@ namespace configuration
       std::string path_;
   };
 
-  typedef DirectiveSimple<size_t, Directive::Type::kDirectiveClientMaxBodySize> DirectiveClientMaxBodySize;
-
   class DirectiveRedirect : public Directive
   {
     public:
@@ -144,8 +161,6 @@ namespace configuration
       bool              is_permanent_;
   };
 
-  typedef DirectiveSimple<bool, Directive::Type::kDirectiveAutoindex> DirectiveAutoindex;
-
   class DirectiveCgi : public Directive
   {
     public:
@@ -164,9 +179,4 @@ namespace configuration
       std::string extension_;
       std::string cgi_path_;
   };
-
-  typedef DirectiveSimple<std::string, Directive::Type::kDirectiveAccessLog> DirectiveAccessLog;
-  typedef DirectiveSimple<std::string, Directive::Type::kDirectiveErrorLog> DirectiveErrorLog;
-  typedef DirectiveSimple<Directive*, Directive::Type::kDirectiveInclude> DirectiveInclude;
-  typedef DirectiveSimple<size_t, Directive::Type::kDirectiveWorkerConnections> DirectiveWorkerConnections;
 } // namespace configuration

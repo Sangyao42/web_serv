@@ -6,7 +6,6 @@
 
 namespace configuration
 {
-  class DirectiveServer;
   class DirectiveHttp : public DirectiveBlock
   {
     public:
@@ -24,7 +23,6 @@ namespace configuration
       Servers servers_;
   };
 
-  class DirectiveLocation;
   class DirectiveServer : public DirectiveBlock
   {
     public:

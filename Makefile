@@ -31,7 +31,11 @@ OBJS_DIR:= obj
 
 MAIN_SRC:= \
 	main.cpp
-SRC:= $(MAIN_SRC)
+CONFIGURATION_SRC:= \
+	Configuration/Directive.cpp
+MISC_SRC:= \
+	misc/Nothing.cpp
+SRC:= $(MAIN_SRC) $(CONFIGURATION_SRC) $(MISC_SRC)
 
 ####################################
 ######     Library files     #######
