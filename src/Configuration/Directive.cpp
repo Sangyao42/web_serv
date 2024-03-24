@@ -15,6 +15,11 @@ namespace configuration
   Directive::Context::Context(int index)
     : index(index) {}
   
+  bool Directive::Context::operator==(const Context& context) const
+  {
+    return index == context.index;
+  }
+  
   ///////////////////////////////////////
   ////////////   Directive   ////////////
   ///////////////////////////////////////

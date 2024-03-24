@@ -42,7 +42,6 @@ CONFIGURATION_SRC:= \
 	Configuration/Directive/ServerName.cpp \
 	Configuration/Directive/AllowMethods.cpp \
 	Configuration/Directive/MimeTypes.cpp \
-	Configuration/Directive/ErrorPage.cpp \
 	Configuration/Directive/Redirect.cpp \
 	Configuration/Directive/Cgi.cpp
 

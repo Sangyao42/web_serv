@@ -18,6 +18,8 @@ namespace configuration
 
         Context();
         Context(int index);
+
+        bool  operator==(const Context& context) const;
       };
 
       enum Type

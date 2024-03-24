@@ -39,12 +39,17 @@ namespace configuration
     return Directive::kDirectiveMimeTypes;
   }
 
-  void DirectiveMimeTypes::add(const std::string& extension, const std::string& mime_type)
+  void DirectiveMimeTypes::add(const DirectiveMimeTypes::Extension& extension, const DirectiveMimeTypes::MimeType& mime_type)
   {
     mime_types_[extension] = mime_type;
   }
 
-  Maybe<const std::string> DirectiveMimeTypes::get(const std::string& extension) const
+  const std::map<DirectiveMimeTypes::Extension, DirectiveMimeTypes::MimeType>& DirectiveMimeTypes::get() const
+  {
+    return mime_types_;
+  }
+
+  Maybe<DirectiveMimeTypes::MimeType> DirectiveMimeTypes::query(const DirectiveMimeTypes::Extension& extension) const
   {
     std::map<std::string, std::string>::const_iterator it = mime_types_.find(extension);
     if (it != mime_types_.end())

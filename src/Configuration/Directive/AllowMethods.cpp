@@ -1,5 +1,7 @@
 #include "Simple.hpp"
 
+#include <cassert>
+
 namespace configuration
 {
   DirectiveAllowMethods::DirectiveAllowMethods()
@@ -35,11 +37,17 @@ namespace configuration
 
   void DirectiveAllowMethods::set(int method)
   {
+    assert(method >= 0 && method < 8);
     accepted_methods_ = method;
   }
 
-  const Methods DirectiveAllowMethods::get() const
+  Methods DirectiveAllowMethods::get() const
   {
     return accepted_methods_;
+  }
+
+  bool  DirectiveAllowMethods::is_allowed(Method method) const
+  {
+    return (accepted_methods_ & static_cast<std::bitset<3> >(method)) != 0;
   }
 } // namespace configuration

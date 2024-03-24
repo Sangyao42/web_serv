@@ -21,7 +21,7 @@ namespace configuration
   typedef DirectiveSimple<std::string, Directive::kDirectiveRoot> DirectiveRoot;
   typedef DirectiveSimple<std::string, Directive::kDirectiveIndex> DirectiveIndex;
   class DirectiveMimeTypes;
-  class DirectiveErrorPage;
+  typedef DirectiveSimple<std::string, Directive::kDirectiveErrorPage> DirectiveErrorPage;
   typedef DirectiveSimple<size_t, Directive::kDirectiveClientMaxBodySize> DirectiveClientMaxBodySize;
   class DirectiveRedirect;
   typedef DirectiveSimple<bool, Directive::kDirectiveAutoindex> DirectiveAutoindex;
@@ -92,7 +92,9 @@ namespace configuration
       virtual Type  type() const;
 
       void          set(int method);
-      const Methods get() const;
+      Methods       get() const;
+
+      bool          is_allowed(Method method) const;
 
     private:
       Methods  accepted_methods_;
@@ -101,39 +103,23 @@ namespace configuration
   class DirectiveMimeTypes : public Directive
   {
     public:
+      typedef std::string Extension;
+      typedef std::string MimeType;
       DirectiveMimeTypes();
       DirectiveMimeTypes(const Context& context);
       DirectiveMimeTypes(const DirectiveMimeTypes& other);
       DirectiveMimeTypes& operator=(const DirectiveMimeTypes& other);
       virtual ~DirectiveMimeTypes();
 
-      virtual bool          is_block() const;
-      virtual Type          type() const;
+      virtual bool      is_block() const;
+      virtual Type      type() const;
 
-      void                      add(const std::string& extension, const std::string& mime_type);
-      Maybe<const std::string>  get(const std::string& extension) const;
-
-    private:
-      std::map<std::string, std::string> mime_types_;
-  };
-
-  class DirectiveErrorPage : public Directive
-  {
-    public:
-      DirectiveErrorPage();
-      DirectiveErrorPage(const Context& context);
-      DirectiveErrorPage(const DirectiveErrorPage& other);
-      DirectiveErrorPage& operator=(const DirectiveErrorPage& other);
-      virtual ~DirectiveErrorPage();
-
-      virtual bool        is_block() const;
-      virtual Type        type() const;
-
-      void                set(const std::string& path);
-      const std::string&  get() const;
+      void              add(const Extension& extension, const MimeType& mime_type);
+      const std::map<Extension, MimeType>& get() const;
+      Maybe<MimeType>   query(const Extension& extension) const;
 
     private:
-      std::string path_;
+      std::map<Extension, MimeType> mime_types_;
   };
 
   class DirectiveRedirect : public Directive
