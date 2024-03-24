@@ -32,7 +32,11 @@ OBJS_DIR:= obj
 MAIN_SRC:= \
 	main.cpp
 CONFIGURATION_SRC:= \
-	Configuration/Directive.cpp
+	Configuration/Directive.cpp \
+	Configuration/Directive/Http.cpp \
+	Configuration/Directive/Server.cpp \
+	Configuration/Directive/Events.cpp \
+	Configuration/Directive/Location.cpp
 MISC_SRC:= \
 	misc/Nothing.cpp
 SRC:= $(MAIN_SRC) $(CONFIGURATION_SRC) $(MISC_SRC)

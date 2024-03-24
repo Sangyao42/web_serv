@@ -58,6 +58,7 @@ namespace configuration
       virtual bool          is_block() const = 0;
       virtual Type          type() const = 0;
       const Context&        context() const;
+      void                  set_context(const Context& context);
       int                   index() const;
 
     protected:

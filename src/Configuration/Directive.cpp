@@ -30,8 +30,7 @@ namespace configuration
   
   Directive& Directive::operator=(const Directive& other)
   {
-    if (this != &other)
-      context_ = other.context_;
+    context_ = other.context_;
     return *this;
   }
 
@@ -40,6 +39,11 @@ namespace configuration
   const Directive::Context& Directive::context() const
   {
     return context_;
+  }
+
+  void  Directive::set_context(const Context& context)
+  {
+    context_ = context;
   }
 
   int Directive::index() const
@@ -62,11 +66,8 @@ namespace configuration
   
   DirectiveBlock& DirectiveBlock::operator=(const DirectiveBlock& other)
   {
-    if (this != &other)
-    {
-      Directive::operator=(other);
-      directives_ = other.directives_;
-    }
+    Directive::operator=(other);
+    directives_ = other.directives_;
     return *this;
   }
 
@@ -80,6 +81,7 @@ namespace configuration
   bool DirectiveBlock::add_directive(Directive* directive)
   {
     assert(directive != NULL);
+    directive->set_context(directives_.size());
     directives_.insert(std::make_pair(directive->type(), directive));
     return true;
   }
