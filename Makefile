@@ -31,14 +31,24 @@ OBJS_DIR:= obj
 
 MAIN_SRC:= \
 	main.cpp
+
 CONFIGURATION_SRC:= \
 	Configuration/Directive.cpp \
 	Configuration/Directive/Http.cpp \
 	Configuration/Directive/Server.cpp \
 	Configuration/Directive/Events.cpp \
-	Configuration/Directive/Location.cpp
+	Configuration/Directive/Location.cpp \
+	Configuration/Directive/Listen.cpp \
+	Configuration/Directive/ServerName.cpp \
+	Configuration/Directive/AllowMethods.cpp \
+	Configuration/Directive/MimeTypes.cpp \
+	Configuration/Directive/ErrorPage.cpp \
+	Configuration/Directive/Redirect.cpp \
+	Configuration/Directive/Cgi.cpp
+
 MISC_SRC:= \
 	misc/Nothing.cpp
+
 SRC:= $(MAIN_SRC) $(CONFIGURATION_SRC) $(MISC_SRC)
 
 ####################################

@@ -31,7 +31,6 @@ namespace configuration
         kDirectiveListen,
         kDirectiveServerName,
         kDirectiveAllowMethods,
-        kDirectiveDenyMethods,
         // for HTTP response generation (serve a file)
         kDirectiveRoot,
         kDirectiveIndex,
@@ -90,20 +89,6 @@ namespace configuration
   */
   typedef DirectivesRange Locations;
 
-  struct Methods
-  {
-    int get_bit : 1;
-    int post_bit : 1;
-    int delete_bit : 1;
-  };
-
-  enum Method
-  {
-    kMethodGet,
-    kMethodPost,
-    kMethodDelete
-  };
-
   class DirectiveBlock : public Directive
   {
     public:
@@ -116,7 +101,7 @@ namespace configuration
       virtual bool            is_block() const;
       virtual Type            type() const = 0;
 
-      virtual bool            add_directive(Directive* directive);
+      virtual void            add_directive(Directive* directive);
       virtual DirectivesRange get_directive(Type type) const;
 
     protected:

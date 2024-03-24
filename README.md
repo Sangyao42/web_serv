@@ -67,7 +67,7 @@ http {
             cgi py /cgi-bin;
         }
         location /images {
-			deny_methods GET;
+            allow_methods POST DELETE;
             redirect /new permanent;
         }
         location /cgi-bin {
@@ -90,7 +90,6 @@ http {
 - `listen` - The port that the server will listen on
 - `server_name` - The server name of the server
 - `allow_methods` - Specify the allowed methods
-- `deny_methods` - Specify the denied methods
 
 #### Directives for HTTP response generation
 

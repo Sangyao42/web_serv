@@ -78,12 +78,11 @@ namespace configuration
     return true;
   }
 
-  bool DirectiveBlock::add_directive(Directive* directive)
+  void DirectiveBlock::add_directive(Directive* directive)
   {
     assert(directive != NULL);
     directive->set_context(directives_.size());
     directives_.insert(std::make_pair(directive->type(), directive));
-    return true;
   }
 
   DirectivesRange DirectiveBlock::get_directive(Type type) const

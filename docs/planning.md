@@ -40,11 +40,10 @@ Supported configuration options:
 | listen               | Simple | server                    | *:80 *:8000        | append    | no            | ip_address*            |
 | server_name          | Simple | server                    | ""                 | append    | no            | word*                  |
 | allow_methods        | Simple | http,server,location      | GET POST           | append    | yes           | (GET \| POST \| DELETE)* |
-| deny_methods         | Simple | http,server,location      | DELETE             | append    | yes           | (GET \| POST \| DELETE)* |
 | root                 | Simple | http,server,location      | html               | overwrite | yes           | path                   |
 | index                | Simple | http,server,location      | index.html         | append    | yes           | path*                  |
 | types                | Simple | http,server,location      | N/A                | overwrite | yes           | {}                     |
-| error_page           | Simple | http,server,location      | N/A                | append    | yes           | number path            |
+| error_page           | Simple | http,server,location      | N/A                | append    | yes           | path                   |
 | client_max_body_size | Simple | http,server,location      | 1m                 | overwrite | yes           | number unit            |
 | redirect             | Simple | server,location           | N/A                | overwrite | yes           | path (redirect \| permanent) |
 | autoindex            | Simple | http,server,location      | off                | overwrite | yes           | on \| off              |

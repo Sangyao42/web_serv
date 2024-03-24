@@ -8,7 +8,7 @@ class Maybe
 {
   public:
     Maybe();
-    Maybe(const Nothing value);
+    Maybe(const Nothing);
     Maybe(const T& value);
     Maybe(const Maybe& other);
     ~Maybe();
