@@ -8,18 +8,20 @@
  * [/] DirectiveListen
  * [/] DirectiveServerName
  * [/] DirectiveAllowMethods
- * [ ] DirectiveRoot
- * [ ] DirectiveIndex
+ * [S] DirectiveRoot
+ * [S] DirectiveIndex
  * [/] DirectiveMimeTypes
- * [ ] DirectiveErrorPage
- * [ ] DirectiveClientMaxBodySize
+ * [S] DirectiveErrorPage
+ * [S] DirectiveClientMaxBodySize
  * [/] DirectiveRedirect
- * [ ] DirectiveAutoindex
+ * [S] DirectiveAutoindex
  * [/] DirectiveCgi
- * [ ] DirectiveAccessLog
- * [ ] DirectiveErrorLog
- * [ ] DirectiveInclude
- * [ ] DirectiveWorkerConnections
+ * [S] DirectiveAccessLog
+ * [S] DirectiveErrorLog
+ * [S] DirectiveInclude
+ * [S] DirectiveWorkerConnections
+ * 
+ * classes marked with S are tested in the TestDirectiveSimple typed tests.
 */
 
 class TestDirectiveListen :
@@ -27,8 +29,6 @@ class TestDirectiveListen :
 {
 protected:
   configuration::DirectiveListen test_target_;
-  void SetUp() override {}
-  void TearDown() override {}
 };
 
 class TestDirectiveServerName :
@@ -36,8 +36,6 @@ class TestDirectiveServerName :
 {
 protected:
   configuration::DirectiveServerName test_target_;
-  void SetUp() override {}
-  void TearDown() override {}
 };
 
 class TestDirectiveAllowMethods :
@@ -45,8 +43,6 @@ class TestDirectiveAllowMethods :
 {
 protected:
   configuration::DirectiveAllowMethods test_target_;
-  void SetUp() override {}
-  void TearDown() override {}
 };
 
 using MimeTypeVector = std::vector<std::pair<std::string, std::string> >;
@@ -56,8 +52,6 @@ class TestDirectiveMimeTypes :
 {
 protected:
   configuration::DirectiveMimeTypes test_target_;
-  void SetUp() override {}
-  void TearDown() override {}
 };
 
 class TestFilledDirectiveMimeTypes : public ::testing::Test
@@ -79,7 +73,6 @@ protected:
     test_target_.add("shtml", "text/html");
     test_target_.add("png", "image/png");
   }
-  void TearDown() override {}
 };
 
 class TestDirectiveRedirect :
@@ -87,8 +80,6 @@ class TestDirectiveRedirect :
 {
 protected:
   configuration::DirectiveRedirect test_target_;
-  void SetUp() override {}
-  void TearDown() override {}
 };
 
 class TestDirectiveCgi :
@@ -96,6 +87,17 @@ class TestDirectiveCgi :
 {
 protected:
   configuration::DirectiveCgi test_target_;
-  void SetUp() override {}
-  void TearDown() override {}
+};
+
+template <typename T>
+class TestDirectiveSimple : public ::testing::Test
+{
+protected:
+  std::vector<configuration::Directive*> test_targets_;
+
+  void TearDown() override
+  {
+    for (auto& test_target : test_targets_)
+      delete test_target;
+  }
 };
