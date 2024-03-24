@@ -31,27 +31,47 @@ The configuration file is a nginx styled file. It is used to configure the serve
 
 Supported configuration options:
 
-| Directive            | Type   | Contexts                  | Default values     | On repeat | arguments              |
-| -------------------- | ------ | ------------------------- | ------------------ | --------- | ---------------------- |
-| http                 | Block  | main                      | N/A                | error     | {}                     |
-| server               | Block  | http                      | N/A                | append    | {}                     |
-| events               | Block  | main                      | worker_connections | error     | {}                     |
-| location             | Block  | server,location           | N/A                | append    | {}                     |
-| listen               | Simple | server                    | *:80 *:8000        | append    | ip_address*            |
-| server_name          | Simple | server                    | ""                 | append    | word*                  |
-| allow_methods        | Simple | http,server,location      | GET POST           | append    | (GET \| POST \| DELETE)* |
-| deny_methods         | Simple | http,server,location      | DELETE             | append    | (GET \| POST \| DELETE)* |
-| root                 | Simple | http,server,location      | html               | overwrite | path                   |
-| index                | Simple | http,server,location      | index.html         | append    | path*                  |
-| types                | Simple | http,server,location      | N/A                | overwrite | {}                     |
-| error_page           | Simple | http,server,location      | N/A                | append    | number path            |
-| client_max_body_size | Simple | http,server,location      | 1m                 | overwrite | number unit            |
-| redirect             | Simple | server,location           | N/A                | append    | path (redirect \| permanent) |
-| autoindex            | Simple | http,server,location      | off                | overwrite | on \| off              |
-| cgi                  | Simple | http,server,location      | N/A                | append    | word path              |
-| access_log           | Simple | http,server,location      | logs/access.log    | overwrite | path                   |
-| error_log            | Simple | main,http,server,location | logs/error.log     | overwrite | path                   |
-| include              | Simple | main,http,server,location | N/A                | N/A       | path                   |
-| worker_connections   | Simple | events                    | 512                | overwrite | number                 |
+| Directive            | Type   | Contexts                  | Default values     | On repeat | order matters | arguments              |
+| -------------------- | ------ | ------------------------- | ------------------ | --------- | ------------- | ---------------------- |
+| http                 | Block  | main                      | N/A                | error     | appear once   | {}                     |
+| server               | Block  | http                      | N/A                | append    | yes           | {}                     |
+| events               | Block  | main                      | worker_connections | error     | appear once   | {}                     |
+| location             | Block  | server,location           | N/A                | append    | yes           | {}                     |
+| listen               | Simple | server                    | *:80 *:8000        | append    | no            | ip_address*            |
+| server_name          | Simple | server                    | ""                 | append    | no            | word*                  |
+| allow_methods        | Simple | http,server,location      | GET POST           | append    | yes           | (GET \| POST \| DELETE)* |
+| deny_methods         | Simple | http,server,location      | DELETE             | append    | yes           | (GET \| POST \| DELETE)* |
+| root                 | Simple | http,server,location      | html               | overwrite | yes           | path                   |
+| index                | Simple | http,server,location      | index.html         | append    | yes           | path*                  |
+| types                | Simple | http,server,location      | N/A                | overwrite | yes           | {}                     |
+| error_page           | Simple | http,server,location      | N/A                | append    | yes           | number path            |
+| client_max_body_size | Simple | http,server,location      | 1m                 | overwrite | yes           | number unit            |
+| redirect             | Simple | server,location           | N/A                | overwrite | yes           | path (redirect \| permanent) |
+| autoindex            | Simple | http,server,location      | off                | overwrite | yes           | on \| off              |
+| cgi                  | Simple | http,server,location      | N/A                | append    | yes           | word path              |
+| access_log           | Simple | http,server,location      | logs/access.log    | overwrite | yes           | path                   |
+| error_log            | Simple | main,http,server,location | logs/error.log     | overwrite | yes           | path                   |
+| include              | Simple | main,http,server,location | N/A                | N/A       | yes           | path                   |
+| worker_connections   | Simple | events                    | 512                | overwrite | appear once   | number                 |
+
+### On repeat
+
+append mode - When the directive is used, all the repeated directives of the same type (from the current context to the main context) are queried, the most matching entry will be used.
+
+overwrite mode - Only the latest directive is used.
+
+error mode - Repeated directive is not allowed.
+
+### Order
+
+Need a map that perserve order of appending:
+
+```conf
+index index.html;
+
+location {}
+
+index index.htm;
+```
 
 - kqueue: https://habr.com/en/articles/600123/

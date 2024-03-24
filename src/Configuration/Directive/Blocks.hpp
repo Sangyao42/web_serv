@@ -15,11 +15,9 @@ namespace configuration
       DirectiveHttp& operator=(const DirectiveHttp& other);
       virtual ~DirectiveHttp();
 
-      virtual std::string&  get_name() const;
       virtual Type          type() const;
 
       bool                  add_directive(Directive* directive);
-      Servers&              get_servers();
       const Servers&        get_servers() const;
 
     private:
@@ -35,11 +33,9 @@ namespace configuration
       DirectiveServer& operator=(const DirectiveServer& other);
       virtual ~DirectiveServer();
 
-      virtual std::string&  get_name() const;
       virtual Type          type() const;
 
       bool                  add_directive(Directive* directive);
-      Locations&            get_locations();
       const Locations&      get_locations() const;
 
     private:
@@ -54,7 +50,6 @@ namespace configuration
       DirectiveEvents& operator=(const DirectiveEvents& other);
       virtual ~DirectiveEvents();
 
-      virtual std::string&  get_name() const;
       virtual Type          type() const;
   };
 
@@ -66,11 +61,9 @@ namespace configuration
       DirectiveLocation& operator=(const DirectiveLocation& other);
       virtual ~DirectiveLocation();
 
-      virtual std::string&  get_name() const;
       virtual Type          type() const;
 
       bool                  add_directive(Directive* directive);
-      Locations&            get_locations();
       const Locations&      get_locations() const;
 
     private:
