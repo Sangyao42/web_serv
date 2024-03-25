@@ -1,5 +1,6 @@
 #include "SocketManager.hpp"
 #include "Configuration.hpp"
+#include "ErrorSocket.hpp"
 
 #include <poll.h>
 
@@ -11,7 +12,7 @@ namespace pollfds
 	{
 		if (servers.empty())
 		{
-			return 0;
+			throw ServerIsEmptyException();
 		}
 		std::vector<struct ServerSocket>::iterator it;
 		for (it = servers.begin(); it != servers.end(); it++)
@@ -30,17 +31,11 @@ int main(int argc, char **argv)
 	int server_running = 1;
 	Configuration conf;
 	SocketManager sm;
+	int server_fd_count;
 	std::vector<struct pollfd> pfds;
 
 	sm.set_servers(conf.getPorts());
-
-	//add servers to pollfd as listening port and set events to POLLIN
-	int server_fd_count = pollfds::add_server_fd(pfds, sm.get_servers());
-	if (server_fd_count == 0)
-	{
-		std::cerr << "No servers to listen on" << std::endl;
-		exit (-1);
-	}
+	server_fd_count = pollfds::add_server_fd(pfds, sm.get_servers());
 	int fd_count = server_fd_count;
 	while (server_running)
 	{
