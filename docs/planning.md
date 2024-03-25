@@ -17,7 +17,7 @@ socket manager -> create response
 - select
 - poll
 - epoll (linux)
-- kqueue (BSD or mac)
+- [kqueue](https://habr.com/en/articles/600123/) (BSD or mac)
 
 ## cgi
 
@@ -42,7 +42,7 @@ Supported configuration options:
 | allow_methods        | Simple | http,server,location      | GET POST           | append    | yes           | (GET \| POST \| DELETE)* |
 | root                 | Simple | http,server,location      | html               | overwrite | yes           | path                   |
 | index                | Simple | http,server,location      | index.html         | append    | yes           | path*                  |
-| types                | Simple | http,server,location      | N/A                | overwrite | yes           | {}                     |
+| types                | Simple | http,server,location      | N/A                | overwrite | yes           | { text/plain * }       |
 | error_page           | Simple | http,server,location      | N/A                | append    | yes           | path                   |
 | client_max_body_size | Simple | http,server,location      | 1m                 | overwrite | yes           | number unit            |
 | redirect             | Simple | server,location           | N/A                | overwrite | yes           | path (redirect \| permanent) |
@@ -63,14 +63,43 @@ error mode - Repeated directive is not allowed.
 
 ### Order
 
-Need a map that perserve order of appending:
+Need multimap to perserve multiple occurance of the same type of directives.
+The order of directives are recorded in every directive.
 
 ```conf
 index index.html;
 
-location {}
+location /hello {}; inside this block, index is index.html
 
-index index.htm;
+index hello.htm;
+
+location / {}; inside this block, index is hello.htm
 ```
 
-- kqueue: https://habr.com/en/articles/600123/
+### Functionality
+
+| Directive            | status code | Functionality                             
+| -------------------- | ----------- | ------------------------------------------
+| http                 |             | search_server, get_all_ip_addresses
+| server               |             | search_location
+| listen               |             | search_server, get_all_ip_addresses
+| location             |             | 
+| server_name          |             | search_server
+| allow_methods        | 405         | request_is_accepted
+| root                 | 403,404     | construct_full_path
+| index                | 403,404     | construct_full_path
+| types                |             | get_response_content_type
+| error_page           | all         | generate_templated_response
+| client_max_body_size |             | request_is_accepted, get_request_max_size
+| redirect             | 301,307     | generate_header_response
+| autoindex            |             | construct_full_path, generate_templated_response
+| cgi                  |             | generate_cgi_response
+| access_log           |             | log_response
+| error_log            |             | log_response
+| include              |             |
+|
+| events               |             | get_worker_connections
+| worker_connections   |             | get_worker_connections
+
+- `index` has to match all the entries to find the best match.
+- `search` has to return a path to the best match. The path is used to decide which directive is in relevant to the current path match.
