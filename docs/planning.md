@@ -76,33 +76,33 @@ index hello.htm;
 location / {}; inside this block, index is hello.htm
 ```
 
-### Functionality
+### API of the Configuration class
 
-| Directive            | status code | Functionality                             
-| -------------------- | ----------- | ------------------------------------------
-| http                 |             | search_server, get_all_ip_addresses
-| server               |             | search_location
-| listen               |             | get_all_ip_addresses
-| location             |             | 
-| server_name          |             | search_server
-| allow_methods        | 405         | request_is_accepted
-| root                 | 403,404     | construct_full_path
-| index                | 403,404     | construct_full_path
-| types                |             | get_response_content_type
-| error_page           | all         | generate_templated_response
-| client_max_body_size | 413         | request_is_accepted, get_request_max_size
-| redirect             | 301,307     | generate_redirect_response
-| autoindex            |             | construct_full_path, generate_templated_response
-| cgi                  |             | generate_cgi_response
-| access_log           |             | log_response
-| error_log            |             | log_response
-| include              |             |
-|
-| events               |             | get_worker_connections
-| worker_connections   |             | get_worker_connections
+| Directive            | status code | API                                 | used by
+| -------------------- | ----------- | ----------------------------------- | -------------------
+| http                 |             | search_server, get_all_ip_addresses |
+| server               |             | search_location                     |
+| listen               |             | get_all_ip_addresses                |
+| location             |             | search_location                     |
+| server_name          |             | search_server                       |
+| allow_methods        | 405         |                                     | request_is_accepted
+| root                 | 403,404     |                                     | construct_full_path
+| index                | 403,404     |                                     | construct_full_path
+| types                |             | get_response_content_type           |
+| error_page           | all         |                                     | generate_templated_response
+| client_max_body_size | 413         | get_request_max_size                | request_is_accepted
+| redirect             | 301,307     |                                     | generate_redirect_response
+| autoindex            |             |                                     | construct_full_path, generate_templated_response
+| cgi                  |             |                                     | generate_cgi_response
+| access_log           |             |                                     | log_response
+| error_log            |             |                                     | log_response
+| include              |             |                                     |
+| events               |             | get_worker_connections              | socker_manager
+| worker_connections   |             | get_worker_connections              | socker_manager
 
 - `index` has to match all the entries to find the best match.
 - `search` has to return a path to the best match. The path is used to decide which directive is in relevant to the current path match.
+- 
 
 socket manager needs:
 
@@ -113,25 +113,28 @@ Imagining the use of data in the configuration file:
 
 ```c
 if !search_server //it simply check for server_names
-	use_first_server_block;
+	use_first_server_block()
+
+// Following block refers correspond to request_is_accepted
 if !allowed_mathods?
 	return generate_error_response(405)
-if exceed_max_body_size?
+else if exceed_max_body_size?
 	return generate_error_response(413)
-search_location
+
+search_location()
 if has_redirection?
 	return generate_redirect_response(301 or 307)
 if is_filename?
 {
 	if use_cgi?
-		return generate_cgi_response
+		return generate_cgi_response()
 	else
 		return generate_error_response(404)
 }
 else if is_autoindex_on?
-	return generate_templated_response
+	return generate_templated_response()
 else if match_with_index
-	return generate_file_response
+	return generate_file_response()
 else
 	generate_error_response(403 or 404)
 ```
