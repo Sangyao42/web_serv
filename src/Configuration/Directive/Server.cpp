@@ -30,7 +30,7 @@ namespace configuration
     return Directive::kDirectiveServer;
   }
 
-  Maybe<Locations> DirectiveServer::get_locations()
+  Maybe<Locations> DirectiveServer::locations()
   {
     if (!locations_.is_ok())
     {

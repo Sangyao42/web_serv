@@ -90,7 +90,7 @@ namespace configuration
     directives_.insert(std::make_pair(directive->type(), directive));
   }
 
-  DirectivesRange DirectiveBlock::get_directive(Type type) const
+  DirectivesRange DirectiveBlock::query_directive(Type type) const
   {
     return directives_.equal_range(type);
   }

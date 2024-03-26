@@ -5,20 +5,20 @@
 namespace configuration
 {
   DirectiveListen::DirectiveListen()
-    : Directive(), ip_addresses_() {}
+    : Directive(), sockets_() {}
 
   DirectiveListen::DirectiveListen(const Context& context)
-    : Directive(context), ip_addresses_() {}
+    : Directive(context), sockets_() {}
   
   DirectiveListen::DirectiveListen(const DirectiveListen& other)
-    : Directive(other), ip_addresses_(other.ip_addresses_) {}
+    : Directive(other), sockets_(other.sockets_) {}
   
   DirectiveListen& DirectiveListen::operator=(const DirectiveListen& other)
   {
     if (this != &other)
     {
       Directive::operator=(other);
-      ip_addresses_ = other.ip_addresses_;
+      sockets_ = other.sockets_;
     }
     return *this;
   }
@@ -35,13 +35,13 @@ namespace configuration
     return Directive::kDirectiveListen;
   }
 
-  void DirectiveListen::add(const IpAddress& ip_address)
+  void DirectiveListen::add(const Socket& socket)
   {
-    ip_addresses_.push_back(ip_address);
+    sockets_.push_back(socket);
   }
 
-  const std::vector<DirectiveListen::IpAddress>& DirectiveListen::get() const
+  const std::vector<Socket>& DirectiveListen::get() const
   {
-    return ip_addresses_;
+    return sockets_;
   }
 } // namespace configuration

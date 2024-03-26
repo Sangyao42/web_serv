@@ -30,7 +30,7 @@ namespace configuration
     return Directive::kDirectiveHttp;
   }
 
-  Maybe<Servers> DirectiveHttp::get_servers()
+  Maybe<Servers> DirectiveHttp::servers()
   {
     if (!servers_.is_ok())
     {

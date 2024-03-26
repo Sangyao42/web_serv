@@ -3,11 +3,13 @@
 ################################
 
 CC:=g++
-CXXFLAGS= -std=c++98 -pedantic -Wall -Wextra -Werror -MMD -MP -O2
+CXXFLAGS= -std=c++98 -pedantic -Wall -Wextra -Werror -MMD -MP
 LDFLAGS= -std=c++98 -pedantic
 ifdef FSANITIZE
 	CXXFLAGS+= -g3 -fsanitize=address -DDEBUG=1
 	LDFLAGS+= -g3 -fsanitize=address
+else
+	CXXFLAGS+= -O2 -DDEBUG=0 -DNDEBUG
 endif
 
 ###############################
@@ -33,6 +35,9 @@ MAIN_SRC:= \
 	main.cpp
 
 CONFIGURATION_SRC:= \
+	Configuration/Socket.cpp \
+	Configuration/Configuration.cpp \
+	Configuration/SocketConfiguration.cpp \
 	Configuration/Directive.cpp \
 	Configuration/Directive/Http.cpp \
 	Configuration/Directive/Server.cpp \

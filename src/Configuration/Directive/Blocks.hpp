@@ -19,7 +19,7 @@ namespace configuration
 
       virtual Type          type() const;
 
-      Maybe<Servers>        get_servers();
+      Maybe<Servers>        servers();
 
     private:
       Maybe<Servers> servers_;
@@ -36,7 +36,7 @@ namespace configuration
 
       virtual Type          type() const;
 
-      Maybe<Locations>      get_locations();
+      Maybe<Locations>      locations();
 
     private:
       Maybe<Locations> locations_;
@@ -52,6 +52,8 @@ namespace configuration
       virtual ~DirectiveEvents();
 
       virtual Type          type() const;
+
+      Maybe<size_t>         worker_connections() const;
   };
 
   class DirectiveLocation : public DirectiveBlock
@@ -65,7 +67,7 @@ namespace configuration
 
       virtual Type          type() const;
 
-      Maybe<Locations>      get_locations();
+      Maybe<Locations>      locations();
 
     private:
       Maybe<Locations> locations_;

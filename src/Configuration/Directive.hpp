@@ -104,7 +104,7 @@ namespace configuration
       virtual Type            type() const = 0;
 
       virtual void            add_directive(Directive* directive);
-      virtual DirectivesRange get_directive(Type type) const;
+      virtual DirectivesRange query_directive(Type type) const;
 
     protected:
       Directives directives_;

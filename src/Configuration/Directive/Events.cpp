@@ -1,5 +1,7 @@
 #include "Blocks.hpp"
 
+#include "Simple.hpp"
+
 namespace configuration
 {
   DirectiveEvents::DirectiveEvents()
@@ -23,5 +25,13 @@ namespace configuration
   Directive::Type DirectiveEvents::type() const
   {
     return Directive::kDirectiveEvents;
+  }
+
+  Maybe<size_t> DirectiveEvents::worker_connections() const
+  {
+    DirectivesRange query_result = query_directive(Directive::kDirectiveWorkerConnections);
+    if (query_result.first == query_result.second)
+      return Nothing();
+    return static_cast<DirectiveWorkerConnections*>(query_result.first->second)->get();
   }
 } // namespace configuration

@@ -7,6 +7,7 @@
 #include <bitset>
 
 #include "Configuration/Directive.hpp"
+#include "Configuration/Socket.hpp"
 
 namespace configuration
 {
@@ -34,7 +35,6 @@ namespace configuration
   class DirectiveListen : public Directive
   {
     public:
-      typedef std::pair<std::string, std::string> IpAddress;
       DirectiveListen();
       DirectiveListen(const Context& context);
       DirectiveListen(const DirectiveListen& other);
@@ -44,11 +44,11 @@ namespace configuration
       virtual bool          is_block() const;
       virtual Type          type() const;
 
-      void                          add(const IpAddress& ip_address);
-      const std::vector<IpAddress>& get() const;
+      void                       add(const Socket& socket);
+      const std::vector<Socket>& get() const;
 
     private:
-      std::vector<IpAddress> ip_addresses_;
+      std::vector<Socket> sockets_;
   };
 
   class DirectiveServerName : public Directive
