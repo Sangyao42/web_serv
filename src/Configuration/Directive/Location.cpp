@@ -11,14 +11,14 @@ namespace configuration
     : DirectiveBlock(context), locations_() {}
   
   DirectiveLocation::DirectiveLocation(const DirectiveLocation& other)
-    : DirectiveBlock(other), locations_(other.locations_) {}
+    : DirectiveBlock(other), locations_() {}
   
   DirectiveLocation& DirectiveLocation::operator=(const DirectiveLocation& other)
   {
     if (this != &other)
     {
       DirectiveBlock::operator=(other);
-      locations_ = other.locations_;
+      locations_ = Nothing();
     }
     return *this;
   }
@@ -33,7 +33,11 @@ namespace configuration
   Maybe<Locations> DirectiveLocation::get_locations()
   {
     if (!locations_.is_ok())
-      locations_ = static_cast<const Directives>(directives_).equal_range(Directive::kDirectiveLocation);
+    {
+      Locations locations = static_cast<const Directives>(directives_).equal_range(Directive::kDirectiveLocation);
+      if (locations.first != locations.second)
+        locations_ = locations;
+    }
     return locations_;
   }
 } // namespace configuration
