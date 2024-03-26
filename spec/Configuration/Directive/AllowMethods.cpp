@@ -57,11 +57,17 @@ TEST_P(TestDirectiveAllowMethods, is_allowed)
 
   test_target_.set(methods);
   if (methods & Method::kMethodGet)
+  {
     ASSERT_EQ(test_target_.is_allowed(Method::kMethodGet), true);
+  }
   if (methods & Method::kMethodPost)
+  {
     ASSERT_EQ(test_target_.is_allowed(Method::kMethodPost), true);
+  }
   if (methods & Method::kMethodDelete)
+  {
     ASSERT_EQ(test_target_.is_allowed(Method::kMethodDelete), true);
+  }
 }
 
 TEST_P(TestDirectiveAllowMethods, get)
@@ -71,11 +77,17 @@ TEST_P(TestDirectiveAllowMethods, get)
   test_target_.set(methods);
   Methods result = test_target_.get();
   if (methods & Method::kMethodGet)
+  {
     ASSERT_EQ(result[0], true);
+  }
   if (methods & Method::kMethodPost)
+  {
     ASSERT_EQ(result[1], true);
+  }
   if (methods & Method::kMethodDelete)
+  {
     ASSERT_EQ(result[2], true);
+  }
 }
 
 INSTANTIATE_TEST_SUITE_P(Methods, TestDirectiveAllowMethods, testing::Values(
