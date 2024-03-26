@@ -19,12 +19,12 @@ namespace configuration
 
       const std::string& ip_address() const;
       const std::string& port() const;
-      u_int16_t          family() const;
+      unsigned int       family() const;
 
     private:
       std::string ip_address_;
       std::string port_;
-      u_int16_t   family_;
+      unsigned int   family_;
 
       void        recognize_family();
       void        simplify_ipv6();

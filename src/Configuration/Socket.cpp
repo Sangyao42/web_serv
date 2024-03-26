@@ -55,7 +55,7 @@ namespace configuration
     return port_;
   }
 
-  u_int16_t Socket::family() const
+  unsigned int Socket::family() const
   {
     return family_;
   }

@@ -37,7 +37,6 @@ MAIN_SRC:= \
 CONFIGURATION_SRC:= \
 	Configuration/Socket.cpp \
 	Configuration/Configuration.cpp \
-	Configuration/SocketConfiguration.cpp \
 	Configuration/Directive.cpp \
 	Configuration/Directive/Http.cpp \
 	Configuration/Directive/Server.cpp \

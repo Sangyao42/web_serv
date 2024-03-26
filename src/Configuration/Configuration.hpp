@@ -2,7 +2,6 @@
 
 #include <vector>
 
-#include "Configuration/SocketConfiguration.hpp"
 #include "Configuration/Directive.hpp"
 #include "Configuration/Directive/Blocks.hpp"
 #include "Configuration/Directive/Simple.hpp"
@@ -25,14 +24,10 @@ class Configuration
     configuration::Directives&            directives();
     const configuration::Directives&      directives() const;
 
-    /**
-     * @return configuration for each listening socket
-    */
-    std::vector<SocketConfiguration>      socket_configurations();
     size_t                                worker_connections() const;
 
   private:
-    configuration::DirectiveHttp   http_;
-    configuration::DirectiveEvents events_;
-    configuration::Directives      directives_;
+    configuration::DirectiveHttp      http_;
+    configuration::DirectiveEvents    events_;
+    configuration::Directives         directives_;
 };
