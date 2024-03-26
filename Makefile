@@ -9,7 +9,7 @@ ifdef FSANITIZE
 	CXXFLAGS+= -g3 -fsanitize=address -DDEBUG=1
 	LDFLAGS+= -g3 -fsanitize=address
 else
-	CXXFLAGS+= -O2 -DDEBUG=0 -DNDEBUG
+	CXXFLAGS+= -O2 -DNDEBUG
 endif
 
 ###############################

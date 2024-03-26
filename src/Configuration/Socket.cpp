@@ -86,17 +86,17 @@ namespace configuration
       }
       else if (*it == ':')
       {
-        if (found_value)
+        if (found_value && empty_octets_amount < 1)
           empty_octets_amount = 0;
         if (empty_octets_amount < 2)
           simplified_ip_address.push_back(':');
-        ++empty_octets_amount;
+        if (!found_value)
+          ++empty_octets_amount;
         found_value = false;
       }
       else
       {
         found_value = true;
-        empty_octets_amount = 0;
         simplified_ip_address.push_back(*it);
       }
     }

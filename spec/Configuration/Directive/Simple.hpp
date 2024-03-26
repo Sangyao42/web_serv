@@ -25,7 +25,7 @@
 */
 
 class TestDirectiveListen :
-  public ::testing::TestWithParam<std::vector<configuration::DirectiveListen::IpAddress> >
+  public ::testing::TestWithParam<std::vector<configuration::Socket> >
 {
 protected:
   configuration::DirectiveListen test_target_;
