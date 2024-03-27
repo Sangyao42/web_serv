@@ -46,7 +46,11 @@ int main(int argc, char **argv)
 
 	int max_clients = conf.getMaxClients();
 	int client_count = 0;
-	sm.set_servers(conf.getPorts()); //assert inside make sure at least one server is available
+	if (sm.set_servers(conf.getPorts()) != kNoError) //assert inside make sure at least one server is available
+	{
+		//TODO: error handling
+		return (kConnectionError);
+	}
 	//vector of SocketConfiguration/ServerConfiguration
 	int server_socket_count = pollfds::add_server_fd(pfds, sm.get_servers());
 	int fd_count = server_socket_count;
