@@ -66,6 +66,22 @@ struct in6_addr {
 };
 */
 
+//TEST: struct from configuration.hpp
+namespace configuration
+{
+	struct Socket
+	{
+		std::string ip;
+		std::string port;
+		unsigned int   family_;
+	};
+}
+
+struct SocketConfiguration
+{
+	int server_socket;
+};
+
 struct ClientSocket
 {
 	int socket;
@@ -76,10 +92,13 @@ struct ClientSocket
 	std::string res_buf;
 };
 
+//save the full linked list of res from getaddrinfo()
+//use addr_to_bind to query the correct node in the linked list
 struct ServerSocket
 {
 	int socket;
-	struct addrinfo *ip_addr;
+	struct addrinfo *add_info;
+	int addr_to_bind;
 };
 
 class SocketManager
@@ -101,6 +120,7 @@ class SocketManager
 		std::vector<struct ClientSocket> * get_clients();
 		struct ServerSocket get_one_server(int server_socket) const; //query server by socket
 		struct ClientSocket *get_one_client(int client_socket); //query client by socket
+		struct addrinfo *get_server_addrinfo(int server_socket);
 	private:
 		std::vector<struct ServerSocket> servers_;
 		std::vector<struct ClientSocket> clients_;
