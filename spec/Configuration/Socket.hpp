@@ -7,6 +7,6 @@
 
 #include "Configuration/Socket.hpp"
 
-using SocketTest = std::tuple<std::string, std::string, u_int16_t, std::string>;
+using SocketTest = std::tuple<std::string, std::string, u_int16_t>;
 
 class TestConfigurationSocket : public ::testing::TestWithParam<SocketTest> {};
