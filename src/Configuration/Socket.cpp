@@ -2,6 +2,8 @@
 
 #include <sys/socket.h>
 
+#include <bitset>
+
 namespace configuration
 {
   Socket::Socket()
@@ -14,7 +16,6 @@ namespace configuration
     : ip_address_(ip_address), port_(port), family_(AF_UNSPEC)
   {
     recognize_family();
-    simplify_ipv6();
   }
 
   Socket::Socket(const Socket& other)
@@ -68,38 +69,4 @@ namespace configuration
       family_ = AF_INET;
   }
 
-  void  Socket::simplify_ipv6()
-  {
-    if (family_ != AF_INET6)
-      return ;
-    std::string simplified_ip_address;
-
-    bool  found_value = false;
-    int   empty_octets_amount = 0;
-
-    for (std::string::iterator it = ip_address_.begin(); it != ip_address_.end(); ++it)
-    {
-      if (*it == '0')
-      {
-        if (found_value)
-          simplified_ip_address.push_back('0');
-      }
-      else if (*it == ':')
-      {
-        if (found_value && empty_octets_amount < 1)
-          empty_octets_amount = 0;
-        if (empty_octets_amount < 2)
-          simplified_ip_address.push_back(':');
-        if (!found_value)
-          ++empty_octets_amount;
-        found_value = false;
-      }
-      else
-      {
-        found_value = true;
-        simplified_ip_address.push_back(*it);
-      }
-    }
-    ip_address_ = simplified_ip_address;
-  }
 } // namespace configuration

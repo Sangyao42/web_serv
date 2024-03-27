@@ -22,11 +22,10 @@ namespace configuration
       unsigned int       family() const;
 
     private:
-      std::string ip_address_;
-      std::string port_;
-      unsigned int   family_;
+      std::string   ip_address_;
+      std::string   port_;
+      unsigned int  family_;
 
       void        recognize_family();
-      void        simplify_ipv6();
   };
 } // namespace configuration
