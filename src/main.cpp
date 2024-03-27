@@ -3,12 +3,13 @@
 #include "SocketError.hpp"
 
 #include <poll.h>
+#include <unistd.h>
 
 #include <vector>
 
 namespace pollfds
 {
-	int add_server_fd(std::vector<struct pollfd> &pfds, std::vector<struct ServerSocket> &servers)
+	int add_server_fd(std::vector<struct pollfd> &pfds, std::vector<struct ServerSocket> servers)
 	{
 		std::vector<struct ServerSocket>::iterator it;
 		for (it = servers.begin(); it != servers.end(); it++)
@@ -67,7 +68,7 @@ int main(int argc, char **argv)
 				if ( i < server_socket_count && client_count < max_clients)
 				{
 					//accept connection if max clients not reached
-					int client_socket = sm.accept_client(sm.get_servers()[i].socket);
+					int client_socket = sm.accept_client(pfds[i].fd);
 					if (client_socket == -1)
 						continue ;
 					else
@@ -83,6 +84,7 @@ int main(int argc, char **argv)
 					ssize_t recv_len = sm.recv_append(pfds[i].fd, recv_buf);
 					if (recv_len <= 0)
 					{
+						close(pfds[i].fd);
 						pollfds::delete_client_fd(pfds, i);
 						client_count--;
 					}
@@ -96,7 +98,14 @@ int main(int argc, char **argv)
 			else if (pfds[i].revents & POLLOUT)
 			{
 				//send response to client
-
+				ssize_t send_len = sm.send_all(pfds[i].fd);
+				//TODO: do I need to close the client socket if send fails?
+				if (send_len == -1)
+				{
+					close(pfds[i].fd);
+					pollfds::delete_client_fd(pfds, i);
+					client_count--;
+				}
 			}
 		}
 	}
