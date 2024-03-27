@@ -3,11 +3,13 @@
 ################################
 
 CC:=g++
-CXXFLAGS= -std=c++98 -pedantic -Wall -Wextra -Werror -MMD -MP -O2
+CXXFLAGS= -std=c++98 -pedantic -Wall -Wextra -Werror -MMD -MP
 LDFLAGS= -std=c++98 -pedantic
 ifdef FSANITIZE
 	CXXFLAGS+= -g3 -fsanitize=address -DDEBUG=1
 	LDFLAGS+= -g3 -fsanitize=address
+else
+	CXXFLAGS+= -O2 -DNDEBUG
 endif
 
 ###############################
@@ -31,7 +33,26 @@ OBJS_DIR:= obj
 
 MAIN_SRC:= \
 	main.cpp
-SRC:= $(MAIN_SRC)
+
+CONFIGURATION_SRC:= \
+	Configuration/Socket.cpp \
+	Configuration/Configuration.cpp \
+	Configuration/Directive.cpp \
+	Configuration/Directive/Http.cpp \
+	Configuration/Directive/Server.cpp \
+	Configuration/Directive/Events.cpp \
+	Configuration/Directive/Location.cpp \
+	Configuration/Directive/Listen.cpp \
+	Configuration/Directive/ServerName.cpp \
+	Configuration/Directive/AllowMethods.cpp \
+	Configuration/Directive/MimeTypes.cpp \
+	Configuration/Directive/Redirect.cpp \
+	Configuration/Directive/Cgi.cpp
+
+MISC_SRC:= \
+	misc/Nothing.cpp
+
+SRC:= $(MAIN_SRC) $(CONFIGURATION_SRC) $(MISC_SRC)
 
 ####################################
 ######     Library files     #######
@@ -97,11 +118,8 @@ lib$(NAME).a: $(OBJ)
 ######      Docker      #######
 ###############################
 
-docker_start:
+develop:
 	@docker compose up -d --build
-
-docker_test:
-	@docker exec -it web_serv make -C spec run
 
 ###############################
 ######     Cleaning     #######

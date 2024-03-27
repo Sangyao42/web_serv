@@ -29,7 +29,7 @@ OBJS_DIR:= obj
 # To add souce files, create a varaible for each folder, and then
 # contatenate them in the SRC variable like this:
 
-SRC:= $(shell echo **/*.cpp)
+SRC:= $(shell find . \( -name \*.h -o -name \*.cpp \) -print)
 
 ####################################
 ######     Library files     #######
@@ -104,7 +104,7 @@ $(OBJS_DIR):
 	@mkdir -p $(OBJS_DIR)
 
 run: re
-	./$(NAME)
+	./$(NAME) --gtest_filter=-Example*
 
 ###############################
 ######     Cleaning     #######
