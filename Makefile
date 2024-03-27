@@ -118,11 +118,8 @@ lib$(NAME).a: $(OBJ)
 ######      Docker      #######
 ###############################
 
-docker_start:
+develop:
 	@docker compose up -d --build
-
-docker_test:
-	@docker exec -it web_serv make -C spec run
 
 ###############################
 ######     Cleaning     #######
