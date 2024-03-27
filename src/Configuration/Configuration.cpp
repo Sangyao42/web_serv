@@ -13,17 +13,6 @@ Configuration::Configuration()
 Configuration::Configuration(const Configuration& other)
   : http_(other.http_), events_(other.events_), directives_(other.directives_) {}
 
-Configuration& Configuration::operator=(const Configuration& other)
-{
-  if (this != &other)
-  {
-    http_ = other.http_;
-    events_ = other.events_;
-    directives_ = other.directives_;
-  }
-  return *this;
-}
-
 Configuration::~Configuration() {}
 
 configuration::DirectiveHttp& Configuration::http_block()

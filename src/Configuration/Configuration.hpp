@@ -14,7 +14,6 @@ class Configuration
   public:
     Configuration();
     Configuration(const Configuration& other);
-    Configuration& operator=(const Configuration& other);
     ~Configuration();
 
     configuration::DirectiveHttp&         http_block();
@@ -30,4 +29,6 @@ class Configuration
     configuration::DirectiveHttp      http_;
     configuration::DirectiveEvents    events_;
     configuration::Directives         directives_;
+
+    Configuration& operator=(const Configuration& other);
 };
