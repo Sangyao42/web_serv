@@ -1,19 +1,19 @@
-#include "Simple.hpp"
+#include "Simples.hpp"
 
 #include <vector>
 
-namespace configuration
+namespace directive
 {
-  DirectiveListen::DirectiveListen()
+  Listen::Listen()
     : Directive(), sockets_() {}
 
-  DirectiveListen::DirectiveListen(const Context& context)
+  Listen::Listen(const Context& context)
     : Directive(context), sockets_() {}
   
-  DirectiveListen::DirectiveListen(const DirectiveListen& other)
+  Listen::Listen(const Listen& other)
     : Directive(other), sockets_(other.sockets_) {}
   
-  DirectiveListen& DirectiveListen::operator=(const DirectiveListen& other)
+  Listen& Listen::operator=(const Listen& other)
   {
     if (this != &other)
     {
@@ -23,24 +23,24 @@ namespace configuration
     return *this;
   }
 
-  DirectiveListen::~DirectiveListen() {}
+  Listen::~Listen() {}
 
-  bool DirectiveListen::is_block() const
+  bool Listen::is_block() const
   {
     return false;
   }
 
-  Directive::Type DirectiveListen::type() const
+  Directive::Type Listen::type() const
   {
     return Directive::kDirectiveListen;
   }
 
-  void DirectiveListen::add(const Socket& socket)
+  void Listen::add(const Socket& socket)
   {
     sockets_.push_back(socket);
   }
 
-  const std::vector<Socket>& DirectiveListen::get() const
+  const std::vector<Socket>& Listen::get() const
   {
     return sockets_;
   }

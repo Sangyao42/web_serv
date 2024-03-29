@@ -5,32 +5,32 @@
 #include "Configuration/Directive/Blocks.hpp"
 
 /**
- * [] DirectiveHttp
- * [] DirectiveServer
- * [] DirectiveEvents
- * [] DirectiveLocation
+ * [] HttpBlock
+ * [] ServerBlock
+ * [] EventsBlock
+ * [] LocationBlock
 */
 
 class TestDirectiveHttp : public ::testing::Test
 {
   protected:
-    configuration::DirectiveHttp test_target_;
+    directive::HttpBlock test_target_;
 };
 
 class TestDirectiveServer : public ::testing::Test
 {
   protected:
-    configuration::DirectiveServer test_target_;
+    directive::ServerBlock test_target_;
 };
 
 class TestDirectiveEvents : public ::testing::Test
 {
   protected:
-    configuration::DirectiveEvents test_target_;
+    directive::EventsBlock test_target_;
 };
 
 class TestDirectiveLocation : public ::testing::Test
 {
   protected:
-    configuration::DirectiveLocation  test_target_;
+    directive::LocationBlock  test_target_;
 };

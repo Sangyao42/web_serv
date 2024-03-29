@@ -4,7 +4,7 @@
 
 #include <bitset>
 
-namespace configuration
+namespace directive
 {
   Socket::Socket()
     : ip_address_("0.0.0.0"), port_("80"), family_(AF_INET) {}

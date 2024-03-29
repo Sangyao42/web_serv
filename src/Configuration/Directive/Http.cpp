@@ -2,18 +2,18 @@
 
 #include "misc/Maybe.hpp"
 
-namespace configuration
+namespace directive
 {
-  DirectiveHttp::DirectiveHttp()
+  HttpBlock::HttpBlock()
     : DirectiveBlock(), servers_() {}
   
-  DirectiveHttp::DirectiveHttp(const Context& context)
+  HttpBlock::HttpBlock(const Context& context)
     : DirectiveBlock(context), servers_() {}
   
-  DirectiveHttp::DirectiveHttp(const DirectiveHttp& other)
+  HttpBlock::HttpBlock(const HttpBlock& other)
     : DirectiveBlock(other), servers_() {}
   
-  DirectiveHttp& DirectiveHttp::operator=(const DirectiveHttp& other)
+  HttpBlock& HttpBlock::operator=(const HttpBlock& other)
   {
     if (this != &other)
     {
@@ -23,14 +23,14 @@ namespace configuration
     return *this;
   }
 
-  DirectiveHttp::~DirectiveHttp() {}
+  HttpBlock::~HttpBlock() {}
 
-  Directive::Type DirectiveHttp::type() const
+  Directive::Type HttpBlock::type() const
   {
     return Directive::kDirectiveHttp;
   }
 
-  Maybe<Servers> DirectiveHttp::servers()
+  Maybe<Servers> HttpBlock::servers()
   {
     if (!servers_.is_ok())
     {

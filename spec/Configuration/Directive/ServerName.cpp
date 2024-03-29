@@ -2,11 +2,9 @@
 
 #include <gtest/gtest.h>
 
-using namespace configuration;
-
 TEST(TestDirectiveServerName, constructor)
 {
-  DirectiveServerName directive;
+  directive::ServerName directive;
   ASSERT_EQ(directive.is_block(), false);
   ASSERT_EQ(directive.type(), Directive::kDirectiveServerName);
   ASSERT_EQ(directive.context(), Directive::Context(0));
@@ -15,7 +13,7 @@ TEST(TestDirectiveServerName, constructor)
 
 TEST(TestDirectiveServerName, constructor2)
 {
-  DirectiveServerName directive(Directive::Context(50));
+  directive::ServerName directive(Directive::Context(50));
   ASSERT_EQ(directive.is_block(), false);
   ASSERT_EQ(directive.type(), Directive::kDirectiveServerName);
   ASSERT_EQ(directive.context(), Directive::Context(50));
@@ -24,8 +22,8 @@ TEST(TestDirectiveServerName, constructor2)
 
 TEST(TestDirectiveServerName, constructor_copy)
 {
-  DirectiveServerName directive(Directive::Context(50));
-  DirectiveServerName directive2(directive);
+  directive::ServerName directive(Directive::Context(50));
+  directive::ServerName directive2(directive);
   ASSERT_EQ(directive2.is_block(), false);
   ASSERT_EQ(directive2.type(), Directive::kDirectiveServerName);
   ASSERT_EQ(directive2.context(), Directive::Context(50));
@@ -34,7 +32,7 @@ TEST(TestDirectiveServerName, constructor_copy)
 
 TEST(TestDirectiveServerName, set_context)
 {
-  DirectiveServerName directive;
+  directive::ServerName directive;
   directive.set_context(Directive::Context(2));
   ASSERT_EQ(directive.context(), Directive::Context(2));
   ASSERT_EQ(directive.index(), 2);
@@ -66,7 +64,7 @@ TEST_P(TestDirectiveServerName, add)
 TEST_P(TestDirectiveServerName, add_then_assignment)
 {
   using ServerNames = std::vector<std::string>;
-  DirectiveServerName directive;
+  directive::ServerName directive;
   ServerNames server_names = GetParam();
   
   for (ServerNames::const_iterator it = server_names.begin(); it != server_names.end(); ++it)
@@ -99,7 +97,7 @@ TEST_P(TestDirectiveServerName, add_then_copy)
     test_target_.add(*it);
   }
 
-  DirectiveServerName directive(test_target_);
+  directive::ServerName directive(test_target_);
 
   ServerNames::const_iterator it = server_names.begin();
   ServerNames::const_iterator target_it = directive.get().begin();

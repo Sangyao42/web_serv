@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace configuration
+namespace directive
 {
   class Socket
   {

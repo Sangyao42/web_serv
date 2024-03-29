@@ -4,18 +4,19 @@
 
 #include "misc/Maybe.hpp"
 
+#include "./Block.hpp"
 #include "Configuration/Directive.hpp"
 
-namespace configuration
+namespace directive
 {
-  class DirectiveHttp : public DirectiveBlock
+  class HttpBlock : public DirectiveBlock
   {
     public:
-      DirectiveHttp();
-      DirectiveHttp(const Context& context);
-      DirectiveHttp(const DirectiveHttp& other);
-      DirectiveHttp& operator=(const DirectiveHttp& other);
-      virtual ~DirectiveHttp();
+      HttpBlock();
+      HttpBlock(const Context& context);
+      HttpBlock(const HttpBlock& other);
+      HttpBlock& operator=(const HttpBlock& other);
+      virtual ~HttpBlock();
 
       virtual Type          type() const;
 
@@ -25,14 +26,14 @@ namespace configuration
       Maybe<Servers> servers_;
   };
 
-  class DirectiveServer : public DirectiveBlock
+  class ServerBlock : public DirectiveBlock
   {
     public:
-      DirectiveServer();
-      DirectiveServer(const Context& context);
-      DirectiveServer(const DirectiveServer& other);
-      DirectiveServer& operator=(const DirectiveServer& other);
-      virtual ~DirectiveServer();
+      ServerBlock();
+      ServerBlock(const Context& context);
+      ServerBlock(const ServerBlock& other);
+      ServerBlock& operator=(const ServerBlock& other);
+      virtual ~ServerBlock();
 
       virtual Type          type() const;
 
@@ -42,28 +43,28 @@ namespace configuration
       Maybe<Locations> locations_;
   };
 
-  class DirectiveEvents : public DirectiveBlock
+  class EventsBlock : public DirectiveBlock
   {
     public:
-      DirectiveEvents();
-      DirectiveEvents(const Context& context);
-      DirectiveEvents(const DirectiveEvents& other);
-      DirectiveEvents& operator=(const DirectiveEvents& other);
-      virtual ~DirectiveEvents();
+      EventsBlock();
+      EventsBlock(const Context& context);
+      EventsBlock(const EventsBlock& other);
+      EventsBlock& operator=(const EventsBlock& other);
+      virtual ~EventsBlock();
 
       virtual Type          type() const;
 
       Maybe<size_t>         worker_connections() const;
   };
 
-  class DirectiveLocation : public DirectiveBlock
+  class LocationBlock : public DirectiveBlock
   {
     public:
-      DirectiveLocation();
-      DirectiveLocation(const Context& context);
-      DirectiveLocation(const DirectiveLocation& other);
-      DirectiveLocation& operator=(const DirectiveLocation& other);
-      virtual ~DirectiveLocation();
+      LocationBlock();
+      LocationBlock(const Context& context);
+      LocationBlock(const LocationBlock& other);
+      LocationBlock& operator=(const LocationBlock& other);
+      virtual ~LocationBlock();
 
       virtual Type          type() const;
 

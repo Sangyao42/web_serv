@@ -5,12 +5,10 @@
 
 #include "Configuration/Socket.hpp"
 
-using namespace configuration;
-
 TEST_P(TestConfigurationSocket, recognize_family)
 {
   SocketTest params = GetParam();
-  Socket socket(std::get<0>(params), std::get<1>(params));
+  directive::Socket socket(std::get<0>(params), std::get<1>(params));
 
   EXPECT_EQ(socket.ip_address(), std::get<0>(params));
   EXPECT_EQ(socket.port(), std::get<1>(params));

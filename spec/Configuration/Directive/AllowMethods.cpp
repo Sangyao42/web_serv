@@ -2,11 +2,9 @@
 
 #include <gtest/gtest.h>
 
-using namespace configuration;
-
 TEST(TestDirectiveAllowMethods, constructor)
 {
-  DirectiveAllowMethods directive;
+  directive::AllowMethods directive;
   ASSERT_EQ(directive.is_block(), false);
   ASSERT_EQ(directive.type(), Directive::kDirectiveAllowMethods);
   ASSERT_EQ(directive.context(), Directive::Context(0));
@@ -15,7 +13,7 @@ TEST(TestDirectiveAllowMethods, constructor)
 
 TEST(TestDirectiveAllowMethods, constructor2)
 {
-  DirectiveAllowMethods directive(Directive::Context(50));
+  directive::AllowMethods directive(Directive::Context(50));
   ASSERT_EQ(directive.is_block(), false);
   ASSERT_EQ(directive.type(), Directive::kDirectiveAllowMethods);
   ASSERT_EQ(directive.context(), Directive::Context(50));
@@ -24,8 +22,8 @@ TEST(TestDirectiveAllowMethods, constructor2)
 
 TEST(TestDirectiveAllowMethods, constructor_copy)
 {
-  DirectiveAllowMethods directive(Directive::Context(50));
-  DirectiveAllowMethods directive2(directive);
+  directive::AllowMethods directive(Directive::Context(50));
+  directive::AllowMethods directive2(directive);
   ASSERT_EQ(directive2.is_block(), false);
   ASSERT_EQ(directive2.type(), Directive::kDirectiveAllowMethods);
   ASSERT_EQ(directive2.context(), Directive::Context(50));
@@ -34,7 +32,7 @@ TEST(TestDirectiveAllowMethods, constructor_copy)
 
 TEST(TestDirectiveAllowMethods, set_context)
 {
-  DirectiveAllowMethods directive;
+  directive::AllowMethods directive;
   directive.set_context(Directive::Context(2));
   ASSERT_EQ(directive.context(), Directive::Context(2));
   ASSERT_EQ(directive.index(), 2);
@@ -42,7 +40,7 @@ TEST(TestDirectiveAllowMethods, set_context)
 
 TEST(TestDirectiveAllowMethods, set)
 {
-  DirectiveAllowMethods directive;
+  directive::AllowMethods directive;
   EXPECT_DEATH({
     directive.set(-1);
   }, "Assertion.*");
@@ -56,17 +54,17 @@ TEST_P(TestDirectiveAllowMethods, is_allowed)
   int methods = GetParam();
 
   test_target_.set(methods);
-  if (methods & Method::kMethodGet)
+  if (methods & directive::Method::kMethodGet)
   {
-    ASSERT_EQ(test_target_.is_allowed(Method::kMethodGet), true);
+    ASSERT_EQ(test_target_.is_allowed(directive::Method::kMethodGet), true);
   }
-  if (methods & Method::kMethodPost)
+  if (methods & directive::Method::kMethodPost)
   {
-    ASSERT_EQ(test_target_.is_allowed(Method::kMethodPost), true);
+    ASSERT_EQ(test_target_.is_allowed(directive::Method::kMethodPost), true);
   }
-  if (methods & Method::kMethodDelete)
+  if (methods & directive::Method::kMethodDelete)
   {
-    ASSERT_EQ(test_target_.is_allowed(Method::kMethodDelete), true);
+    ASSERT_EQ(test_target_.is_allowed(directive::Method::kMethodDelete), true);
   }
 }
 
@@ -75,27 +73,27 @@ TEST_P(TestDirectiveAllowMethods, get)
   int methods = GetParam();
 
   test_target_.set(methods);
-  Methods result = test_target_.get();
-  if (methods & Method::kMethodGet)
+  directive::Methods result = test_target_.get();
+  if (methods & directive::Method::kMethodGet)
   {
     ASSERT_EQ(result[0], true);
   }
-  if (methods & Method::kMethodPost)
+  if (methods & directive::Method::kMethodPost)
   {
     ASSERT_EQ(result[1], true);
   }
-  if (methods & Method::kMethodDelete)
+  if (methods & directive::Method::kMethodDelete)
   {
     ASSERT_EQ(result[2], true);
   }
 }
 
 INSTANTIATE_TEST_SUITE_P(Methods, TestDirectiveAllowMethods, testing::Values(
-  Method::kMethodGet,
-  Method::kMethodPost,
-  Method::kMethodDelete,
-  Method::kMethodGet | Method::kMethodPost,
-  Method::kMethodGet | Method::kMethodDelete,
-  Method::kMethodPost | Method::kMethodDelete,
-  Method::kMethodGet | Method::kMethodPost | Method::kMethodDelete
+  directive::Method::kMethodGet,
+  directive::Method::kMethodPost,
+  directive::Method::kMethodDelete,
+  directive::Method::kMethodGet | directive::Method::kMethodPost,
+  directive::Method::kMethodGet | directive::Method::kMethodDelete,
+  directive::Method::kMethodPost | directive::Method::kMethodDelete,
+  directive::Method::kMethodGet | directive::Method::kMethodPost | directive::Method::kMethodDelete
 ));

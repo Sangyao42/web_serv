@@ -1,19 +1,19 @@
-#include "Simple.hpp"
+#include "Simples.hpp"
 
 #include <cassert>
 
-namespace configuration
+namespace directive
 {
-  DirectiveAllowMethods::DirectiveAllowMethods()
-    : Directive(), accepted_methods_(DirectiveAllowMethods::kDefaultMethods) {}
+  AllowMethods::AllowMethods()
+    : Directive(), accepted_methods_(AllowMethods::kDefaultMethods) {}
   
-  DirectiveAllowMethods::DirectiveAllowMethods(const Context& context)
-    : Directive(context), accepted_methods_(DirectiveAllowMethods::kDefaultMethods) {}
+  AllowMethods::AllowMethods(const Context& context)
+    : Directive(context), accepted_methods_(AllowMethods::kDefaultMethods) {}
   
-  DirectiveAllowMethods::DirectiveAllowMethods(const DirectiveAllowMethods& other)
+  AllowMethods::AllowMethods(const AllowMethods& other)
     : Directive(other), accepted_methods_(other.accepted_methods_) {}
   
-  DirectiveAllowMethods& DirectiveAllowMethods::operator=(const DirectiveAllowMethods& other)
+  AllowMethods& AllowMethods::operator=(const AllowMethods& other)
   {
     if (this != &other)
     {
@@ -23,30 +23,30 @@ namespace configuration
     return *this;
   }
 
-  DirectiveAllowMethods::~DirectiveAllowMethods() {}
+  AllowMethods::~AllowMethods() {}
 
-  bool DirectiveAllowMethods::is_block() const
+  bool AllowMethods::is_block() const
   {
     return false;
   }
 
-  Directive::Type DirectiveAllowMethods::type() const
+  Directive::Type AllowMethods::type() const
   {
     return Directive::kDirectiveAllowMethods;
   }
 
-  void DirectiveAllowMethods::set(int method)
+  void AllowMethods::set(int method)
   {
     assert(method >= 0 && method < 8);
     accepted_methods_ = method;
   }
 
-  Methods DirectiveAllowMethods::get() const
+  Methods AllowMethods::get() const
   {
     return accepted_methods_;
   }
 
-  bool  DirectiveAllowMethods::is_allowed(Method method) const
+  bool  AllowMethods::is_allowed(Method method) const
   {
     return (accepted_methods_ & static_cast<std::bitset<3> >(method)) != 0;
   }

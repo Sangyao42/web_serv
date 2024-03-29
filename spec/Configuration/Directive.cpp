@@ -2,8 +2,6 @@
 
 #include "Configuration/Directive.hpp"
 
-using namespace configuration;
-
 TEST(TestDirectiveSimple, directive_context_constructor1)
 {
   Directive::Context context;

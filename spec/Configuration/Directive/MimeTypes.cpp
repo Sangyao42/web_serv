@@ -2,11 +2,9 @@
 
 #include <gtest/gtest.h>
 
-using namespace configuration;
-
 TEST(TestDirectiveMimeTypes, constructor)
 {
-  DirectiveMimeTypes directive;
+  directive::MimeTypes directive;
   ASSERT_EQ(directive.is_block(), false);
   ASSERT_EQ(directive.type(), Directive::kDirectiveMimeTypes);
   ASSERT_EQ(directive.context(), Directive::Context(0));
@@ -15,7 +13,7 @@ TEST(TestDirectiveMimeTypes, constructor)
 
 TEST(TestDirectiveMimeTypes, constructor2)
 {
-  DirectiveMimeTypes directive(Directive::Context(50));
+  directive::MimeTypes directive(Directive::Context(50));
   ASSERT_EQ(directive.is_block(), false);
   ASSERT_EQ(directive.type(), Directive::kDirectiveMimeTypes);
   ASSERT_EQ(directive.context(), Directive::Context(50));
@@ -24,8 +22,8 @@ TEST(TestDirectiveMimeTypes, constructor2)
 
 TEST(TestDirectiveMimeTypes, constructor_copy)
 {
-  DirectiveMimeTypes directive(Directive::Context(50));
-  DirectiveMimeTypes directive2(directive);
+  directive::MimeTypes directive(Directive::Context(50));
+  directive::MimeTypes directive2(directive);
   ASSERT_EQ(directive2.is_block(), false);
   ASSERT_EQ(directive2.type(), Directive::kDirectiveMimeTypes);
   ASSERT_EQ(directive2.context(), Directive::Context(50));
@@ -34,13 +32,13 @@ TEST(TestDirectiveMimeTypes, constructor_copy)
 
 TEST(TestDirectiveMimeTypes, set_context)
 {
-  DirectiveMimeTypes directive;
+  directive::MimeTypes directive;
   directive.set_context(Directive::Context(2));
   ASSERT_EQ(directive.context(), Directive::Context(2));
   ASSERT_EQ(directive.index(), 2);
 }
 
-using MimeTypes = std::map<DirectiveMimeTypes::Extension, DirectiveMimeTypes::MimeType>;
+using MimeTypes = std::map<directive::MimeTypes::Extension, directive::MimeTypes::MimeType>;
 
 TEST_P(TestDirectiveMimeTypes, add)
 {
@@ -56,7 +54,7 @@ TEST_P(TestDirectiveMimeTypes, add)
   for (MimeTypes::const_iterator it = mime_types.begin(); it != mime_types.end(); ++it)
   {
     // find the last occurrence of the extension
-    DirectiveMimeTypes::MimeType mime_type;
+    directive::MimeTypes::MimeType mime_type;
     for (MimeTypeVector::const_iterator it2 = mime_types_vec.begin(); it2 != mime_types_vec.end(); ++it2)
     {
       if (it2->first == it->first)
@@ -70,7 +68,7 @@ TEST_P(TestDirectiveMimeTypes, add)
 
 TEST_P(TestDirectiveMimeTypes, add_then_assignment)
 {
-  DirectiveMimeTypes directive;
+  directive::MimeTypes directive;
   MimeTypeVector mime_types_vec = GetParam();
 
   for (MimeTypeVector::const_iterator it = mime_types_vec.begin(); it != mime_types_vec.end(); ++it)
@@ -84,7 +82,7 @@ TEST_P(TestDirectiveMimeTypes, add_then_assignment)
   for (MimeTypes::const_iterator it = mime_types.begin(); it != mime_types.end(); ++it)
   {
     // find the last occurrence of the extension
-    DirectiveMimeTypes::MimeType mime_type;
+    directive::MimeTypes::MimeType mime_type;
     for (MimeTypeVector::const_iterator it2 = mime_types_vec.begin(); it2 != mime_types_vec.end(); ++it2)
     {
       if (it2->first == it->first)
@@ -105,13 +103,13 @@ TEST_P(TestDirectiveMimeTypes, add_then_copy)
     test_target_.add(it->first, it->second);
   }
 
-  DirectiveMimeTypes directive(test_target_);
+  directive::MimeTypes directive(test_target_);
   const MimeTypes& mime_types = directive.get();
 
   for (MimeTypes::const_iterator it = mime_types.begin(); it != mime_types.end(); ++it)
   {
     // find the last occurrence of the extension
-    DirectiveMimeTypes::MimeType mime_type;
+    directive::MimeTypes::MimeType mime_type;
     for (MimeTypeVector::const_iterator it2 = mime_types_vec.begin(); it2 != mime_types_vec.end(); ++it2)
     {
       if (it2->first == it->first)

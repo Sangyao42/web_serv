@@ -2,18 +2,18 @@
 
 #include "misc/Maybe.hpp"
 
-namespace configuration
+namespace directive
 {
-  DirectiveLocation::DirectiveLocation()
+  LocationBlock::LocationBlock()
     : DirectiveBlock(), locations_() {}
   
-  DirectiveLocation::DirectiveLocation(const Context& context)
+  LocationBlock::LocationBlock(const Context& context)
     : DirectiveBlock(context), locations_() {}
   
-  DirectiveLocation::DirectiveLocation(const DirectiveLocation& other)
+  LocationBlock::LocationBlock(const LocationBlock& other)
     : DirectiveBlock(other), locations_() {}
   
-  DirectiveLocation& DirectiveLocation::operator=(const DirectiveLocation& other)
+  LocationBlock& LocationBlock::operator=(const LocationBlock& other)
   {
     if (this != &other)
     {
@@ -23,14 +23,14 @@ namespace configuration
     return *this;
   }
 
-  DirectiveLocation::~DirectiveLocation() {}
+  LocationBlock::~LocationBlock() {}
 
-  Directive::Type DirectiveLocation::type() const
+  Directive::Type LocationBlock::type() const
   {
     return Directive::kDirectiveLocation;
   }
 
-  Maybe<Locations> DirectiveLocation::locations()
+  Maybe<Locations> LocationBlock::locations()
   {
     if (!locations_.is_ok())
     {

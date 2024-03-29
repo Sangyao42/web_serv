@@ -16,19 +16,19 @@ class Configuration
     Configuration(const Configuration& other);
     ~Configuration();
 
-    configuration::DirectiveHttp&         http_block();
-    const configuration::DirectiveHttp&   http_block() const;
-    configuration::DirectiveEvents&       events_block();
-    const configuration::DirectiveEvents& events_block() const;
-    configuration::Directives&            directives();
-    const configuration::Directives&      directives() const;
+    directive::HttpBlock&         http_block();
+    const directive::HttpBlock&   http_block() const;
+    directive::EventsBlock&       events_block();
+    const directive::EventsBlock& events_block() const;
+    directive::Directives&            directives();
+    const directive::Directives&      directives() const;
 
     size_t                                worker_connections() const;
 
   private:
-    configuration::DirectiveHttp      http_;
-    configuration::DirectiveEvents    events_;
-    configuration::Directives         directives_;
+    directive::HttpBlock      http_;
+    directive::EventsBlock    events_;
+    directive::Directives         directives_;
 
     Configuration& operator=(const Configuration& other);
 };

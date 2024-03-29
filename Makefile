@@ -38,6 +38,7 @@ CONFIGURATION_SRC:= \
 	Configuration/Socket.cpp \
 	Configuration/Configuration.cpp \
 	Configuration/Directive.cpp \
+	Configuration/Directive/Block.cpp \
 	Configuration/Directive/Http.cpp \
 	Configuration/Directive/Server.cpp \
 	Configuration/Directive/Events.cpp \

@@ -2,11 +2,9 @@
 
 #include <gtest/gtest.h>
 
-using namespace configuration;
-
 TEST(TestDirectiveCgi, constructor)
 {
-  DirectiveCgi directive;
+  directive::Cgi directive;
   ASSERT_EQ(directive.is_block(), false);
   ASSERT_EQ(directive.type(), Directive::kDirectiveCgi);
   ASSERT_EQ(directive.context(), Directive::Context(0));
@@ -15,7 +13,7 @@ TEST(TestDirectiveCgi, constructor)
 
 TEST(TestDirectiveCgi, constructor2)
 {
-  DirectiveCgi directive(Directive::Context(50));
+  directive::Cgi directive(Directive::Context(50));
   ASSERT_EQ(directive.is_block(), false);
   ASSERT_EQ(directive.type(), Directive::kDirectiveCgi);
   ASSERT_EQ(directive.context(), Directive::Context(50));
@@ -24,8 +22,8 @@ TEST(TestDirectiveCgi, constructor2)
 
 TEST(TestDirectiveCgi, constructor_copy)
 {
-  DirectiveCgi directive(Directive::Context(50));
-  DirectiveCgi directive2(directive);
+  directive::Cgi directive(Directive::Context(50));
+  directive::Cgi directive2(directive);
   ASSERT_EQ(directive2.is_block(), false);
   ASSERT_EQ(directive2.type(), Directive::kDirectiveCgi);
   ASSERT_EQ(directive2.context(), Directive::Context(50));
@@ -34,7 +32,7 @@ TEST(TestDirectiveCgi, constructor_copy)
 
 TEST(TestDirectiveCgi, set_context)
 {
-  DirectiveCgi directive;
+  directive::Cgi directive;
   directive.set_context(Directive::Context(2));
   ASSERT_EQ(directive.context(), Directive::Context(2));
   ASSERT_EQ(directive.index(), 2);

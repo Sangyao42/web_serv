@@ -2,47 +2,47 @@
 
 #include <gtest/gtest.h>
 
-#include "Configuration/Directive/Simple.hpp"
+#include "Configuration/Directive/Simples.hpp"
 
 /**
- * [/] DirectiveListen
- * [/] DirectiveServerName
- * [/] DirectiveAllowMethods
- * [S] DirectiveRoot
- * [S] DirectiveIndex
- * [/] DirectiveMimeTypes
- * [S] DirectiveErrorPage
- * [S] DirectiveClientMaxBodySize
- * [/] DirectiveRedirect
- * [S] DirectiveAutoindex
- * [/] DirectiveCgi
- * [S] DirectiveAccessLog
- * [S] DirectiveErrorLog
- * [S] DirectiveInclude
- * [S] DirectiveWorkerConnections
+ * [/] Listen
+ * [/] ServerName
+ * [/] AllowMethods
+ * [S] Root
+ * [S] Index
+ * [/] MimeTypes
+ * [S] ErrorPage
+ * [S] ClientMaxBodySize
+ * [/] Redirect
+ * [S] Autoindex
+ * [/] Cgi
+ * [S] AccessLog
+ * [S] ErrorLog
+ * [S] Include
+ * [S] WorkerConnections
  * 
  * classes marked with S are tested in the TestDirectiveSimple typed tests.
 */
 
 class TestDirectiveListen :
-  public ::testing::TestWithParam<std::vector<configuration::Socket> >
+  public ::testing::TestWithParam<std::vector<directive::Socket> >
 {
 protected:
-  configuration::DirectiveListen test_target_;
+  directive::Listen test_target_;
 };
 
 class TestDirectiveServerName :
   public ::testing::TestWithParam<std::vector<std::string> >
 {
 protected:
-  configuration::DirectiveServerName test_target_;
+  directive::ServerName test_target_;
 };
 
 class TestDirectiveAllowMethods :
   public ::testing::TestWithParam<int>
 {
 protected:
-  configuration::DirectiveAllowMethods test_target_;
+  directive::AllowMethods test_target_;
 };
 
 using MimeTypeVector = std::vector<std::pair<std::string, std::string> >;
@@ -51,13 +51,13 @@ class TestDirectiveMimeTypes :
   public ::testing::TestWithParam<MimeTypeVector>
 {
 protected:
-  configuration::DirectiveMimeTypes test_target_;
+  directive::MimeTypes test_target_;
 };
 
 class TestFilledDirectiveMimeTypes : public ::testing::Test
 {
 protected:
-  configuration::DirectiveMimeTypes test_target_;
+  directive::MimeTypes test_target_;
   void SetUp() override
   {
     test_target_.add("html", "text/html");
@@ -79,21 +79,21 @@ class TestDirectiveRedirect :
   public ::testing::TestWithParam<std::pair<std::string, bool> >
 {
 protected:
-  configuration::DirectiveRedirect test_target_;
+  directive::Redirect test_target_;
 };
 
 class TestDirectiveCgi :
   public ::testing::TestWithParam<std::pair<std::string, std::string> >
 {
 protected:
-  configuration::DirectiveCgi test_target_;
+  directive::Cgi test_target_;
 };
 
 template <typename T>
 class TestDirectiveSimple : public ::testing::Test
 {
 protected:
-  std::vector<configuration::Directive*> test_targets_;
+  std::vector<Directive*> test_targets_;
 
   void TearDown() override
   {

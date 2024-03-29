@@ -2,11 +2,9 @@
 
 #include <gtest/gtest.h>
 
-using namespace configuration;
-
 TEST(TestDirectiveRedirect, constructor)
 {
-  DirectiveRedirect directive;
+  directive::Redirect directive;
   ASSERT_EQ(directive.is_block(), false);
   ASSERT_EQ(directive.type(), Directive::kDirectiveRedirect);
   ASSERT_EQ(directive.context(), Directive::Context(0));
@@ -15,7 +13,7 @@ TEST(TestDirectiveRedirect, constructor)
 
 TEST(TestDirectiveRedirect, constructor2)
 {
-  DirectiveRedirect directive(Directive::Context(50));
+  directive::Redirect directive(Directive::Context(50));
   ASSERT_EQ(directive.is_block(), false);
   ASSERT_EQ(directive.type(), Directive::kDirectiveRedirect);
   ASSERT_EQ(directive.context(), Directive::Context(50));
@@ -24,8 +22,8 @@ TEST(TestDirectiveRedirect, constructor2)
 
 TEST(TestDirectiveRedirect, constructor_copy)
 {
-  DirectiveRedirect directive(Directive::Context(50));
-  DirectiveRedirect directive2(directive);
+  directive::Redirect directive(Directive::Context(50));
+  directive::Redirect directive2(directive);
   ASSERT_EQ(directive2.is_block(), false);
   ASSERT_EQ(directive2.type(), Directive::kDirectiveRedirect);
   ASSERT_EQ(directive2.context(), Directive::Context(50));
@@ -34,7 +32,7 @@ TEST(TestDirectiveRedirect, constructor_copy)
 
 TEST(TestDirectiveRedirect, set_context)
 {
-  DirectiveRedirect directive;
+  directive::Redirect directive;
   directive.set_context(Directive::Context(2));
   ASSERT_EQ(directive.context(), Directive::Context(2));
   ASSERT_EQ(directive.index(), 2);

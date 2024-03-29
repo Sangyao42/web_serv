@@ -15,32 +15,32 @@ Configuration::Configuration(const Configuration& other)
 
 Configuration::~Configuration() {}
 
-configuration::DirectiveHttp& Configuration::http_block()
+directive::HttpBlock& Configuration::http_block()
 {
   return http_;
 }
 
-const configuration::DirectiveHttp& Configuration::http_block() const
+const directive::HttpBlock& Configuration::http_block() const
 {
   return http_;
 }
 
-configuration::DirectiveEvents& Configuration::events_block()
+directive::EventsBlock& Configuration::events_block()
 {
   return events_;
 }
 
-const configuration::DirectiveEvents& Configuration::events_block() const
+const directive::EventsBlock& Configuration::events_block() const
 {
   return events_;
 }
 
-configuration::Directives& Configuration::directives()
+directive::Directives& Configuration::directives()
 {
   return directives_;
 }
 
-const configuration::Directives& Configuration::directives() const
+const directive::Directives& Configuration::directives() const
 {
   return directives_;
 }

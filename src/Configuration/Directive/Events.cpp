@@ -1,37 +1,37 @@
 #include "Blocks.hpp"
 
-#include "Simple.hpp"
+#include "Simples.hpp"
 
-namespace configuration
+namespace directive
 {
-  DirectiveEvents::DirectiveEvents()
+  EventsBlock::EventsBlock()
     : DirectiveBlock() {}
   
-  DirectiveEvents::DirectiveEvents(const Context& context)
+  EventsBlock::EventsBlock(const Context& context)
     : DirectiveBlock(context) {}
   
-  DirectiveEvents::DirectiveEvents(const DirectiveEvents& other)
+  EventsBlock::EventsBlock(const EventsBlock& other)
     : DirectiveBlock(other) {}
   
-  DirectiveEvents& DirectiveEvents::operator=(const DirectiveEvents& other)
+  EventsBlock& EventsBlock::operator=(const EventsBlock& other)
   {
     if (this != &other)
       DirectiveBlock::operator=(other);
     return *this;
   }
 
-  DirectiveEvents::~DirectiveEvents() {}
+  EventsBlock::~EventsBlock() {}
 
-  Directive::Type DirectiveEvents::type() const
+  Directive::Type EventsBlock::type() const
   {
     return Directive::kDirectiveEvents;
   }
 
-  Maybe<size_t> DirectiveEvents::worker_connections() const
+  Maybe<size_t> EventsBlock::worker_connections() const
   {
     DirectivesRange query_result = query_directive(Directive::kDirectiveWorkerConnections);
     if (query_result.first == query_result.second)
       return Nothing();
-    return static_cast<DirectiveWorkerConnections*>(query_result.first->second)->get();
+    return static_cast<WorkerConnections*>(query_result.first->second)->get();
   }
 } // namespace configuration
