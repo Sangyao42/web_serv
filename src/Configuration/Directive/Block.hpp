@@ -36,4 +36,6 @@ namespace directive
       Directives directives_;
   };
 
+  bool  DirectiveRangeIsValid(const DirectivesRange& range);
+
 } // namespace configuration

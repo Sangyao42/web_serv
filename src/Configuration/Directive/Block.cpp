@@ -47,4 +47,9 @@ namespace directive
   {
     return directives_.equal_range(type);
   }
+
+  bool DirectiveRangeIsValid(const DirectivesRange& range)
+  {
+    return range.first != range.second;
+  }
 } // namespace configuration
