@@ -2,7 +2,10 @@
 
 #include <gtest/gtest.h>
 
-#include "Configuration/Directive/Blocks.hpp"
+#include "Configuration/Directive/Block/Http.hpp"
+#include "Configuration/Directive/Block/Server.hpp"
+#include "Configuration/Directive/Block/Events.hpp"
+#include "Configuration/Directive/Block/Location.hpp"
 
 /**
  * [] HttpBlock

@@ -2,7 +2,14 @@
 
 #include <gtest/gtest.h>
 
-#include "Configuration/Directive/Simples.hpp"
+#include "Configuration/Socket.hpp"
+#include "Configuration/Directive/Simple.hpp"
+#include "Configuration/Directive/Simple/AllowMethods.hpp"
+#include "Configuration/Directive/Simple/Cgi.hpp"
+#include "Configuration/Directive/Simple/Listen.hpp"
+#include "Configuration/Directive/Simple/MimeTypes.hpp"
+#include "Configuration/Directive/Simple/Redirect.hpp"
+#include "Configuration/Directive/Simple/ServerName.hpp"
 
 /**
  * [/] Listen
