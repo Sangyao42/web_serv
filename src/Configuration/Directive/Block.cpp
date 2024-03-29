@@ -29,7 +29,13 @@ namespace directive
     return *this;
   }
 
-  DirectiveBlock::~DirectiveBlock() {}
+  DirectiveBlock::~DirectiveBlock()
+  {
+    for (Directives::iterator it = directives_.begin(); it != directives_.end(); ++it)
+    {
+      delete it->second;
+    }
+  }
 
   bool DirectiveBlock::is_block() const
   {
