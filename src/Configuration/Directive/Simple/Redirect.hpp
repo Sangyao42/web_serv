@@ -23,7 +23,7 @@ namespace directive
       bool                is_permanent() const;
 
     private:
-      std::string       path_;
-      bool              is_permanent_;
+      std::string         path_;
+      bool                is_permanent_;
   };
 } // namespace configuration

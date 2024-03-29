@@ -16,11 +16,11 @@ namespace directive
       ServerBlock& operator=(const ServerBlock& other);
       virtual ~ServerBlock();
 
-      virtual Type          type() const;
+      virtual Type      type() const;
 
-      Maybe<Locations>      locations();
+      Maybe<Locations>  locations();
 
     private:
-      Maybe<Locations> locations_;
+      Maybe<Locations>  locations_;
   };
 } // namespace configuration

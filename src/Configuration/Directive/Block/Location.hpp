@@ -20,11 +20,11 @@ namespace directive
       LocationBlock& operator=(const LocationBlock& other);
       virtual ~LocationBlock();
 
-      virtual Type          type() const;
+      virtual Type      type() const;
 
-      Maybe<Locations>      locations();
+      Maybe<Locations>  locations();
 
     private:
-      Maybe<Locations> locations_;
+      Maybe<Locations>  locations_;
   };
 } // namespace configuration

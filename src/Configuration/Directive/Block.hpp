@@ -33,7 +33,7 @@ namespace directive
       virtual DirectivesRange query_directive(Type type) const;
 
     protected:
-      Directives directives_;
+      Directives              directives_;
   };
 
   bool  DirectiveRangeIsValid(const DirectivesRange& range);

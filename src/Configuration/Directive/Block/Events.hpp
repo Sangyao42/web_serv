@@ -16,8 +16,8 @@ namespace directive
       EventsBlock& operator=(const EventsBlock& other);
       virtual ~EventsBlock();
 
-      virtual Type          type() const;
+      virtual Type  type() const;
 
-      Maybe<size_t>         worker_connections() const;
+      Maybe<size_t> worker_connections() const;
   };
 } // namespace configuration

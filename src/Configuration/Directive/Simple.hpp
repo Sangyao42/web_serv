@@ -14,14 +14,14 @@ namespace directive
       DirectiveSimple& operator=(const DirectiveSimple& other);
       virtual ~DirectiveSimple();
 
-      virtual bool        is_block() const;
-      virtual Type        type() const;
+      virtual bool  is_block() const;
+      virtual Type  type() const;
 
-      void                set(const T& value);
-      const T&            get() const;
+      void          set(const T& value);
+      const T&      get() const;
 
     private:
-      T value_;
+      T             value_;
   };
 
   //////////////////////////////////////////////////////

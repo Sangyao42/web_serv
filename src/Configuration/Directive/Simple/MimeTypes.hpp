@@ -19,12 +19,12 @@ namespace directive
       MimeTypes& operator=(const MimeTypes& other);
       virtual ~MimeTypes();
 
-      virtual bool      is_block() const;
-      virtual Type      type() const;
+      virtual bool                  is_block() const;
+      virtual Type                  type() const;
 
-      void              add(const Extension& extension, const MimeType& mime_type);
+      void                          add(const Extension& extension, const MimeType& mime_type);
       const std::map<Extension, MimeType>& get() const;
-      Maybe<MimeType>   query(const Extension& extension) const;
+      Maybe<MimeType>               query(const Extension& extension) const;
 
     private:
       std::map<Extension, MimeType> mime_types_;

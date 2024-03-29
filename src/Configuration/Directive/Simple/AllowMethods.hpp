@@ -33,6 +33,6 @@ namespace directive
       bool          is_allowed(Method method) const;
 
     private:
-      Methods  accepted_methods_;
+      Methods       accepted_methods_;
   };
 } // namespace configuration

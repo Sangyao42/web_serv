@@ -20,11 +20,11 @@ namespace directive
       HttpBlock& operator=(const HttpBlock& other);
       virtual ~HttpBlock();
 
-      virtual Type          type() const;
+      virtual Type    type() const;
 
-      Maybe<Servers>        servers();
+      Maybe<Servers>  servers();
 
     private:
-      Maybe<Servers> servers_;
+      Maybe<Servers>  servers_;
   };
 } // namespace configuration
