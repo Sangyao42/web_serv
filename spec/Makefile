@@ -103,9 +103,6 @@ $(OBJ): $(OBJS_DIR)
 $(OBJS_DIR):
 	@mkdir -p $(OBJS_DIR)
 
-run: re
-	./$(NAME) --gtest_filter=-Example*
-
 ###############################
 ######     Cleaning     #######
 ###############################
