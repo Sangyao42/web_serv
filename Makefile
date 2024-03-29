@@ -118,7 +118,7 @@ lib$(NAME).a: $(OBJ)
 ######      Docker      #######
 ###############################
 
-develop:
+test:
 	@docker compose up -d --build
 
 ###############################
@@ -135,4 +135,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: clean fclean re docker_start docker_test
+.PHONY: clean fclean re test

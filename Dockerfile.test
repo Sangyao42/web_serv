@@ -15,5 +15,9 @@ RUN apt-get update && \
     make && \
     make install
 
-WORKDIR /web_serv
-CMD make -C spec FSANITIZE=yes run
+COPY Makefile /web_serv/
+COPY src /web_serv/src
+COPY spec /web_serv/spec
+WORKDIR /web_serv/spec
+RUN make FSANITIZE=yes
+CMD ./debug.out --gtest_filter=-Example* && tail -f /dev/null

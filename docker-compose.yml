@@ -4,7 +4,8 @@ networks:
   web_serv:
 
 volumes:
-  web_serv:
+  test_cache:
+  src_cache:
 
 services:
   web_serv:
@@ -16,8 +17,6 @@ services:
       - web_serv
     ports:
       - "80:80"
-    volumes:
-      - web_serv:/web_serv
     restart: unless-stopped
 
   test:
@@ -29,6 +28,7 @@ services:
     networks:
       - web_serv
     volumes:
-      - web_serv:/web_serv
+      - test_cache:/web_serv/spec/obj
+      - src_cache:/web_serv/src/obj
     depends_on:
       - web_serv

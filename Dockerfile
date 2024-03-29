@@ -10,6 +10,8 @@ RUN apt-get update && \
         strace \
         git
 
-COPY . /web_serv
+COPY Makefile /web_serv/
+COPY src /web_serv/src
 WORKDIR /web_serv
+RUN make
 CMD tail -f /dev/null

@@ -117,4 +117,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: clean fclean re
+.PHONY: clean fclean re $(LIBWEBSERV)

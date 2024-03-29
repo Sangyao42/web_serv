@@ -5,3 +5,7 @@
 **/*.out
 **/*.pdf
 webserv
+
+.vscode
+obj
+**/obj
