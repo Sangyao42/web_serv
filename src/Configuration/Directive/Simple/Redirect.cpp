@@ -1,6 +1,8 @@
-#include "Simples.hpp"
+#include "Redirect.hpp"
 
 #include <string>
+
+#include "Configuration/Directive.hpp"
 
 namespace directive
 {

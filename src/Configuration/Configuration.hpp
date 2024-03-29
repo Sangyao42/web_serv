@@ -2,9 +2,9 @@
 
 #include <vector>
 
-#include "Configuration/Directive.hpp"
-#include "Configuration/Directive/Blocks.hpp"
-#include "Configuration/Directive/Simple.hpp"
+#include "Configuration/Directive/Block/Events.hpp"
+#include "Configuration/Directive/Block/Http.hpp"
+#include "Configuration/Directive/Block.hpp"
 
 class Configuration;
 extern Configuration ws_configuration;
@@ -20,14 +20,14 @@ class Configuration
     const directive::HttpBlock&   http_block() const;
     directive::EventsBlock&       events_block();
     const directive::EventsBlock& events_block() const;
-    directive::Directives&            directives();
-    const directive::Directives&      directives() const;
+    directive::Directives&        directives();
+    const directive::Directives&  directives() const;
 
-    size_t                                worker_connections() const;
+    size_t                        worker_connections() const;
 
   private:
-    directive::HttpBlock      http_;
-    directive::EventsBlock    events_;
+    directive::HttpBlock          http_;
+    directive::EventsBlock        events_;
     directive::Directives         directives_;
 
     Configuration& operator=(const Configuration& other);

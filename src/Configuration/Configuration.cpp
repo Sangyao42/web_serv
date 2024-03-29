@@ -1,9 +1,13 @@
 #include "Configuration.hpp"
 
 #include <cassert>
+
 #include <vector>
 
-#include "misc/Maybe.hpp"
+#include "Configuration/Directive/Block/Events.hpp"
+#include "Configuration/Directive/Block/Http.hpp"
+#include "Configuration/Directive/Block.hpp"
+#include "Configuration/Directive/Simple.hpp"
 
 Configuration ws_configuration;
 

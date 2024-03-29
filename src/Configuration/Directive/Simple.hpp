@@ -24,6 +24,24 @@ namespace directive
       T value_;
   };
 
+  //////////////////////////////////////////////////////
+  ////////////   All supported directives   ////////////
+  //////////////////////////////////////////////////////
+
+  typedef DirectiveSimple<std::string, Directive::kDirectiveRoot> Root;
+  typedef DirectiveSimple<std::string, Directive::kDirectiveIndex> Index;
+  typedef DirectiveSimple<std::string, Directive::kDirectiveErrorPage> ErrorPage;
+  typedef DirectiveSimple<size_t, Directive::kDirectiveClientMaxBodySize> ClientMaxBodySize;
+  typedef DirectiveSimple<bool, Directive::kDirectiveAutoindex> Autoindex;
+  typedef DirectiveSimple<std::string, Directive::kDirectiveAccessLog> AccessLog;
+  typedef DirectiveSimple<std::string, Directive::kDirectiveErrorLog> ErrorLog;
+  typedef DirectiveSimple<Directive*, Directive::kDirectiveInclude> Include;
+  typedef DirectiveSimple<size_t, Directive::kDirectiveWorkerConnections> WorkerConnections;
+
+  //////////////////////////////////////////////////////
+  ////////////   Template implementation   /////////////
+  //////////////////////////////////////////////////////
+
   template <typename T, Directive::Type TypeEnum>
   DirectiveSimple<T, TypeEnum>::DirectiveSimple()
     : Directive(), value_() {}

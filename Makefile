@@ -39,16 +39,16 @@ CONFIGURATION_SRC:= \
 	Configuration/Configuration.cpp \
 	Configuration/Directive.cpp \
 	Configuration/Directive/Block.cpp \
-	Configuration/Directive/Http.cpp \
-	Configuration/Directive/Server.cpp \
-	Configuration/Directive/Events.cpp \
-	Configuration/Directive/Location.cpp \
-	Configuration/Directive/Listen.cpp \
-	Configuration/Directive/ServerName.cpp \
-	Configuration/Directive/AllowMethods.cpp \
-	Configuration/Directive/MimeTypes.cpp \
-	Configuration/Directive/Redirect.cpp \
-	Configuration/Directive/Cgi.cpp
+	Configuration/Directive/Block/Http.cpp \
+	Configuration/Directive/Block/Server.cpp \
+	Configuration/Directive/Block/Events.cpp \
+	Configuration/Directive/Block/Location.cpp \
+	Configuration/Directive/Simple/Listen.cpp \
+	Configuration/Directive/Simple/ServerName.cpp \
+	Configuration/Directive/Simple/AllowMethods.cpp \
+	Configuration/Directive/Simple/MimeTypes.cpp \
+	Configuration/Directive/Simple/Redirect.cpp \
+	Configuration/Directive/Simple/Cgi.cpp
 
 MISC_SRC:= \
 	misc/Nothing.cpp

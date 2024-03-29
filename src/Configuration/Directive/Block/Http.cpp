@@ -1,6 +1,9 @@
-#include "Blocks.hpp"
+#include "Http.hpp"
 
 #include "misc/Maybe.hpp"
+#include "Configuration/Directive.hpp"
+#include "Configuration/Directive/Block.hpp"
+#include "Configuration/Directive/Block/Server.hpp"
 
 namespace directive
 {

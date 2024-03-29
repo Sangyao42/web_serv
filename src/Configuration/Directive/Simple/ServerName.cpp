@@ -1,7 +1,9 @@
-#include "Simples.hpp"
+#include "ServerName.hpp"
 
 #include <string>
 #include <vector>
+
+#include "Configuration/Directive.hpp"
 
 namespace directive
 {

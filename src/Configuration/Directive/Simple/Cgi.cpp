@@ -1,9 +1,10 @@
-#include "Simples.hpp"
+#include "Cgi.hpp"
 
 #include <string>
 
 #include "misc/Maybe.hpp"
 #include "misc/Nothing.hpp"
+#include "Configuration/Directive.hpp"
 
 namespace directive
 {

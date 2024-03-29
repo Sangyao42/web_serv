@@ -1,6 +1,10 @@
-#include "Simples.hpp"
+#include "AllowMethods.hpp"
 
 #include <cassert>
+
+#include <bitset>
+
+#include "Configuration/Directive.hpp"
 
 namespace directive
 {
