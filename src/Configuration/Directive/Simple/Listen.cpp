@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "Configuration/Directive.hpp"
-#include "Configuration/Socket.hpp"
+#include "Configuration/Directive/Socket.hpp"
 
 namespace directive
 {

@@ -5,7 +5,7 @@
 #include <string>
 #include <tuple>
 
-#include "Configuration/Socket.hpp"
+#include "Configuration/Directive/Socket.hpp"
 
 using SocketTest = std::tuple<std::string, std::string, u_int16_t>;
 

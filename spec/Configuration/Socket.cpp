@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 #include <sys/socket.h>
 
-#include "Configuration/Socket.hpp"
+#include "Configuration/Directive/Socket.hpp"
 
 TEST_P(TestConfigurationSocket, recognize_family)
 {
