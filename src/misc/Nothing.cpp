@@ -6,14 +6,12 @@ Nothing::Nothing(const Nothing& other) { (void) other; }
 
 Nothing::~Nothing() {}
 
-Nothing& Nothing::operator=(const Nothing& other)
+Nothing& Nothing::operator=(const Nothing&)
 {
-  (void) other;
   return *this;
 }
 
-bool  Nothing::operator==(const Nothing& other) const
+bool  Nothing::operator==(const Nothing&) const
 {
-  (void) other;
   return true;
 }

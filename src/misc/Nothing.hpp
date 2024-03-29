@@ -7,18 +7,17 @@ class Nothing
     Nothing();
     Nothing(const Nothing& other);
     ~Nothing();
-    Nothing& operator=(const Nothing& other);
+    Nothing& operator=(const Nothing&);
 
-    bool  operator==(const Nothing& other) const;
+    bool  operator==(const Nothing&) const;
 
     template <typename T>
-    bool  operator==(const T& other) const;
+    bool  operator==(const T&) const;
 };
 
 template <typename T>
-bool  Nothing::operator==(const T& other) const
+bool  Nothing::operator==(const T&) const
 {
-  (void) other;
   return false;
 }
 
