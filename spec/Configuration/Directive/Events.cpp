@@ -40,18 +40,18 @@ TEST_F(TestDirectiveEvents, query_directive_empty)
 
 TEST_F(TestDirectiveEvents, query_directive_wrong)
 {
-  directive::WorkerConnections  worker_connections;
-  worker_connections.set(1000);
-  test_target_.add_directive(&worker_connections);
+  directive::WorkerConnections*  worker_connections = new directive::WorkerConnections();
+  worker_connections->set(1000);
+  test_target_.add_directive(worker_connections);
   directive::DirectivesRange range = test_target_.query_directive(Directive::kDirectiveAccessLog);
   ASSERT_TRUE(range.first == range.second);
 }
 
 TEST_F(TestDirectiveEvents, query_directive)
 {
-  directive::WorkerConnections  worker_connections;
-  worker_connections.set(1000);
-  test_target_.add_directive(&worker_connections);
+  directive::WorkerConnections*  worker_connections = new directive::WorkerConnections();
+  worker_connections->set(1000);
+  test_target_.add_directive(worker_connections);
   directive::DirectivesRange range = test_target_.query_directive(Directive::kDirectiveWorkerConnections);
   ASSERT_TRUE(range.first != range.second);
   ASSERT_EQ(range.first->second->type(), Directive::kDirectiveWorkerConnections);
@@ -66,9 +66,9 @@ TEST_F(TestDirectiveEvents, worker_connections_empty)
 
 TEST_F(TestDirectiveEvents, worker_connections)
 {
-  directive::WorkerConnections  worker_connections;
-  worker_connections.set(1000);
-  test_target_.add_directive(&worker_connections);
+  directive::WorkerConnections*  worker_connections = new directive::WorkerConnections();
+  worker_connections->set(1000);
+  test_target_.add_directive(worker_connections);
   ASSERT_EQ(test_target_.worker_connections().is_ok(), true);
   ASSERT_EQ(test_target_.worker_connections().value(), static_cast<size_t>(1000));
 }
