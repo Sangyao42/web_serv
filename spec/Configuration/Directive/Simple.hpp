@@ -8,7 +8,7 @@
 #include "Configuration/Directive/Simple/Cgi.hpp"
 #include "Configuration/Directive/Simple/Listen.hpp"
 #include "Configuration/Directive/Simple/MimeTypes.hpp"
-#include "Configuration/Directive/Simple/Redirect.hpp"
+#include "Configuration/Directive/Simple/Return.hpp"
 #include "Configuration/Directive/Simple/ServerName.hpp"
 
 /**
