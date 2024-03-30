@@ -20,7 +20,7 @@
  * [/] MimeTypes
  * [S] ErrorPage
  * [S] ClientMaxBodySize
- * [/] Redirect
+ * [/] Return
  * [S] Autoindex
  * [/] Cgi
  * [S] AccessLog
@@ -82,11 +82,11 @@ protected:
   }
 };
 
-class TestDirectiveRedirect :
-  public ::testing::TestWithParam<std::pair<std::string, bool> >
+class TestDirectiveReturn :
+  public ::testing::TestWithParam<std::pair<std::string, int> >
 {
 protected:
-  directive::Redirect test_target_;
+  directive::Return test_target_;
 };
 
 class TestDirectiveCgi :
