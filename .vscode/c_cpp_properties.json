@@ -4,7 +4,7 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/goinfre/${env:USER}/.brew/opt/googletest/include"
+                "${env:HOMEBREW_PREFIX}/opt/googletest/include"
             ],
         }
     ],

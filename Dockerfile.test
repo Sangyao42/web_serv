@@ -1,0 +1,23 @@
+FROM debian:bookworm
+
+RUN apt-get update && \
+    apt-get upgrade && \
+    apt-get install -y \
+        cmake \
+        make \
+        g++ \
+        git && \
+    git clone https://github.com/google/googletest.git -b v1.14.0 && \
+    cd googletest && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make && \
+    make install
+
+COPY Makefile /web_serv/
+COPY src /web_serv/src
+COPY spec /web_serv/spec
+WORKDIR /web_serv/spec
+RUN make FSANITIZE=yes
+CMD ./debug.out --gtest_filter=-Example* && tail -f /dev/null
