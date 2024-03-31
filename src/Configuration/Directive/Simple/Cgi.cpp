@@ -46,6 +46,21 @@ namespace directive
     cgi_path_ = cgi_path;
   }
 
+  const std::string& Cgi::extension() const
+  {
+    return extension_;
+  }
+
+  const std::string& Cgi::cgi_path() const
+  {
+    return cgi_path_;
+  }
+
+  const std::string& Cgi::get() const
+  {
+    return extension_;
+  }
+
   Maybe<std::string> Cgi::match(std::string extension) const
   {
     if (extension == extension_)

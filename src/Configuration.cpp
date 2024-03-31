@@ -41,27 +41,16 @@ Configuration ws_configuration(16);
 Configuration::Configuration()
   : server_cache_(),
     location_cache_(),
-    location_insertion_index_(0) {}
+    location_insertion_index_(0),
+    main_block_(NULL) {}
 
 Configuration::Configuration(int cache_size)
   : server_cache_(),
     location_cache_(),
-    location_insertion_index_(0)
+    location_insertion_index_(0),
+    main_block_(NULL)
 {
   location_cache_.reserve(cache_size);
-}
-
-Configuration::Configuration(const Configuration &other)
-  : server_cache_(other.server_cache_),
-    location_cache_(other.location_cache_),
-    location_insertion_index_(other.location_insertion_index_) {}
-
-Configuration &Configuration::operator=(const Configuration &other)
-{
-  server_cache_ = other.server_cache_;
-  location_cache_ = other.location_cache_;
-  location_insertion_index_ = other.location_insertion_index_;
-  return *this;
 }
 
 Configuration::~Configuration() {}
@@ -72,6 +61,7 @@ Configuration::~Configuration() {}
 
 void  Configuration::register_server_socket(int server_socket_fd, const directive::Socket& socket)
 {
+  assert(!server_cache_.empty());
   for (std::vector<cache::ServerQuery>::iterator it = server_cache_.begin(); it != server_cache_.end(); ++it)
   {
     if (*it->socket == socket)
@@ -98,6 +88,7 @@ void  Configuration::set_main_block(directive::MainBlock* main_block)
 
 size_t Configuration::worker_connections() const
 {
+  assert(main_block_ != NULL);
   assert(main_block_->events().worker_connections().is_ok());
   return main_block_->events().worker_connections().value();
 }
@@ -125,6 +116,7 @@ const ConfigurationQueryResult  Configuration::query(int server_socket_fd,
                                                              const std::string& server_name,
                                                              const std::string& path)
 {
+  assert(main_block_ != NULL);
   const directive::ServerBlock* server_block = query_server_block(server_socket_fd, server_name);
   if (server_block == NULL)
     return ConfigurationQueryResult();
@@ -155,6 +147,7 @@ const ConfigurationQueryResult  Configuration::query(int server_socket_fd,
 const directive::LocationBlock*  Configuration::query_location_block(const directive::ServerBlock* server_block,
                                                                                        const std::string& path) const
 {
+  assert(main_block_ != NULL);
   const directive::LocationBlock* result;
   // iterate over all location blocks
   directive::DirectivesRange  location_directives = server_block->query_directive(Directive::kDirectiveLocation);
@@ -175,6 +168,7 @@ const directive::LocationBlock*  Configuration::query_location_block(const direc
 const directive::ServerBlock*  Configuration::query_server_block(int server_socket_fd,
                                                                          const std::string& server_name) const
 {
+  assert(main_block_ != NULL);
   ServerBlocksQueryResult server_blocks = query_server_blocks(server_socket_fd);
   if (!server_blocks.is_ok())
     return NULL;
@@ -206,6 +200,7 @@ const directive::ServerBlock*  Configuration::query_server_block(int server_sock
 
 Configuration::ServerBlocksQueryResult Configuration::query_server_blocks(int server_socket_fd) const
 {
+  assert(main_block_ != NULL);
   for (std::vector<cache::ServerQuery>::const_iterator it = server_cache_.begin(); it != server_cache_.end(); ++it)
   {
     if (it->server_socket_fd == server_socket_fd)
@@ -222,6 +217,7 @@ Configuration::ServerBlocksQueryResult Configuration::query_server_blocks(int se
 
 void  Configuration::generate_server_cache()
 {
+  assert(main_block_ != NULL);
   assert(main_block_->http().servers().is_ok());
   directive::Servers servers = main_block_->http().servers().value();
   // iterate over all server blocks

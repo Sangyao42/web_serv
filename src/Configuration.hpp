@@ -35,8 +35,6 @@ class Configuration
 
     Configuration();
     Configuration(int cache_size);
-    Configuration(const Configuration &other);
-    Configuration &operator=(const Configuration &other);
     ~Configuration();
 
     /////////////////////////////////////
@@ -77,4 +75,7 @@ class Configuration
     directive::MainBlock*                 main_block_;
 
     void                                  generate_server_cache();
+
+    Configuration(const Configuration &other);
+    Configuration &operator=(const Configuration &other);
 };

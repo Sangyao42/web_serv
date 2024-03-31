@@ -19,13 +19,15 @@ namespace directive
 
       virtual Type        type() const;
 
+      virtual void        add_directive(Directive* directive);
+
       HttpBlock&          http();
       const HttpBlock&    http() const;
       EventsBlock&        events();
       const EventsBlock&  events() const;
 
     private:
-      HttpBlock           http_;
-      EventsBlock         events_;
+      HttpBlock*          http_;
+      EventsBlock*        events_;
   };
 } // namespace directive
