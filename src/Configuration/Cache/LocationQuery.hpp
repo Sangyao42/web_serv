@@ -28,6 +28,7 @@ namespace cache
   */
   struct LocationQuery
   {
+    const directive::ServerBlock*             server_block;
     std::string                               match_path;
     // direvtives to decide if the request is allowed
     directive::Methods                        allowed_methods;
@@ -47,7 +48,7 @@ namespace cache
 
     LocationQuery();
 
-    void  construct(const directive::LocationBlock* location_block);
+    void  construct(const directive::ServerBlock*, const directive::LocationBlock* location_block);
 
     void  construct_match_path(const directive::LocationBlock* location_block);
     void  construct_allowed_methods(const directive::LocationBlock* location_block);

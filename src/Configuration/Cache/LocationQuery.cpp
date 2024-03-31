@@ -23,7 +23,8 @@ namespace cache
   ////////////////////////////////////////////////
 
   LocationQuery::LocationQuery()
-    : match_path(),
+    : server_block(NULL),
+      match_path(),
       allowed_methods(),
       client_max_body_size(0),
       redirect(NULL),
@@ -36,8 +37,11 @@ namespace cache
       access_log(),
       error_log() {}
 
-  void  LocationQuery::construct(const directive::LocationBlock* location_block)
+  void  LocationQuery::construct(const directive::ServerBlock* server_block_, const directive::LocationBlock* location_block)
   {
+    assert(server_block_ != NULL);
+    assert(location_block != NULL);
+    server_block = server_block_;
     construct_match_path(location_block);
     construct_allowed_methods(location_block);
     construct_client_max_body_size(location_block);

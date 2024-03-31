@@ -16,20 +16,17 @@
 //////////////////////////////////////////////////////
 
 ConfigurationQueryResult::ConfigurationQueryResult()
-  : server_block(NULL),
-    location_block(NULL),
+  : location_block(NULL),
     location_property(NULL) {}
 
-ConfigurationQueryResult::ConfigurationQueryResult(const directive::ServerBlock* server_block,
-                                                   const directive::LocationBlock* location_block,
+ConfigurationQueryResult::ConfigurationQueryResult(const directive::LocationBlock* location_block,
                                                    cache::LocationQuery* location_property)
-  : server_block(server_block),
-    location_block(location_block),
+  : location_block(location_block),
     location_property(location_property) {}
 
 bool  ConfigurationQueryResult::is_empty() const
 {
-  return server_block == NULL && location_block == NULL && location_property == NULL;
+  return location_block == NULL && location_property == NULL;
 }
 
 ////////////////////////////////////////////
@@ -113,8 +110,8 @@ std::vector<const directive::Socket*> Configuration::all_server_sockets()
 ///////////////////////////////////////////
 
 const ConfigurationQueryResult  Configuration::query(int server_socket_fd,
-                                                             const std::string& server_name,
-                                                             const std::string& path)
+                                                     const std::string& server_name,
+                                                     const std::string& path)
 {
   assert(main_block_ != NULL);
   const directive::ServerBlock* server_block = query_server_block(server_socket_fd, server_name);
@@ -123,32 +120,34 @@ const ConfigurationQueryResult  Configuration::query(int server_socket_fd,
   const directive::LocationBlock* location_block = query_location_block(server_block, path);
   if (location_block == NULL)
     return ConfigurationQueryResult();
-  cache::LocationQuery* location_property = NULL;
   // find the location property in the location cache
   for (std::vector<cache::LocationQuery>::iterator it = location_cache_.begin(); it != location_cache_.end(); ++it)
   {
-    if (it->match_path == location_block->match())
+    if (it->match_path == location_block->match() && it->server_block == server_block)
     {
-      location_property = &(*it);
-      break;
+      return ConfigurationQueryResult(location_block, &(*it));
     }
   }
+  cache::LocationQuery* location_property = NULL;
   // if the location property is not found, then create a new location property
-  if (location_property == NULL)
+  if (location_cache_.size() == location_cache_.capacity())
+    location_property = &location_cache_[location_insertion_index_];
+  else
   {
     location_cache_.push_back(cache::LocationQuery());
     location_property = &location_cache_.back();
   }
+  location_insertion_index_ = (location_insertion_index_ + 1) % location_cache_.size();
   // construct the configuration query result
-  location_property->construct(location_block);
-  return ConfigurationQueryResult(server_block, location_block, location_property);
+  location_property->construct(server_block, location_block);
+  return ConfigurationQueryResult(location_block, location_property);
 }
 
 const directive::LocationBlock*  Configuration::query_location_block(const directive::ServerBlock* server_block,
                                                                                        const std::string& path) const
 {
   assert(main_block_ != NULL);
-  const directive::LocationBlock* result;
+  const directive::LocationBlock* result = NULL;
   // iterate over all location blocks
   directive::DirectivesRange  location_directives = server_block->query_directive(Directive::kDirectiveLocation);
   for (directive::DirectivesRange::first_type location_it = location_directives.first; location_it != location_directives.second; ++location_it)

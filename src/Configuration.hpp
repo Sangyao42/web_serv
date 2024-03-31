@@ -16,13 +16,11 @@ extern Configuration ws_database;
 
 struct ConfigurationQueryResult
 {
-  const directive::ServerBlock*   server_block;
   const directive::LocationBlock* location_block;
   cache::LocationQuery*           location_property;
 
   ConfigurationQueryResult();
-  ConfigurationQueryResult(const directive::ServerBlock* server_block,
-                           const directive::LocationBlock* location_block,
+  ConfigurationQueryResult(const directive::LocationBlock* location_block,
                            cache::LocationQuery* location_property);
 
   bool  is_empty() const;
@@ -37,22 +35,30 @@ class Configuration
     Configuration(int cache_size);
     ~Configuration();
 
-    /////////////////////////////////////
-    ////////////   setters   ////////////
-    /////////////////////////////////////
+    ///////////////////////////////////////////////
+    ////////////   setup this object   ////////////
+    ///////////////////////////////////////////////
 
+    // Set the size of the location cache.
+    void  set_location_cache_size(int size);
+
+    // Set the main block of the configuration.
+    void  set_main_block(directive::MainBlock* main_block);
+
+    // Get all the server sockets.
+    std::vector<const directive::Socket*> all_server_sockets();
+
+    // After getting all the server sockets, one has to register them with the socket file descriptor
+    // associated with the parsed socket object.
     void                                  register_server_socket(int server_socket_fd,
                                                                  const directive::Socket& socket);
 
-    void                                  set_location_cache_size(int size);
-    void                                  set_main_block(directive::MainBlock* main_block);
 
     /////////////////////////////////////
     ////////////   getters   ////////////
     /////////////////////////////////////
 
     size_t                                worker_connections() const;
-    std::vector<const directive::Socket*> all_server_sockets();
 
     ///////////////////////////////////////////
     ////////////   query methods   ////////////
