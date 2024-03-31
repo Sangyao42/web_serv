@@ -50,7 +50,11 @@ Configuration::Configuration(int cache_size)
   location_cache_.reserve(cache_size);
 }
 
-Configuration::~Configuration() {}
+Configuration::~Configuration()
+{
+  if (main_block_ != NULL)
+    delete main_block_;
+}
 
 /////////////////////////////////////
 ////////////   setters   ////////////
