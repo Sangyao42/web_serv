@@ -5,7 +5,7 @@
 #include "HeaderValue.hpp"
 
 /*
-	An abstract class having information and functions
+	An abstract class having data types and functions
 	shared by Request and Response classes */
 
 class HTTPMessage
@@ -18,13 +18,13 @@ class HTTPMessage
 		HTTPMessage &operator=(HTTPMessage const &obj);
 
 	protected:
-		Method	method_;
+		// For Request: request, general, entity headers
+		// For Response: general, entity headers
+		std::map<std::string, HeaderValue *>	headers_;
 
-		std::string	requestURL_;
-
-		Version version_;
-
-		std::map<std::string, HeaderValue *> requestHeaders_;
-
-		std::string body_;
+		// + functions for the map to
+		// add headers,
+		// find the key and retrieve the value,
+		// free memory in the destructor,
+		// etc
 };

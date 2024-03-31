@@ -14,9 +14,3 @@ enum Method
 	kDelete,
 	kUnmatched
 };
-
-enum Version
-{
-	kStandard,
-	kWrong
-};
