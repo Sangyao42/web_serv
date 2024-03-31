@@ -11,7 +11,7 @@
 #include "Configuration/Directive/Simple/Listen.hpp"
 #include "Configuration/Directive/Simple/ServerName.hpp"
 #include "Configuration/Directive/Simple/Cgi.hpp"
-#include "Configuration/Directive/Simple/Redirect.hpp"
+#include "Configuration/Directive/Simple/Return.hpp"
 
 TEST_F(TestConfiguration1, query_non_exisiting_socket)
 {
@@ -190,8 +190,8 @@ void  Config1(directive::MainBlock& config)
       server->add_directive(location);
 
       {
-        directive::Redirect*  return_ = new directive::Redirect();
-        return_->set("http://www.develop.com", true);
+        directive::Return*  return_ = new directive::Return();
+        return_->set("http://www.develop.com", 301);
         location->add_directive(return_);
       }
     }

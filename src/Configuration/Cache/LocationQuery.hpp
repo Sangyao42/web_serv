@@ -11,7 +11,7 @@
 #include "Configuration/Directive/Simple/ErrorPage.hpp"
 #include "Configuration/Directive/Simple/MimeTypes.hpp"
 #include "Configuration/Directive/Simple/AllowMethods.hpp"
-#include "Configuration/Directive/Simple/Redirect.hpp"
+#include "Configuration/Directive/Simple/Return.hpp"
 #include "Configuration/Directive/Simple/Cgi.hpp"
 
 namespace cache
@@ -33,8 +33,8 @@ namespace cache
     // direvtives to decide if the request is allowed
     directive::Methods                        allowed_methods;
     size_t                                    client_max_body_size;
-    // If redirect is not null, the request should be generated a redirect response
-    const directive::Redirect*                redirect;
+    // If return is not null, the request should be generated from this directive
+    const directive::Return*                  redirect;
     // If cgi is not null, the request should be handled by a cgi script
     std::vector<const directive::Cgi*>        cgis;
     // directives to find the full path of the requested resource
@@ -53,7 +53,7 @@ namespace cache
     void  construct_match_path(const directive::LocationBlock* location_block);
     void  construct_allowed_methods(const directive::LocationBlock* location_block);
     void  construct_client_max_body_size(const directive::LocationBlock* location_block);
-    void  construct_redirect(const directive::LocationBlock* location_block);
+    void  construct_return(const directive::LocationBlock* location_block);
     void  construct_cgis(const directive::LocationBlock* location_block);
     void  construct_root(const directive::LocationBlock* location_block);
     void  construct_indexes(const directive::LocationBlock* location_block);

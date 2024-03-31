@@ -12,7 +12,7 @@
 #include "Configuration/Directive/Simple.hpp"
 #include "Configuration/Directive/Simple/MimeTypes.hpp"
 #include "Configuration/Directive/Simple/AllowMethods.hpp"
-#include "Configuration/Directive/Simple/Redirect.hpp"
+#include "Configuration/Directive/Simple/Return.hpp"
 #include "Configuration/Directive/Simple/Cgi.hpp"
 
 namespace cache
@@ -45,7 +45,7 @@ namespace cache
     construct_match_path(location_block);
     construct_allowed_methods(location_block);
     construct_client_max_body_size(location_block);
-    construct_redirect(location_block);
+    construct_return(location_block);
     construct_cgis(location_block);
     construct_root(location_block);
     construct_indexes(location_block);
@@ -77,9 +77,9 @@ namespace cache
     client_max_body_size = directive ? directive->get() : 1048576; // 1MB
   }
 
-  void  LocationQuery::construct_redirect(const directive::LocationBlock* location_block)
+  void  LocationQuery::construct_return(const directive::LocationBlock* location_block)
   {
-    redirect = static_cast<const directive::Redirect*>(closest_directive(location_block, Directive::kDirectiveRedirect));
+    redirect = static_cast<const directive::Return*>(closest_directive(location_block, Directive::kDirectiveReturn));
   }
 
   void  LocationQuery::construct_cgis(const directive::LocationBlock* location_block)

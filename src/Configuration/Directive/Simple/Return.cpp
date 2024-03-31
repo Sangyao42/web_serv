@@ -35,13 +35,18 @@ namespace directive
 
   Directive::Type Return::type() const
   {
-    return Directive::kDirectiveRedirect;
+    return Directive::kDirectiveReturn;
   }
 
-  void Return::set(const std::string& path, int is_permanent)
+  void Return::set(const std::string& path, int status_code)
   {
     path_ = path;
-    status_code_ = is_permanent;
+    status_code_ = status_code;
+  }
+
+  int Return::get() const
+  {
+    return status_code_;
   }
 
   const std::string& Return::get_path() const

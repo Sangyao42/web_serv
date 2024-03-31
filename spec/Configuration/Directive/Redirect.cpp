@@ -6,7 +6,7 @@ TEST(TestDirectiveReturn, constructor)
 {
   directive::Return directive;
   ASSERT_EQ(directive.is_block(), false);
-  ASSERT_EQ(directive.type(), Directive::kDirectiveRedirect);
+  ASSERT_EQ(directive.type(), Directive::kDirectiveReturn);
   ASSERT_EQ(directive.context(), Directive::Context(0));
   ASSERT_EQ(directive.index(), 0);
 }
@@ -15,7 +15,7 @@ TEST(TestDirectiveReturn, constructor2)
 {
   directive::Return directive(Directive::Context(50));
   ASSERT_EQ(directive.is_block(), false);
-  ASSERT_EQ(directive.type(), Directive::kDirectiveRedirect);
+  ASSERT_EQ(directive.type(), Directive::kDirectiveReturn);
   ASSERT_EQ(directive.context(), Directive::Context(50));
   ASSERT_EQ(directive.index(), 50);
 }
@@ -25,7 +25,7 @@ TEST(TestDirectiveReturn, constructor_copy)
   directive::Return directive(Directive::Context(50));
   directive::Return directive2(directive);
   ASSERT_EQ(directive2.is_block(), false);
-  ASSERT_EQ(directive2.type(), Directive::kDirectiveRedirect);
+  ASSERT_EQ(directive2.type(), Directive::kDirectiveReturn);
   ASSERT_EQ(directive2.context(), Directive::Context(50));
   ASSERT_EQ(directive2.index(), 50);
 }

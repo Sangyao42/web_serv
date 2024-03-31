@@ -34,7 +34,7 @@ class Directive
       kDirectiveErrorPage,
       // for HTTP request generation (generating content)
       kDirectiveClientMaxBodySize,
-      kDirectiveRedirect,
+      kDirectiveReturn,
       kDirectiveAutoindex,
       kDirectiveCgi,
       // misc
