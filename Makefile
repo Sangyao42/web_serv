@@ -48,6 +48,7 @@ CONFIGURATION_SRC:= \
 	Configuration/Directive/Block/Location.cpp \
 	Configuration/Directive/Simple/Listen.cpp \
 	Configuration/Directive/Simple/ServerName.cpp \
+	Configuration/Directive/Simple/ErrorPage.cpp \
 	Configuration/Directive/Simple/AllowMethods.cpp \
 	Configuration/Directive/Simple/MimeTypes.cpp \
 	Configuration/Directive/Simple/Redirect.cpp \
