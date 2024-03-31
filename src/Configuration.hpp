@@ -1,19 +1,80 @@
 #pragma once
 
+#include <cstddef>
+#include <string>
 #include <vector>
 
-#include "Configuration/Directive/Block/Events.hpp"
-#include "Configuration/Directive/Block/Http.hpp"
-#include "Configuration/Directive/Block.hpp"
+#include "Configuration/Cache/LocationQuery.hpp"
+#include "Configuration/Cache/ServerQuery.hpp"
+#include "Configuration/Directive/Socket.hpp"
+#include "Configuration/Directive/Block/Main.hpp"
+#include "Configuration/Directive/Block/Server.hpp"
+#include "Configuration/Directive/Block/Location.hpp"
 
-struct Configuration;
-extern Configuration ws_configuration;
+class Configuration;
+extern Configuration ws_database;
 
-struct Configuration
+struct ConfigurationQueryResult
 {
-  directive::HttpBlock    http;
-  directive::EventsBlock  events;
-  directive::Directives   directives;
+  const directive::ServerBlock*   server_block;
+  const directive::LocationBlock* location_block;
+  cache::LocationQuery*           location_property;
+
+  ConfigurationQueryResult();
+  ConfigurationQueryResult(const directive::ServerBlock* server_block,
+                           const directive::LocationBlock* location_block,
+                           cache::LocationQuery* location_property);
+
+  bool  is_empty() const;
+};
+
+class Configuration
+{
+  public:
+    typedef Maybe<const std::vector<const directive::ServerBlock*>*>  ServerBlocksQueryResult;
+
+    Configuration();
+    Configuration(int cache_size);
+    Configuration(const Configuration &other);
+    Configuration &operator=(const Configuration &other);
+    ~Configuration();
+
+    /////////////////////////////////////
+    ////////////   setters   ////////////
+    /////////////////////////////////////
+
+    void                                  register_server_socket(int server_socket_fd,
+                                                                 const directive::Socket& socket);
+
+    void                                  set_location_cache_size(int size);
+    void                                  set_main_block(directive::MainBlock* main_block);
+
+    /////////////////////////////////////
+    ////////////   getters   ////////////
+    /////////////////////////////////////
+
+    size_t                                worker_connections() const;
+    std::vector<const directive::Socket*> all_server_sockets();
+
+    ///////////////////////////////////////////
+    ////////////   query methods   ////////////
+    ///////////////////////////////////////////
+
+    const ConfigurationQueryResult        query(int server_socket_fd,
+                                                const std::string& server_name,
+                                                const std::string& path);
+
+    const directive::LocationBlock*       query_location_block(const directive::ServerBlock* server_block,
+                                                               const std::string& path) const;
+    const directive::ServerBlock*         query_server_block(int server_socket_fd,
+                                                             const std::string& server_name) const;
+    ServerBlocksQueryResult               query_server_blocks(int server_socket_fd) const;
+
   private:
-    Configuration& operator=(const Configuration& other);
+    std::vector<cache::ServerQuery>       server_cache_;
+    std::vector<cache::LocationQuery>     location_cache_;
+    int                                   location_insertion_index_;
+    directive::MainBlock*                 main_block_;
+
+    void                                  generate_server_cache();
 };

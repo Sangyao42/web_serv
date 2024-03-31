@@ -18,6 +18,7 @@ class Directive
     enum Type
     {
       // Blocks
+      kDirectiveMain,
       kDirectiveHttp,
       kDirectiveServer,
       kDirectiveEvents,

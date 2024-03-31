@@ -35,26 +35,26 @@ namespace cache
 
   void  LocationQuery::construct(const directive::LocationBlock* location_block)
   {
-    construct_match_path(location_block);
-    LocationQueryCacheFilled  filled;
+    match_path = location_block->match();
+    LocationQueryBuilder  builder;
     const directive::DirectiveBlock* block = location_block;
 
-    while (block != NULL && !filled.all_filled())
+    while (block != NULL && !builder.all_filled())
     {
-      std::vector<std::pair<Directive::Type, ConstructionFunc> >::iterator funcs_it = filled.construction_funcs.begin();
+      std::vector<std::pair<Directive::Type, ConstructionFunc> >::iterator funcs_it = builder.one_off_funcs.begin();
       for (directive::Directives::const_iterator it = block->directives().begin();
           it != location_block->directives().end();
           ++it)
       {
         const Directive* directive = it->second;
-        while (funcs_it != filled.construction_funcs.end())
+        while (funcs_it != builder.one_off_funcs.end())
         {
           const Directive::Type& type = funcs_it->first;
           if (directive->type() != type)
           {
             const ConstructionFunc& func = funcs_it->second;
             func(*this, directive);
-            funcs_it = filled.construction_funcs.erase(funcs_it);
+            funcs_it = builder.one_off_funcs.erase(funcs_it);
           }
           else
             ++funcs_it;
@@ -62,34 +62,33 @@ namespace cache
       }
       block = block->parent();
     }
-    construct_cgis(location_block);
-    construct_indexes(location_block);
-    construct_error_page(location_block);
   }
 
-  void  LocationQuery::construct_match_path(const directive::LocationBlock* location_block)
-  {
-    match_path = location_block->match();
-  }
+  /////////////////////////////////////////////////////////
+  ////////////   accumulatative construction   ////////////
+  /////////////////////////////////////////////////////////
 
-  void  LocationQuery::construct_cgis(const directive::LocationBlock* location_block)
+  void  ConstructCgis(LocationQuery& cache, const directive::LocationBlock* location_block)
   {
+    (void) cache;
     (void) location_block;
   }
 
-  void  LocationQuery::construct_indexes(const directive::LocationBlock* location_block)
+  void  ConstructIndexes(LocationQuery& cache, const directive::LocationBlock* location_block)
   {
+    (void) cache;
     (void) location_block;
   }
 
-  void  LocationQuery::construct_error_page(const directive::LocationBlock* location_block)
+  void  ConstructErrorPage(LocationQuery& cache, const directive::LocationBlock* location_block)
   {
+    (void) cache;
     (void) location_block;
   }
 
-  ////////////////////////////////////////////////////
-  ////////////   construction functions   ////////////
-  ////////////////////////////////////////////////////
+  ///////////////////////////////////////////////
+  ////////////   one off functions   ////////////
+  ///////////////////////////////////////////////
 
   void  ConstructAllowMethods(LocationQuery& cache, const directive::AllowMethods* directive)
   {
@@ -140,29 +139,31 @@ namespace cache
   }
 
   //////////////////////////////////////////////////////
-  ////////////   LocationQueryCacheFilled   ////////////
+  ////////////   LocationQueryBuilder   ////////////
   //////////////////////////////////////////////////////
 
-  LocationQueryCacheFilled::LocationQueryCacheFilled()
-    : construction_funcs()
+  LocationQueryBuilder::LocationQueryBuilder()
+    : one_off_funcs(), accumulative_funcs()
   {
-    construction_funcs.reserve(8);
-    construction_funcs.push_back(std::make_pair(Directive::kDirectiveAccessLog, reinterpret_cast<ConstructionFunc>(&ConstructAllowMethods)));
-    construction_funcs.push_back(std::make_pair(Directive::kDirectiveAccessLog, reinterpret_cast<ConstructionFunc>(&ConstructClientMaxBodySize)));
-    construction_funcs.push_back(std::make_pair(Directive::kDirectiveAccessLog, reinterpret_cast<ConstructionFunc>(&ConstructRedirect)));
-    // construction_funcs.push_back(reinterpret_cast<ConstructionFunc>(&ConstructCgis));
-    construction_funcs.push_back(std::make_pair(Directive::kDirectiveAccessLog, reinterpret_cast<ConstructionFunc>(&ConstructRoot)));
-    // construction_funcs.push_back(reinterpret_cast<ConstructionFunc>(&ConstructIndexes));
-    construction_funcs.push_back(std::make_pair(Directive::kDirectiveAccessLog, reinterpret_cast<ConstructionFunc>(&ConstructAutoindex)));
-    construction_funcs.push_back(std::make_pair(Directive::kDirectiveAccessLog, reinterpret_cast<ConstructionFunc>(&ConstructMimeTypes)));
-    // construction_funcs.push_back(reinterpret_cast<ConstructionFunc>(&ConstructErrorPage));
-    construction_funcs.push_back(std::make_pair(Directive::kDirectiveAccessLog, reinterpret_cast<ConstructionFunc>(&ConstructAccessLog)));
-    construction_funcs.push_back(std::make_pair(Directive::kDirectiveAccessLog, reinterpret_cast<ConstructionFunc>(&ConstructErrorLog)));
+    one_off_funcs.reserve(8);
+    one_off_funcs.push_back(std::make_pair(Directive::kDirectiveAllowMethods, reinterpret_cast<ConstructionFunc>(&ConstructAllowMethods)));
+    one_off_funcs.push_back(std::make_pair(Directive::kDirectiveClientMaxBodySize, reinterpret_cast<ConstructionFunc>(&ConstructClientMaxBodySize)));
+    one_off_funcs.push_back(std::make_pair(Directive::kDirectiveRedirect, reinterpret_cast<ConstructionFunc>(&ConstructRedirect)));
+    one_off_funcs.push_back(std::make_pair(Directive::kDirectiveRoot, reinterpret_cast<ConstructionFunc>(&ConstructRoot)));
+    one_off_funcs.push_back(std::make_pair(Directive::kDirectiveAutoindex, reinterpret_cast<ConstructionFunc>(&ConstructAutoindex)));
+    one_off_funcs.push_back(std::make_pair(Directive::kDirectiveMimeTypes, reinterpret_cast<ConstructionFunc>(&ConstructMimeTypes)));
+    one_off_funcs.push_back(std::make_pair(Directive::kDirectiveAccessLog, reinterpret_cast<ConstructionFunc>(&ConstructAccessLog)));
+    one_off_funcs.push_back(std::make_pair(Directive::kDirectiveErrorLog, reinterpret_cast<ConstructionFunc>(&ConstructErrorLog)));
+
+    accumulative_funcs.reserve(3);
+    accumulative_funcs.push_back(std::make_pair(Directive::kDirectiveCgi, reinterpret_cast<ConstructionFunc>(&ConstructCgis)));
+    accumulative_funcs.push_back(std::make_pair(Directive::kDirectiveIndex, reinterpret_cast<ConstructionFunc>(&ConstructIndexes)));
+    accumulative_funcs.push_back(std::make_pair(Directive::kDirectiveErrorPage, reinterpret_cast<ConstructionFunc>(&ConstructErrorPage)));
   }
 
-  bool  LocationQueryCacheFilled::all_filled() const
+  bool  LocationQueryBuilder::all_filled() const
   {
-    return construction_funcs.empty();
+    return one_off_funcs.empty();
   }
 
 } // namespace cache

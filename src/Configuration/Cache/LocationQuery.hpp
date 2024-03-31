@@ -40,13 +40,21 @@ namespace cache
     LocationQuery();
 
     void  construct(const directive::LocationBlock* location_block);
-
-    private:
-      void  construct_match_path(const directive::LocationBlock* location_block);
-      void  construct_cgis(const directive::LocationBlock* location_block);
-      void  construct_indexes(const directive::LocationBlock* location_block);
-      void  construct_error_page(const directive::LocationBlock* location_block);
   };
+
+  typedef void  (*ConstructionFunc)(LocationQuery&, const Directive*);
+
+  /////////////////////////////////////////////////////////
+  ////////////   accumulatative construction   ////////////
+  /////////////////////////////////////////////////////////
+
+  void  ConstructCgis(LocationQuery& cache, const directive::LocationBlock* location_block);
+  void  ConstructIndexes(LocationQuery& cache, const directive::LocationBlock* location_block);
+  void  ConstructErrorPage(LocationQuery& cache, const directive::LocationBlock* location_block);
+
+  //////////////////////////////////////////////////
+  ////////////   One off construction   ////////////
+  //////////////////////////////////////////////////
 
   void  ConstructAllowMethods(LocationQuery& cache, const directive::AllowMethods* directive);
   void  ConstructClientMaxBodySize(LocationQuery& cache, const directive::ClientMaxBodySize* directive);
@@ -57,13 +65,13 @@ namespace cache
   void  ConstructAccessLog(LocationQuery& cache, const directive::AccessLog* directive);
   void  ConstructErrorLog(LocationQuery& cache, const directive::ErrorLog* directive);
 
-  typedef void  (*ConstructionFunc)(LocationQuery&, const Directive*);
 
-  struct LocationQueryCacheFilled
+  struct LocationQueryBuilder
   {
-    std::vector<std::pair<Directive::Type, ConstructionFunc> >  construction_funcs;
+    std::vector<std::pair<Directive::Type, ConstructionFunc> >  one_off_funcs;
+    std::vector<std::pair<Directive::Type, ConstructionFunc> >  accumulative_funcs;
 
-    LocationQueryCacheFilled();
+    LocationQueryBuilder();
     bool  all_filled() const;
   };
 } // namespace caches

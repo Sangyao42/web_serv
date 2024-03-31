@@ -36,7 +36,6 @@ namespace directive
   {
     Directive::operator=(other);
     directives_ = other.directives_;
-    parent_ = NULL;
     return *this;
   }
 
