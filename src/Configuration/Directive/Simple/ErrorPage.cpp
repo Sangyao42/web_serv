@@ -9,13 +9,13 @@
 namespace directive
 {
   ErrorPage::ErrorPage()
-    : Directive(), error_code_(), url_() {}
+    : Directive(), error_code_(), file_path_() {}
   
   ErrorPage::ErrorPage(const Context& context)
-    : Directive(context), error_code_(), url_() {}
+    : Directive(context), error_code_(), file_path_() {}
   
   ErrorPage::ErrorPage(const ErrorPage& other)
-    : Directive(other), error_code_(other.error_code_), url_(other.url_) {}
+    : Directive(other), error_code_(other.error_code_), file_path_(other.file_path_) {}
   
   ErrorPage& ErrorPage::operator=(const ErrorPage& other)
   {
@@ -23,7 +23,7 @@ namespace directive
     {
       Directive::operator=(other);
       error_code_ = other.error_code_;
-      url_ = other.url_;
+      file_path_ = other.file_path_;
     }
     return *this;
   }
@@ -40,10 +40,10 @@ namespace directive
     return Directive::kDirectiveErrorPage;
   }
 
-  void ErrorPage::set(int error_code, const std::string& url)
+  void ErrorPage::set(int error_code, const std::string& file_path)
   {
     error_code_ = error_code;
-    url_ = url;
+    file_path_ = file_path;
   }
 
 
@@ -52,9 +52,9 @@ namespace directive
     return error_code_;
   }
 
-  const std::string& ErrorPage::url() const
+  const std::string& ErrorPage::file_path() const
   {
-    return url_;
+    return file_path_;
   }
 
   int ErrorPage::get() const
@@ -65,7 +65,7 @@ namespace directive
   Maybe<std::string> ErrorPage::match(int error_code) const
   {
     if (error_code == error_code_)
-      return url_;
+      return file_path_;
     return Nothing();
   }
 } // namespace configuration
