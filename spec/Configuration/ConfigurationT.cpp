@@ -13,30 +13,38 @@
 #include "Configuration/Directive/Simple/Cgi.hpp"
 #include "Configuration/Directive/Simple/Return.hpp"
 
-TEST_F(TestConfiguration1, query_non_exisiting_socket)
+TEST_F(TestConfiguration1, query_wrong_socket)
 {
-  Configuration config(8);
-
-  config.set_main_block(main_block_);
-  std::vector<const directive::Socket *> sockets = config.all_server_sockets();
-  ASSERT_EQ(sockets.size(), static_cast<size_t>(1));
-  ASSERT_EQ(*sockets[0], directive::Socket("80"));
-  config.register_server_socket(3, *sockets[0]);
-  const ConfigurationQueryResult result = config.query(2, "hi.com", "/omg/what.html");
+  const ConfigurationQueryResult result = config_.query(2, "hi.com", "/omg/what.html");
   ASSERT_TRUE(result.is_empty());
+}
+
+TEST_F(TestConfiguration1, query_server_block)
+{
+  ASSERT_EQ(config_.query_server_block(3, "hi.com"), &*main_block_->http().servers().first->second);
 }
 
 TEST_F(TestConfiguration1, query)
 {
-  Configuration config(8);
+  const ConfigurationQueryResult result = config_.query(3, "hi.com", "/omg/what.html");
+  ASSERT_FALSE(result.is_empty());
 
-  config.set_main_block(main_block_);
-  std::vector<const directive::Socket *> sockets = config.all_server_sockets();
-  ASSERT_EQ(sockets.size(), static_cast<size_t>(1));
-  ASSERT_EQ(*sockets[0], directive::Socket("80"));
-  config.register_server_socket(3, *sockets[0]);
-  ASSERT_EQ(config.query_server_block(3, "hi.com"), &*main_block_->http().servers().first->second);
-  const ConfigurationQueryResult result = config.query(3, "hi.com", "/omg/what.html");
+  ASSERT_EQ(result.location_block->type(), Directive::kDirectiveLocation);
+  ASSERT_EQ(result.location_block->match(), "/omg/");
+}
+
+TEST_F(TestConfiguration1, query_use_first_server_if_no_server_name)
+{
+  const ConfigurationQueryResult result = config_.query(3, "", "/omg/what.html");
+  ASSERT_FALSE(result.is_empty());
+
+  ASSERT_EQ(result.location_block->type(), Directive::kDirectiveLocation);
+  ASSERT_EQ(result.location_block->match(), "/omg/");
+}
+
+TEST_F(TestConfiguration1, query_use_first_server_if_wrong_server_name)
+{
+  const ConfigurationQueryResult result = config_.query(3, "non-existing.com", "/omg/what.html");
   ASSERT_FALSE(result.is_empty());
 
   ASSERT_EQ(result.location_block->type(), Directive::kDirectiveLocation);

@@ -204,7 +204,10 @@ const directive::ServerBlock*  Configuration::query_server_block(int server_sock
       }
     }
   }
-  return NULL;
+  // use default server block if no server block is found
+  // default server block is the first server block
+  assert(!server_blocks.value()->empty());
+  return server_blocks.value()->front();
 }
 
 Configuration::ServerBlocksQueryResult Configuration::query_server_blocks(int server_socket_fd) const
