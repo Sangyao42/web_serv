@@ -5,7 +5,6 @@
 #include <vector>
 #include <utility>
 
-#include "misc/Maybe.hpp"
 #include "Configuration/Directive.hpp"
 #include "Configuration/Directive/Block.hpp"
 
@@ -16,20 +15,19 @@ namespace directive
   ///////////////////////////////////////////
 
   LocationBlock::LocationBlock()
-    : DirectiveBlock(), locations_(), match_() {}
+    : DirectiveBlock(), match_() {}
   
   LocationBlock::LocationBlock(const Context& context)
-    : DirectiveBlock(context), locations_(), match_() {}
+    : DirectiveBlock(context), match_() {}
   
   LocationBlock::LocationBlock(const LocationBlock& other)
-    : DirectiveBlock(other), locations_(), match_(other.match_) {}
+    : DirectiveBlock(other), match_(other.match_) {}
   
   LocationBlock& LocationBlock::operator=(const LocationBlock& other)
   {
     if (this != &other)
     {
       DirectiveBlock::operator=(other);
-      locations_ = Nothing();
       match_ = other.match_;
     }
     return *this;
@@ -37,20 +35,19 @@ namespace directive
 
   LocationBlock::~LocationBlock() {}
 
+  bool LocationBlock::operator<(const LocationBlock& rhs) const
+  {
+    return this->match().length() < rhs.match().length();
+  }
+
   Directive::Type LocationBlock::type() const
   {
     return Directive::kDirectiveLocation;
   }
 
-  Maybe<Locations> LocationBlock::locations()
+  Locations LocationBlock::locations() const
   {
-    if (!locations_.is_ok())
-    {
-      Locations locations = static_cast<const Directives>(directives_).equal_range(Directive::kDirectiveLocation);
-      if (locations.first != locations.second)
-        locations_ = locations;
-    }
-    return locations_;
+    return directives_.equal_range(Directive::kDirectiveLocation);
   }
 
   const std::string& LocationBlock::match() const
@@ -74,33 +71,23 @@ namespace directive
       return NULL;
     const LocationBlock*  result = this;
 
-    if (locations_.is_ok())
+    Locations range = locations();
+    if (!DirectiveRangeIsValid(range))
+      return result;
+    // iterate over all paths in a location block
+    for (Locations::first_type location_it = range.first; location_it != range.second; ++location_it)
     {
-      const Locations& locations = locations_.value();
-      // iterate over all paths in a location block
-      for (Locations::first_type location_it = locations.first; location_it != locations.second; ++location_it)
-      {
-        assert(location_it->first == Directive::kDirectiveLocation);
-        assert(location_it->second != NULL);
-        const LocationBlock* location_block = static_cast<const LocationBlock*>(location_it->second);
+      assert(location_it->first == Directive::kDirectiveLocation);
+      assert(location_it->second != NULL);
+      const LocationBlock* location_block = static_cast<const LocationBlock*>(location_it->second);
 
-        const LocationBlock*  best_match = location_block->best_match(uri);
-        if (best_match != NULL)
-        {
-          if (*result < *best_match)
-            result = location_block;
-        }
+      const LocationBlock*  best_match = location_block->best_match(uri);
+      if (best_match != NULL)
+      {
+        if (*result < *best_match)
+          result = location_block;
       }
     }
     return result;
-  }
-
-  //////////////////////////////////////////////////////
-  ////////////   LocationBlockMatchResult   ////////////
-  //////////////////////////////////////////////////////
-
-  bool operator<(const LocationBlock& lhs, const LocationBlock& rhs)
-  {
-    return lhs.match().length() < rhs.match().length();
   }
 } // namespace configuration

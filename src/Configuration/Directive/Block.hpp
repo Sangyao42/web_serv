@@ -35,6 +35,7 @@ namespace directive
 
       virtual void            add_directive(Directive* directive);
       virtual DirectivesRange query_directive(Type type) const;
+      Directives::const_iterator  end() const;
 
     protected:
       Directives              directives_;

@@ -2,8 +2,6 @@
 
 #include <cassert>
 
-#include <iostream>
-
 #include "misc/Maybe.hpp"
 #include "Configuration.hpp"
 #include "Configuration/Cache/LocationQuery.hpp"
@@ -52,7 +50,11 @@ Configuration::Configuration(int cache_size)
   location_cache_.reserve(cache_size);
 }
 
-Configuration::~Configuration() {}
+Configuration::~Configuration()
+{
+  if (main_block_ != NULL)
+    delete main_block_;
+}
 
 /////////////////////////////////////
 ////////////   setters   ////////////
@@ -146,7 +148,7 @@ const ConfigurationQueryResult  Configuration::query(int server_socket_fd,
 }
 
 const directive::LocationBlock*  Configuration::query_location_block(const directive::ServerBlock* server_block,
-                                                                                       const std::string& path) const
+                                                                     const std::string& path) const
 {
   assert(main_block_ != NULL);
   const directive::LocationBlock* result = NULL;
@@ -158,7 +160,13 @@ const directive::LocationBlock*  Configuration::query_location_block(const direc
     assert(location_it->second != NULL);
     const directive::LocationBlock* location_block = static_cast<const directive::LocationBlock*>(location_it->second);
     const directive::LocationBlock* match_result = location_block->best_match(path);
-    if (*result < *match_result)
+    if (match_result == NULL)
+      continue;
+    else if (result == NULL)
+    {
+      result = match_result;
+    }
+    else if (*result < *match_result)
     {
       result = match_result;
     }
@@ -167,7 +175,7 @@ const directive::LocationBlock*  Configuration::query_location_block(const direc
 }
 
 const directive::ServerBlock*  Configuration::query_server_block(int server_socket_fd,
-                                                                         const std::string& server_name) const
+                                                                 const std::string& server_name) const
 {
   assert(main_block_ != NULL);
   ServerBlocksQueryResult server_blocks = query_server_blocks(server_socket_fd);
@@ -219,8 +227,8 @@ Configuration::ServerBlocksQueryResult Configuration::query_server_blocks(int se
 void  Configuration::generate_server_cache()
 {
   assert(main_block_ != NULL);
-  assert(main_block_->http().servers().is_ok());
-  directive::Servers servers = main_block_->http().servers().value();
+  assert(directive::DirectiveRangeIsValid(main_block_->http().servers()));
+  directive::Servers servers = main_block_->http().servers();
   // iterate over all server blocks
   for (directive::Servers::first_type it = servers.first; it != servers.second; ++it)
   {

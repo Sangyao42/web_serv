@@ -35,6 +35,7 @@ TEST_F(TestConfiguration1, query)
   ASSERT_EQ(sockets.size(), static_cast<size_t>(1));
   ASSERT_EQ(*sockets[0], directive::Socket("80"));
   config.register_server_socket(3, *sockets[0]);
+  ASSERT_EQ(config.query_server_block(3, "hi.com"), &*main_block_->http().servers().first->second);
   const ConfigurationQueryResult result = config.query(3, "hi.com", "/omg/what.html");
   ASSERT_FALSE(result.is_empty());
 

@@ -88,6 +88,11 @@ namespace directive
     return directives_.equal_range(type);
   }
 
+  Directives::const_iterator DirectiveBlock::end() const
+  {
+    return directives_.end();
+  }
+
   bool DirectiveRangeIsValid(const DirectivesRange& range)
   {
     return (range != DirectivesRange()) && (range.first != range.second);

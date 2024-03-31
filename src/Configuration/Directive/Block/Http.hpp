@@ -1,6 +1,5 @@
 #pragma once
 
-#include "misc/Maybe.hpp"
 #include "Configuration/Directive/Block.hpp"
 
 namespace directive
@@ -20,11 +19,8 @@ namespace directive
       HttpBlock& operator=(const HttpBlock& other);
       virtual ~HttpBlock();
 
-      virtual Type    type() const;
+      virtual Type  type() const;
 
-      Maybe<Servers>  servers();
-
-    private:
-      Maybe<Servers>  servers_;
+      Servers       servers() const;
   };
 } // namespace configuration

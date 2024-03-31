@@ -158,8 +158,12 @@ namespace cache
       directive::DirectivesRange query_result = block->query_directive(type);
       if (directive::DirectiveRangeIsValid(query_result))
       {
+        directive::DirectivesRange::second_type it = query_result.second;
+        // The second iterator can be an end iterator, so we need to decrement it
+        if (it == block->end())
+          it--;
         // Find the last directive with index less than the current block
-        for (directive::DirectivesRange::first_type it = query_result.second; it != query_result.first; --it)
+        for (; it != query_result.first; --it)
         {
           const Directive* directive = it->second;
           if (directive->index() < index)
@@ -185,7 +189,11 @@ namespace cache
       directive::DirectivesRange query_result = block->query_directive(type);
       if (directive::DirectiveRangeIsValid(query_result))
       {
-        for (directive::DirectivesRange::second_type it = query_result.second; it != query_result.first; --it)
+        directive::DirectivesRange::second_type it = query_result.second;
+        // The second iterator can be an end iterator, so we need to decrement it
+        if (it == block->end())
+          it--;
+        for (; it != query_result.first; --it)
         {
           const Directive* directive = it->second;
           if (directive->index() < index)
