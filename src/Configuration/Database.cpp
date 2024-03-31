@@ -131,11 +131,9 @@ const ConfigurationQueryResult  ConfigurationDatabase::query(int server_socket_f
   const directive::ServerBlock* server_block = query_server_block(server_socket_fd, server_name);
   if (server_block == NULL)
     return ConfigurationQueryResult();
-  const directive::LocationBlockMatchResult location_block_match = query_location_block(server_block, path);
-  if (location_block_match == directive::LocationBlockMatchResult())
+  const directive::LocationBlock* location_block = query_location_block(server_block, path);
+  if (location_block == NULL)
     return ConfigurationQueryResult();
-  const directive::LocationBlockPath& location_path = location_block_match.first;
-  const directive::LocationBlock* location_block = location_block_match.second;
   LocationQueryCache* location_property = NULL;
   // find the location property in the location cache
   for (std::vector<LocationQueryCache>::iterator it = location_cache_.begin(); it != location_cache_.end(); ++it)
@@ -153,14 +151,14 @@ const ConfigurationQueryResult  ConfigurationDatabase::query(int server_socket_f
     location_property = &location_cache_.back();
   }
   // construct the configuration query result
-  location_property->construct(location_path, location_block, server_block);
+  location_property->construct(location_block);
   return ConfigurationQueryResult(server_block, location_block, location_property);
 }
 
-const directive::LocationBlockMatchResult  ConfigurationDatabase::query_location_block(const directive::ServerBlock* server_block,
+const directive::LocationBlock*  ConfigurationDatabase::query_location_block(const directive::ServerBlock* server_block,
                                                                                        const std::string& path) const
 {
-  directive::LocationBlockMatchResult result;
+  const directive::LocationBlock* result;
   // iterate over all location blocks
   directive::DirectivesRange  location_directives = server_block->query_directive(Directive::kDirectiveLocation);
   for (directive::DirectivesRange::first_type location_it = location_directives.first; location_it != location_directives.second; ++location_it)
@@ -168,15 +166,11 @@ const directive::LocationBlockMatchResult  ConfigurationDatabase::query_location
     assert(location_it->first == Directive::kDirectiveLocation);
     assert(location_it->second != NULL);
     const directive::LocationBlock* location_block = static_cast<const directive::LocationBlock*>(location_it->second);
-    directive::LocationBlockMatchResult match_result = location_block->best_match(path);
-    if (result < match_result)
+    const directive::LocationBlock* match_result = location_block->best_match(path);
+    if (*result < *match_result)
     {
       result = match_result;
     }
-  }
-  if (result != directive::LocationBlockMatchResult())
-  {
-    result.first.insert(result.first.begin(), server_block->index());
   }
   return result;
 }

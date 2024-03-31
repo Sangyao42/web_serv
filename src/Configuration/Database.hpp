@@ -59,7 +59,7 @@ class ConfigurationDatabase
                                                 const std::string& server_name,
                                                 const std::string& path);
 
-    const directive::LocationBlockMatchResult query_location_block(const directive::ServerBlock* server_block,
+    const directive::LocationBlock*       query_location_block(const directive::ServerBlock* server_block,
                                                                const std::string& path) const;
     const directive::ServerBlock*         query_server_block(int server_socket_fd,
                                                              const std::string& server_name) const;

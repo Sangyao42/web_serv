@@ -14,11 +14,6 @@ namespace directive
    * DirectiveLocation.
   */
   typedef DirectivesRange   Locations;
-  typedef std::vector<int>  LocationBlockPath;
-  class LocationBlock;
-  typedef std::pair<LocationBlockPath, const LocationBlock*> LocationBlockMatchResult;
-
-  bool  operator<(const LocationBlockMatchResult& lhs, const LocationBlockMatchResult& rhs);
 
   class LocationBlock : public DirectiveBlock
   {
@@ -29,18 +24,19 @@ namespace directive
       LocationBlock& operator=(const LocationBlock& other);
       virtual ~LocationBlock();
 
-      virtual Type              type() const;
+      virtual Type          type() const;
 
-      Maybe<Locations>          locations();
-      const std::string&        match() const;
+      Maybe<Locations>      locations();
+      const std::string&    match() const;
 
-      bool                      is_match(const std::string& uri) const;
+      bool                  is_match(const std::string& uri) const;
 
-      LocationBlockMatchResult  best_match(const std::string& uri) const;
+      const LocationBlock*  best_match(const std::string& uri) const;
 
     private:
-      Maybe<Locations>          locations_;
-      std::string               match_;
+      Maybe<Locations>      locations_;
+      std::string           match_;
   };
 
+  bool  operator<(const LocationBlock& lhs, const LocationBlock& rhs);
 } // namespace configuration

@@ -20,7 +20,17 @@ namespace directive
     : Directive(context), directives_(), parent_(NULL) {}
 
   DirectiveBlock::DirectiveBlock(const DirectiveBlock& other)
-    : Directive(other), directives_(other.directives_), parent_(NULL) {}
+    : Directive(other), directives_(other.directives_), parent_(NULL)
+  {
+    for (Directives::iterator it = directives_.begin(); it != directives_.end(); ++it)
+    {
+      Directive* directive = it->second;
+      if (directive->is_block())
+      {
+        static_cast<DirectiveBlock*>(directive)->set_parent(this);
+      }
+    }
+  }
 
   DirectiveBlock& DirectiveBlock::operator=(const DirectiveBlock& other)
   {
@@ -41,6 +51,11 @@ namespace directive
   bool DirectiveBlock::is_block() const
   {
     return true;
+  }
+
+  const Directives& DirectiveBlock::directives() const
+  {
+    return directives_;
   }
 
   DirectiveBlock* DirectiveBlock::parent()

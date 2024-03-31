@@ -11,24 +11,6 @@
 
 namespace directive
 {
-  //////////////////////////////////////////////////////
-  ////////////   LocationBlockMatchResult   ////////////
-  //////////////////////////////////////////////////////
-
-  bool operator<(const LocationBlockMatchResult& lhs, const LocationBlockMatchResult& rhs)
-  {
-    if (lhs == LocationBlockMatchResult())
-    {
-      if (rhs == LocationBlockMatchResult())
-        return false;
-      else
-        return true;
-    }
-    else if (rhs == LocationBlockMatchResult())
-      return false;
-    return lhs.second->match().length() < rhs.second->match().length();
-  }
-
   ///////////////////////////////////////////
   ////////////   LocationBlock   ////////////
   ///////////////////////////////////////////
@@ -81,13 +63,12 @@ namespace directive
     return uri.find(match_) == 0;
   }
 
-  LocationBlockMatchResult LocationBlock::best_match(const std::string& uri) const
+  const LocationBlock* LocationBlock::best_match(const std::string& uri) const
   {
     if (!is_match(uri))
-      return LocationBlockMatchResult(); // empty pair
-    LocationBlockMatchResult  result = std::make_pair(LocationBlockPath(), this);
+      return NULL;
+    const LocationBlock*  result = this;
 
-    result.first.push_back(this->index());
     if (locations_.is_ok())
     {
       const Locations& locations = locations_.value();
@@ -98,21 +79,23 @@ namespace directive
         assert(location_it->second != NULL);
         const LocationBlock* location_block = static_cast<const LocationBlock*>(location_it->second);
 
-        LocationBlockMatchResult  best_match = location_block->best_match(uri);
-        // check if the best match is empty
-        if (best_match != std::pair<LocationBlockPath, const LocationBlock*>())
+        const LocationBlock*  best_match = location_block->best_match(uri);
+        if (best_match != NULL)
         {
-          const LocationBlock* location_block = best_match.second;
-          if (result < best_match)
-          {
-            // update the best match
-            const LocationBlockPath& location_path = best_match.first;
-            result.first.insert(result.first.begin() + 1, location_path.begin(), location_path.end());
-            result.second = location_block;
-          }
+          if (*result < *best_match)
+            result = location_block;
         }
       }
     }
     return result;
+  }
+
+  //////////////////////////////////////////////////////
+  ////////////   LocationBlockMatchResult   ////////////
+  //////////////////////////////////////////////////////
+
+  bool operator<(const LocationBlock& lhs, const LocationBlock& rhs)
+  {
+    return lhs.match().length() < rhs.match().length();
   }
 } // namespace configuration

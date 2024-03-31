@@ -28,6 +28,7 @@ namespace directive
 
       virtual bool            is_block() const;
       virtual Type            type() const = 0;
+      const Directives&       directives() const;
       DirectiveBlock*         parent();
       const DirectiveBlock*   parent() const;
       void                    set_parent(DirectiveBlock* parent);
