@@ -4,6 +4,8 @@
 
 #include "misc/Maybe.hpp"
 #include "Configuration.hpp"
+#include "Configuration/Cache/LocationQuery.hpp"
+#include "Configuration/Cache/ServerQuery.hpp"
 #include "Configuration/Directive/Block/Server.hpp"
 #include "Configuration/Directive/Block/Location.hpp"
 #include "Configuration/Directive/Simple/Listen.hpp"
@@ -20,7 +22,7 @@ ConfigurationQueryResult::ConfigurationQueryResult()
 
 ConfigurationQueryResult::ConfigurationQueryResult(const directive::ServerBlock* server_block,
                                                    const directive::LocationBlock* location_block,
-                                                   LocationQueryCache* location_property)
+                                                   cache::LocationQuery* location_property)
   : server_block(server_block),
     location_block(location_block),
     location_property(location_property) {}
@@ -33,20 +35,6 @@ bool  ConfigurationQueryResult::is_empty() const
 /////////////////////////////////////////////
 ////////////   SeverQueryCache   ////////////
 /////////////////////////////////////////////
-
-ServerQueryCache::ServerQueryCache()
-  : server_socket_fd(-1),
-    socket(NULL),
-    server_blocks() {}
-
-ServerQueryCache::ServerQueryCache(const directive::Socket* socket,
-                                   const directive::ServerBlock* server_block)
-  : server_socket_fd(-1),
-    socket(socket),
-    server_blocks()
-{
-  server_blocks.push_back(server_block);
-}
 
 ////////////////////////////////////////////////////
 ////////////   ConfigurationDatabase   /////////////
@@ -93,7 +81,7 @@ std::vector<const directive::Socket*> ConfigurationDatabase::all_server_sockets(
   if (server_cache_.empty())
     generate_server_cache();
   std::vector<const directive::Socket*> sockets;
-  for (std::vector<ServerQueryCache>::const_iterator it = server_cache_.begin(); it != server_cache_.end(); ++it)
+  for (std::vector<cache::ServerQuery>::const_iterator it = server_cache_.begin(); it != server_cache_.end(); ++it)
   {
     if (it->socket != NULL)
     {
@@ -105,7 +93,7 @@ std::vector<const directive::Socket*> ConfigurationDatabase::all_server_sockets(
 
 void  ConfigurationDatabase::register_server_socket(int server_socket_fd, const directive::Socket& socket)
 {
-  for (std::vector<ServerQueryCache>::iterator it = server_cache_.begin(); it != server_cache_.end(); ++it)
+  for (std::vector<cache::ServerQuery>::iterator it = server_cache_.begin(); it != server_cache_.end(); ++it)
   {
     if (*it->socket == socket)
     {
@@ -134,9 +122,9 @@ const ConfigurationQueryResult  ConfigurationDatabase::query(int server_socket_f
   const directive::LocationBlock* location_block = query_location_block(server_block, path);
   if (location_block == NULL)
     return ConfigurationQueryResult();
-  LocationQueryCache* location_property = NULL;
+  cache::LocationQuery* location_property = NULL;
   // find the location property in the location cache
-  for (std::vector<LocationQueryCache>::iterator it = location_cache_.begin(); it != location_cache_.end(); ++it)
+  for (std::vector<cache::LocationQuery>::iterator it = location_cache_.begin(); it != location_cache_.end(); ++it)
   {
     if (it->match_path == location_block->match())
     {
@@ -147,7 +135,7 @@ const ConfigurationQueryResult  ConfigurationDatabase::query(int server_socket_f
   // if the location property is not found, then create a new location property
   if (location_property == NULL)
   {
-    location_cache_.push_back(LocationQueryCache());
+    location_cache_.push_back(cache::LocationQuery());
     location_property = &location_cache_.back();
   }
   // construct the configuration query result
@@ -209,7 +197,7 @@ const directive::ServerBlock*  ConfigurationDatabase::query_server_block(int ser
 
 ConfigurationDatabase::ServerBlocksQueryResult ConfigurationDatabase::query_server_blocks(int server_socket_fd) const
 {
-  for (std::vector<ServerQueryCache>::const_iterator it = server_cache_.begin(); it != server_cache_.end(); ++it)
+  for (std::vector<cache::ServerQuery>::const_iterator it = server_cache_.begin(); it != server_cache_.end(); ++it)
   {
     if (it->server_socket_fd == server_socket_fd)
     {
@@ -249,7 +237,7 @@ void  ConfigurationDatabase::generate_server_cache()
       for (std::vector<directive::Socket>::const_iterator socket_it = sockets.begin(); socket_it != sockets.end(); ++socket_it)
       {
         // if the server cache that has the same socket, then add the server block to the server cache
-        std::vector<ServerQueryCache>::iterator cache_it = server_cache_.begin();
+        std::vector<cache::ServerQuery>::iterator cache_it = server_cache_.begin();
         for (; cache_it != server_cache_.end(); ++cache_it)
         {
           if (*cache_it->socket == *socket_it)
@@ -261,7 +249,7 @@ void  ConfigurationDatabase::generate_server_cache()
         // otherwise, create a new server cache and add the server block to the server cache
         if (cache_it == server_cache_.end())
         {
-          server_cache_.push_back(ServerQueryCache(&(*socket_it), server_block));
+          server_cache_.push_back(cache::ServerQuery(&(*socket_it), server_block));
         }
       }
     }

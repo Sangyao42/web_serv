@@ -5,7 +5,8 @@
 #include <vector>
 
 #include "misc/Maybe.hpp"
-#include "Configuration/Database/LocationQueryCache.hpp"
+#include "Configuration/Cache/LocationQuery.hpp"
+#include "Configuration/Cache/ServerQuery.hpp"
 #include "Configuration/Directive/Socket.hpp"
 #include "Configuration/Directive/Block/Server.hpp"
 #include "Configuration/Directive/Block/Location.hpp"
@@ -17,24 +18,14 @@ struct ConfigurationQueryResult
 {
   const directive::ServerBlock*   server_block;
   const directive::LocationBlock* location_block;
-  LocationQueryCache*             location_property;
+  cache::LocationQuery*           location_property;
 
   ConfigurationQueryResult();
   ConfigurationQueryResult(const directive::ServerBlock* server_block,
                            const directive::LocationBlock* location_block,
-                           LocationQueryCache* location_property);
+                           cache::LocationQuery* location_property);
 
   bool  is_empty() const;
-};
-
-struct ServerQueryCache
-{
-  int                                         server_socket_fd;
-  const directive::Socket*                    socket;
-  std::vector<const directive::ServerBlock*>  server_blocks;
-
-  ServerQueryCache();
-  ServerQueryCache(const directive::Socket* socket, const directive::ServerBlock* server_block);
 };
 
 class ConfigurationDatabase
@@ -66,8 +57,8 @@ class ConfigurationDatabase
     ServerBlocksQueryResult               query_server_blocks(int server_socket_fd) const;
 
   private:
-    std::vector<ServerQueryCache>         server_cache_;
-    std::vector<LocationQueryCache>       location_cache_;
+    std::vector<cache::ServerQuery>       server_cache_;
+    std::vector<cache::LocationQuery>     location_cache_;
     int                                   location_insertion_index_;
 
     void                                  generate_server_cache();

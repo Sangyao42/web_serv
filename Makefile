@@ -38,7 +38,8 @@ CONFIGURATION_SRC:= \
 	Configuration.cpp \
 	Configuration/Directive.cpp \
 	Configuration/Database.cpp \
-	Configuration/Database/LocationQueryCache.cpp \
+	Configuration/Cache/LocationQuery.cpp \
+	Configuration/Cache/ServerQuery.cpp \
 	Configuration/Directive/Socket.cpp \
 	Configuration/Directive/Block.cpp \
 	Configuration/Directive/Block/Http.cpp \
