@@ -32,10 +32,7 @@ namespace directive
       virtual Type              type() const;
 
       Maybe<Locations>          locations();
-      DirectiveBlock*           parent();
       const std::string&        match() const;
-      const DirectiveBlock*     parent() const;
-      void                      set_parent(DirectiveBlock* parent);
 
       bool                      is_match(const std::string& uri) const;
 
@@ -43,7 +40,6 @@ namespace directive
 
     private:
       Maybe<Locations>          locations_;
-      DirectiveBlock*           parent_;
       std::string               match_;
   };
 

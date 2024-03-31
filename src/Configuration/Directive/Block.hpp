@@ -28,12 +28,16 @@ namespace directive
 
       virtual bool            is_block() const;
       virtual Type            type() const = 0;
+      DirectiveBlock*         parent();
+      const DirectiveBlock*   parent() const;
+      void                    set_parent(DirectiveBlock* parent);
 
       virtual void            add_directive(Directive* directive);
       virtual DirectivesRange query_directive(Type type) const;
 
     protected:
       Directives              directives_;
+      DirectiveBlock*         parent_;
   };
 
   bool  DirectiveRangeIsValid(const DirectivesRange& range);

@@ -9,24 +9,6 @@
 #include "Configuration/Directive/Simple/Listen.hpp"
 #include "Configuration/Directive/Simple/ServerName.hpp"
 
-/////////////////////////////////////////////////
-////////////   LocationQueryCache   ////////////
-/////////////////////////////////////////////////
-
-LocationQueryCache::LocationQueryCache()
-  : match_path(),
-    allowed_methods(),
-    client_max_body_size(0),
-    redirect(NULL),
-    cgis(),
-    root(),
-    indexes(),
-    autoindex(false),
-    mime_types(),
-    error_page(),
-    access_log(),
-    error_log() {}
-
 //////////////////////////////////////////////////////
 ////////////   ConfigurationQueryResult   ////////////
 //////////////////////////////////////////////////////
@@ -171,7 +153,7 @@ const ConfigurationQueryResult  ConfigurationDatabase::query(int server_socket_f
     location_property = &location_cache_.back();
   }
   // construct the configuration query result
-  construct_location_property(location_property, location_path, location_block, server_block);
+  location_property->construct(location_path, location_block, server_block);
   return ConfigurationQueryResult(server_block, location_block, location_property);
 }
 
@@ -241,18 +223,6 @@ ConfigurationDatabase::ServerBlocksQueryResult ConfigurationDatabase::query_serv
     }
   }
   return Nothing();
-}
-
-void  ConfigurationDatabase::construct_location_property(LocationQueryCache* location_property,
-                                                         const directive::LocationBlockPath& location_block_path,
-                                                         const directive::LocationBlock* location_block,
-                                                         const directive::ServerBlock* server_block)
-{
-  // TODO: implement this method
-  (void) location_property;
-  (void) location_block_path;
-  (void) location_block;
-  (void) server_block;
 }
 
 /////////////////////////////////////////////

@@ -34,13 +34,13 @@ namespace directive
   ///////////////////////////////////////////
 
   LocationBlock::LocationBlock()
-    : DirectiveBlock(), locations_(), parent_(NULL), match_() {}
+    : DirectiveBlock(), locations_(), match_() {}
   
   LocationBlock::LocationBlock(const Context& context)
-    : DirectiveBlock(context), locations_(), parent_(NULL), match_() {}
+    : DirectiveBlock(context), locations_(), match_() {}
   
   LocationBlock::LocationBlock(const LocationBlock& other)
-    : DirectiveBlock(other), locations_(), parent_(NULL), match_(other.match_) {}
+    : DirectiveBlock(other), locations_(), match_(other.match_) {}
   
   LocationBlock& LocationBlock::operator=(const LocationBlock& other)
   {
@@ -71,24 +71,9 @@ namespace directive
     return locations_;
   }
 
-  DirectiveBlock* LocationBlock::parent()
-  {
-    return parent_;
-  }
-
-  const DirectiveBlock* LocationBlock::parent() const
-  {
-    return parent_;
-  }
-
   const std::string& LocationBlock::match() const
   {
     return match_;
-  }
-
-  void LocationBlock::set_parent(DirectiveBlock* parent)
-  {
-    parent_ = parent;
   }
 
   bool  LocationBlock::is_match(const std::string& uri) const
