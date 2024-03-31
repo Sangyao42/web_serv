@@ -4,7 +4,6 @@
 #include <vector>
 #include <utility>
 
-#include "misc/Maybe.hpp"
 #include "Configuration/Directive/Block.hpp"
 
 namespace directive
@@ -24,9 +23,11 @@ namespace directive
       LocationBlock& operator=(const LocationBlock& other);
       virtual ~LocationBlock();
 
+      bool  operator<(const LocationBlock& rhs) const;
+
       virtual Type          type() const;
 
-      Maybe<Locations>      locations();
+      Locations             locations() const;
       const std::string&    match() const;
       void                  set(const std::string& match);
 
@@ -35,9 +36,7 @@ namespace directive
       const LocationBlock*  best_match(const std::string& uri) const;
 
     private:
-      Maybe<Locations>      locations_;
       std::string           match_;
   };
 
-  bool  operator<(const LocationBlock& lhs, const LocationBlock& rhs);
 } // namespace configuration
