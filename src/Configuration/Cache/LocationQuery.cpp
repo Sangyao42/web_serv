@@ -152,30 +152,29 @@ namespace cache
   const Directive*  LocationQuery::closest_directive(const directive::DirectiveBlock* block, Directive::Type type)
   {
     assert(block != NULL);
+    const Directive*  result = NULL;
     int index = block->index();
     while (block)
     {
       directive::DirectivesRange query_result = block->query_directive(type);
       if (directive::DirectiveRangeIsValid(query_result))
       {
-        directive::DirectivesRange::second_type it = query_result.second;
-        // The second iterator can be an end iterator, so we need to decrement it
-        if (it == block->end())
-          it--;
         // Find the last directive with index less than the current block
-        for (; it != query_result.first; --it)
+        for (directive::DirectivesRange::first_type it = query_result.first; it != query_result.second; ++it)
         {
           const Directive* directive = it->second;
           if (directive->index() < index)
-          {
-            return directive;
-          }
+            result = directive;
+          else
+            break;
         }
+        if (result)
+          break;
       }
       index = block->index();
       block = block->parent();
     }
-    return NULL;
+    return result;
   }
 
   std::vector<const Directive*>  LocationQuery::collect_directives(const directive::DirectiveBlock* block,

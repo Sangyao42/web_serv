@@ -7,10 +7,10 @@
 namespace directive
 {
   Return::Return()
-    : Directive(), path_(), status_code_(false) {}
+    : Directive(), path_(), status_code_(0) {}
   
   Return::Return(const Context& context)
-    : Directive(context), path_(), status_code_(false) {}
+    : Directive(context), path_(), status_code_(0) {}
   
   Return::Return(const Return& other)
     : Directive(other), path_(other.path_), status_code_(other.status_code_) {}

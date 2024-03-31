@@ -1,5 +1,7 @@
 #include "./ConfigurationT.hpp"
 
+#include <cstdlib>
+
 #include "Configuration.hpp"
 #include "Configuration/Directive/Socket.hpp"
 #include "Configuration/Directive/Block/Main.hpp"
@@ -49,6 +51,33 @@ TEST_F(TestConfiguration1, query_use_first_server_if_wrong_server_name)
 
   ASSERT_EQ(result.location_block->type(), Directive::kDirectiveLocation);
   ASSERT_EQ(result.location_block->match(), "/omg/");
+}
+
+TEST_F(TestConfiguration1, query_correct_location_property)
+{
+  const ConfigurationQueryResult result = config_.query(3, "non-existing.com", "/develop/what.html");
+  ASSERT_FALSE(result.is_empty());
+
+  ASSERT_EQ(result.location_block->type(), Directive::kDirectiveLocation);
+  ASSERT_EQ(result.location_block->match(), "/develop");
+  ASSERT_EQ(result.location_property->server_block, &*main_block_->http().servers().first->second);
+  ASSERT_EQ(result.location_property->match_path, "/develop");
+  ASSERT_EQ(result.location_property->allowed_methods, directive::kMethodPost | directive::kMethodGet);
+  ASSERT_EQ(result.location_property->client_max_body_size, static_cast<size_t>(1048576)); // 1M
+  {
+    const directive::Return*  return_ = result.location_property->redirect;
+    ASSERT_TRUE(return_ != NULL);
+    ASSERT_EQ(return_->get(), 301);
+    ASSERT_EQ(return_->get_path(), "http://www.develop.com");
+  }
+  ASSERT_EQ(result.location_property->cgis.size(), static_cast<size_t>(0));
+  ASSERT_EQ(result.location_property->indexes.size(), static_cast<size_t>(0));
+  ASSERT_EQ(result.location_property->root, "");
+  ASSERT_EQ(result.location_property->autoindex, true);
+  ASSERT_EQ(result.location_property->mime_types, static_cast<void *>(0));
+  ASSERT_EQ(result.location_property->error_pages.size(), static_cast<size_t>(0));
+  ASSERT_EQ(result.location_property->access_log, "logs/access.log");
+  ASSERT_EQ(result.location_property->error_log, "logs/error.log");
 }
 
 void  DoNothing(directive::MainBlock&) {}
