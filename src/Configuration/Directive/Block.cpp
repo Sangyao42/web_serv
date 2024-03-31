@@ -56,6 +56,6 @@ namespace directive
 
   bool DirectiveRangeIsValid(const DirectivesRange& range)
   {
-    return range.first != range.second;
+    return (range != DirectivesRange()) && (range.first != range.second);
   }
 } // namespace configuration
