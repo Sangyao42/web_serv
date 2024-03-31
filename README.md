@@ -68,12 +68,18 @@ http {
         }
         location /images {
             allow_methods POST DELETE;
-            redirect /new permanent;
+            return 301 /new;
+        }
+        location /images2 {
+            return 307 https://www.google.com;
         }
         location /cgi-bin {
             allow_methods DELETE;
-            redirect /new redirect;
+            return 200 "you are welcome";
         }
+		location /hello {
+			return 404;
+		}
     }
 }
 ```
@@ -103,7 +109,7 @@ Generating a response from a requested file:
 Generating a response by other means:
 
 - `client_max_body_size` - The maximum body size of the client. If the size in a request exceeds the configured value, the 413 (Request Entity Too Large) error is returned to the client.
-- `redirect` - temporily (307) or permanantly (301) redirect a request
+- `return` - returns a response with the specified status code. Redirections are handled by this directive: temporily (307) or permanantly (301) redirection. If the status code is not a redirection, it can also return a string that will be sent in the HTTP response body. Return has the highest priority than the `cgi` directive.
 - `autoindex` - Specify whether to show directory listings
 - `cgi` - Specify a cgi script
 

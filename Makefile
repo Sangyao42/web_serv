@@ -51,7 +51,7 @@ CONFIGURATION_SRC:= \
 	Configuration/Directive/Simple/ErrorPage.cpp \
 	Configuration/Directive/Simple/AllowMethods.cpp \
 	Configuration/Directive/Simple/MimeTypes.cpp \
-	Configuration/Directive/Simple/Redirect.cpp \
+	Configuration/Directive/Simple/Return.cpp \
 	Configuration/Directive/Simple/Cgi.cpp
 
 MISC_SRC:= \
