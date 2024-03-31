@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include <iostream>
+
 #include "misc/Maybe.hpp"
 #include "Configuration.hpp"
 #include "Configuration/Cache/LocationQuery.hpp"
@@ -241,20 +243,21 @@ void  Configuration::generate_server_cache()
       for (std::vector<directive::Socket>::const_iterator socket_it = sockets.begin(); socket_it != sockets.end(); ++socket_it)
       {
         // if the server cache that has the same socket, then add the server block to the server cache
-        std::vector<cache::ServerQuery>::iterator cache_it = server_cache_.begin();
-        for (; cache_it != server_cache_.end(); ++cache_it)
+        bool  found = false;
+        for (std::vector<cache::ServerQuery>::iterator cache_it = server_cache_.begin();
+             cache_it != server_cache_.end();
+             ++cache_it)
         {
           if (*cache_it->socket == *socket_it)
           {
             cache_it->server_blocks.push_back(server_block);
+            found = true;
             break;
           }
         }
         // otherwise, create a new server cache and add the server block to the server cache
-        if (cache_it == server_cache_.end())
-        {
+        if (!found)
           server_cache_.push_back(cache::ServerQuery(&(*socket_it), server_block));
-        }
       }
     }
   }

@@ -28,6 +28,7 @@ namespace directive
 
       Maybe<Locations>      locations();
       const std::string&    match() const;
+      void                  set(const std::string& match);
 
       bool                  is_match(const std::string& uri) const;
 

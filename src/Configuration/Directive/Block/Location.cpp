@@ -58,6 +58,11 @@ namespace directive
     return match_;
   }
 
+  void  LocationBlock::set(const std::string& match)
+  {
+    match_ = match;
+  }
+
   bool  LocationBlock::is_match(const std::string& uri) const
   {
     return uri.find(match_) == 0;
