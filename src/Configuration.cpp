@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "misc/Maybe.hpp"
+#include "constants.hpp"
 #include "Configuration.hpp"
 #include "Configuration/Cache/LocationQuery.hpp"
 #include "Configuration/Cache/ServerQuery.hpp"
@@ -90,8 +91,10 @@ void  Configuration::set_main_block(directive::MainBlock* main_block)
 size_t Configuration::worker_connections() const
 {
   assert(main_block_ != NULL);
-  assert(main_block_->events().worker_connections().is_ok());
-  return main_block_->events().worker_connections().value();
+  const Maybe<size_t> worker_connections = main_block_->events().worker_connections();
+  if (!worker_connections.is_ok())
+    return constants::kDefaultWorkerConnections;
+  return worker_connections.value();
 }
 
 std::vector<const directive::Socket*> Configuration::all_server_sockets()

@@ -9,7 +9,8 @@ namespace directive
   {
     public:
       DirectiveSimple();
-      DirectiveSimple(const Context& context);
+      DirectiveSimple(const T& value);
+      explicit DirectiveSimple(const Context& context);
       DirectiveSimple(const DirectiveSimple& other);
       DirectiveSimple& operator=(const DirectiveSimple& other);
       virtual ~DirectiveSimple();
@@ -44,6 +45,10 @@ namespace directive
   template <typename T, Directive::Type TypeEnum>
   DirectiveSimple<T, TypeEnum>::DirectiveSimple()
     : Directive(), value_() {}
+  
+  template <typename T, Directive::Type TypeEnum>
+  DirectiveSimple<T, TypeEnum>::DirectiveSimple(const T& value)
+    : Directive(), value_(value) {}
   
   template <typename T, Directive::Type TypeEnum>
   DirectiveSimple<T, TypeEnum>::DirectiveSimple(const Context& context)

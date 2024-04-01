@@ -21,7 +21,7 @@ namespace directive
   {
     public:
       DirectiveBlock();
-      DirectiveBlock(const Context& context);
+      explicit DirectiveBlock(const Context& context);
       DirectiveBlock(const DirectiveBlock& other);
       DirectiveBlock& operator=(const DirectiveBlock& other);
       virtual ~DirectiveBlock();

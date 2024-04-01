@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 
+#include "constants.hpp"
 #include "Configuration.hpp"
 #include "Configuration/Directive/Socket.hpp"
 #include "Configuration/Directive/Block/Main.hpp"
@@ -87,8 +88,8 @@ TEST_F(TestConfiguration1, query_correct_location_property)
   ASSERT_EQ(result.location_block->match(), "/develop");
   ASSERT_EQ(result.location_property->server_block, &*main_block_->http().servers().first->second);
   ASSERT_EQ(result.location_property->match_path, "/develop");
-  ASSERT_EQ(result.location_property->allowed_methods, directive::kMethodPost | directive::kMethodGet);
-  ASSERT_EQ(result.location_property->client_max_body_size, static_cast<size_t>(1048576)); // 1M
+  ASSERT_EQ(result.location_property->allowed_methods, constants::kDefaultAllowedMethods);
+  ASSERT_EQ(result.location_property->client_max_body_size, constants::kDefaultClientMaxBodySize); // 1M
   {
     const directive::Return*  return_ = result.location_property->redirect;
     ASSERT_TRUE(return_ != NULL);
@@ -96,13 +97,14 @@ TEST_F(TestConfiguration1, query_correct_location_property)
     ASSERT_EQ(return_->get_path(), "http://www.develop.com");
   }
   ASSERT_EQ(result.location_property->cgis.size(), static_cast<size_t>(0));
-  ASSERT_EQ(result.location_property->indexes.size(), static_cast<size_t>(0));
-  ASSERT_EQ(result.location_property->root, "");
+  ASSERT_EQ(result.location_property->indexes.size(), static_cast<size_t>(1));
+  ASSERT_EQ(result.location_property->indexes[0], &constants::kDefaultIndex);
+  ASSERT_EQ(result.location_property->root, constants::kDefaultRoot);
   ASSERT_EQ(result.location_property->autoindex, true);
-  ASSERT_EQ(result.location_property->mime_types, static_cast<void *>(NULL));
+  ASSERT_EQ(result.location_property->mime_types, &constants::kDefaultMimeTypes);
   ASSERT_EQ(result.location_property->error_pages.size(), static_cast<size_t>(0));
-  ASSERT_EQ(result.location_property->access_log, "logs/access.log");
-  ASSERT_EQ(result.location_property->error_log, "logs/error.log");
+  ASSERT_EQ(result.location_property->access_log, "/var/logs/access.log");
+  ASSERT_EQ(result.location_property->error_log, "/var/logs/error.log");
 }
 
 TEST_F(TestConfiguration1, query_correct_location_property2)
@@ -114,8 +116,8 @@ TEST_F(TestConfiguration1, query_correct_location_property2)
   ASSERT_EQ(result.location_block->match(), "/omg/");
   ASSERT_EQ(result.location_property->server_block, &*main_block_->http().servers().first->second);
   ASSERT_EQ(result.location_property->match_path, "/omg/");
-  ASSERT_EQ(result.location_property->allowed_methods, directive::kMethodPost | directive::kMethodGet);
-  ASSERT_EQ(result.location_property->client_max_body_size, static_cast<size_t>(1048576)); // 1M
+  ASSERT_EQ(result.location_property->allowed_methods, constants::kDefaultAllowedMethods);
+  ASSERT_EQ(result.location_property->client_max_body_size, constants::kDefaultClientMaxBodySize); // 1M
   ASSERT_TRUE(result.location_property->redirect == NULL);
   {
     std::vector<const directive::Cgi*>*  cgis = &result.location_property->cgis;
@@ -132,11 +134,11 @@ TEST_F(TestConfiguration1, query_correct_location_property2)
     ASSERT_EQ((*indexes)[2]->get(), "default.html");
   }
   ASSERT_EQ(result.location_property->root, "/var/www/omg");
-  ASSERT_EQ(result.location_property->autoindex, false);
-  ASSERT_EQ(result.location_property->mime_types, static_cast<void *>(NULL));
+  ASSERT_EQ(result.location_property->autoindex, constants::kDefaultAutoindex);
+  ASSERT_EQ(result.location_property->mime_types, &constants::kDefaultMimeTypes);
   ASSERT_EQ(result.location_property->error_pages.size(), static_cast<size_t>(0));
-  ASSERT_EQ(result.location_property->access_log, "logs/access.log");
-  ASSERT_EQ(result.location_property->error_log, "logs/error.log");
+  ASSERT_EQ(result.location_property->access_log, "/var/logs/access.log");
+  ASSERT_EQ(result.location_property->error_log, "/var/logs/error.log");
 }
 
 /**
@@ -145,8 +147,8 @@ TEST_F(TestConfiguration1, query_correct_location_property2)
  * }
  * 
  * http {
- *   error_log logs/error.log;
- *   access_log logs/access.log;
+ *   error_log /var/logs/error.log;
+ *   access_log /var/logs/access.log;
  *   server {
  *    listen 80;
  *    server_name hi.com wtf.fr;
@@ -185,13 +187,13 @@ void  Config1(directive::MainBlock& config)
 
   {
     directive::ErrorLog*  error_log = new directive::ErrorLog();
-    error_log->set("logs/error.log");
+    error_log->set("/var/logs/error.log");
     http->add_directive(error_log);
   }
 
   {
     directive::AccessLog*  access_log = new directive::AccessLog();
-    access_log->set("logs/access.log");
+    access_log->set("/var/logs/access.log");
     http->add_directive(access_log);
   }
 

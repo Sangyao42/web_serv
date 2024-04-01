@@ -32,7 +32,8 @@ OBJS_DIR:= obj
 # contatenate them in the SRC variable like this:
 
 MAIN_SRC:= \
-	main.cpp
+	main.cpp \
+	constants.cpp
 
 CONFIGURATION_SRC:= \
 	Configuration.cpp \

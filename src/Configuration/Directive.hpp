@@ -45,7 +45,7 @@ class Directive
       kDirectiveWorkerConnections
     };
     Directive();
-    Directive(const Context& context);
+    explicit Directive(const Context& context);
     Directive(const Directive& other);
     Directive& operator=(const Directive& other);
     virtual ~Directive();
