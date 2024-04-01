@@ -74,7 +74,41 @@ TEST_F(TestConfiguration1, query_correct_location_property)
   ASSERT_EQ(result.location_property->indexes.size(), static_cast<size_t>(0));
   ASSERT_EQ(result.location_property->root, "");
   ASSERT_EQ(result.location_property->autoindex, true);
-  ASSERT_EQ(result.location_property->mime_types, static_cast<void *>(0));
+  ASSERT_EQ(result.location_property->mime_types, static_cast<void *>(NULL));
+  ASSERT_EQ(result.location_property->error_pages.size(), static_cast<size_t>(0));
+  ASSERT_EQ(result.location_property->access_log, "logs/access.log");
+  ASSERT_EQ(result.location_property->error_log, "logs/error.log");
+}
+
+TEST_F(TestConfiguration1, query_correct_location_property2)
+{
+  const ConfigurationQueryResult result = config_.query(3, "non-existing.com", "/omg/");
+  ASSERT_FALSE(result.is_empty());
+
+  ASSERT_EQ(result.location_block->type(), Directive::kDirectiveLocation);
+  ASSERT_EQ(result.location_block->match(), "/omg/");
+  ASSERT_EQ(result.location_property->server_block, &*main_block_->http().servers().first->second);
+  ASSERT_EQ(result.location_property->match_path, "/omg/");
+  ASSERT_EQ(result.location_property->allowed_methods, directive::kMethodPost | directive::kMethodGet);
+  ASSERT_EQ(result.location_property->client_max_body_size, static_cast<size_t>(1048576)); // 1M
+  ASSERT_TRUE(result.location_property->redirect == NULL);
+  {
+    std::vector<const directive::Cgi*>*  cgis = &result.location_property->cgis;
+    ASSERT_EQ(cgis->size(), static_cast<size_t>(1));
+    ASSERT_EQ((*cgis)[0]->get(), "js");
+    ASSERT_EQ((*cgis)[0]->extension(), "js");
+    ASSERT_EQ((*cgis)[0]->cgi_path(), "/opt/homebrew/bin/node");
+  }
+  {
+    std::vector<const directive::Index*>*  indexes = &result.location_property->indexes;
+    ASSERT_EQ(indexes->size(), static_cast<size_t>(3));
+    ASSERT_EQ((*indexes)[0]->get(), "index.html");
+    ASSERT_EQ((*indexes)[1]->get(), "index.htm");
+    ASSERT_EQ((*indexes)[2]->get(), "default.html");
+  }
+  ASSERT_EQ(result.location_property->root, "/var/www/omg");
+  ASSERT_EQ(result.location_property->autoindex, false);
+  ASSERT_EQ(result.location_property->mime_types, static_cast<void *>(NULL));
   ASSERT_EQ(result.location_property->error_pages.size(), static_cast<size_t>(0));
   ASSERT_EQ(result.location_property->access_log, "logs/access.log");
   ASSERT_EQ(result.location_property->error_log, "logs/error.log");
@@ -167,32 +201,34 @@ void  Config1(directive::MainBlock& config)
       }
 
       {
+        // Construction of multiple indexes on the same line
+        // has to be done in reverse order.
         directive::Index*  index = new directive::Index();
-        index->set("index.html");
+        index->set("default.html");
         location->add_directive(index);
         index = new directive::Index();
         index->set("index.htm");
         location->add_directive(index);
         index = new directive::Index();
-        index->set("default.html");
+        index->set("index.html");
         location->add_directive(index);
       }
         
       {
-        directive::LocationBlock*  location = new directive::LocationBlock();
-        location->set("/omg/");
-        server->add_directive(location);
+        directive::LocationBlock*  location2 = new directive::LocationBlock();
+        location2->set("/omg/");
+        location->add_directive(location2);
 
         {
           directive::Root*  root = new directive::Root();
           root->set("/var/www/omg");
-          location->add_directive(root);
+          location2->add_directive(root);
         }
 
         {
           directive::Cgi*  cgi = new directive::Cgi();
           cgi->set("js", "/opt/homebrew/bin/node");
-          location->add_directive(cgi);
+          location2->add_directive(cgi);
         }
       }
     }

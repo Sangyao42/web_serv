@@ -2,8 +2,6 @@
 
 #include <cassert>
 
-#include "misc/Maybe.hpp"
-
 #include "Configuration/Directive.hpp"
 
 namespace directive
@@ -20,17 +18,7 @@ namespace directive
     : Directive(context), directives_(), parent_(NULL) {}
 
   DirectiveBlock::DirectiveBlock(const DirectiveBlock& other)
-    : Directive(other), directives_(other.directives_), parent_(NULL)
-  {
-    for (Directives::iterator it = directives_.begin(); it != directives_.end(); ++it)
-    {
-      Directive* directive = it->second;
-      if (directive->is_block())
-      {
-        static_cast<DirectiveBlock*>(directive)->set_parent(this);
-      }
-    }
-  }
+    : Directive(other), directives_(other.directives_), parent_(NULL) {}
 
   DirectiveBlock& DirectiveBlock::operator=(const DirectiveBlock& other)
   {

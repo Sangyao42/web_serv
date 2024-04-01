@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <limits>
 
 #include "Configuration/Directive.hpp"
 #include "Configuration/Directive/Block.hpp"
@@ -153,7 +154,7 @@ namespace cache
   {
     assert(block != NULL);
     const Directive*  result = NULL;
-    int index = block->index();
+    int index = std::numeric_limits<int>::max();
     while (block)
     {
       directive::DirectivesRange query_result = block->query_directive(type);
@@ -182,7 +183,7 @@ namespace cache
                                                                    DuplicateChecker is_duplicated)
   {
     std::vector<const Directive*> result;
-    int index = block->index();
+    int index = std::numeric_limits<int>::max();
     while (block)
     {
       directive::DirectivesRange query_result = block->query_directive(type);
@@ -190,25 +191,28 @@ namespace cache
       {
         directive::DirectivesRange::second_type it = query_result.second;
         // The second iterator can be an end iterator, so we need to decrement it
-        if (it == block->end())
+        do {
           it--;
-        for (; it != query_result.first; --it)
-        {
           const Directive* directive = it->second;
           if (directive->index() < index)
           {
             // If a directive is duplicated, only the first one is kept, so do nothing
+            bool  is_duplicate = false;
             std::vector<const Directive*>::iterator result_it = result.begin();
             for (; result_it != result.end(); ++result_it)
             {
               if (is_duplicated(result_it, directive))
+              {
+                is_duplicate = true;
                 break;
+              }
             }
             // otherwise, add it to the result
-            if (result_it == result.end())
+            if (!is_duplicate)
               result.push_back(directive);
           }
         }
+        while (it != query_result.first);
       }
       index = block->index();
       block = block->parent();
