@@ -15,6 +15,31 @@
 #include "Configuration/Directive/Simple/Cgi.hpp"
 #include "Configuration/Directive/Simple/Return.hpp"
 
+TEST(TestConfiguration0, all_server_sockets)
+{
+  Configuration config(8);
+  EXPECT_DEATH({
+    std::vector<const directive::Socket *> sockets = config.all_server_sockets();
+  }, "Assertion.*");
+}
+
+TEST(TestConfiguration0, query_no_main_block)
+{
+  Configuration config(8);
+
+  ConfigurationQueryResult result = config.query(3, "hi.com", "/omg/what.html");
+  ASSERT_TRUE(result.is_empty());
+}
+
+TEST(TestConfiguration0, query_empty)
+{
+  Configuration config(8);
+
+  config.set_main_block(new directive::MainBlock());
+  ConfigurationQueryResult result = config.query(3, "hi.com", "/omg/what.html");
+  ASSERT_TRUE(result.is_empty());
+}
+
 TEST_F(TestConfiguration1, query_wrong_socket)
 {
   const ConfigurationQueryResult result = config_.query(2, "hi.com", "/omg/what.html");
@@ -113,8 +138,6 @@ TEST_F(TestConfiguration1, query_correct_location_property2)
   ASSERT_EQ(result.location_property->access_log, "logs/access.log");
   ASSERT_EQ(result.location_property->error_log, "logs/error.log");
 }
-
-void  DoNothing(directive::MainBlock&) {}
 
 /**
  * events {

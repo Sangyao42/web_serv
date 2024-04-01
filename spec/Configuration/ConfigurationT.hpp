@@ -7,7 +7,6 @@
 
 typedef void  (*ConstructionFunc)(directive::MainBlock&);
 
-void  DoNothing(directive::MainBlock&);
 void  Config1(directive::MainBlock& config);
 void  Config2(directive::MainBlock& config);
 void  Config3(directive::MainBlock& config);
