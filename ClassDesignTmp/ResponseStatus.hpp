@@ -21,7 +21,7 @@
 #define STATUS_201 "201 Created" // for POST requests, when the request created a new resource 
 // #define STATUS_202 "202 Accepted"
 // #define STATUS_203 "203 Non-Authoritative Information"
-#define STATUS_204 "204 No Content" // only useful header information, successful delete operation
+#define STATUS_204 "204 No Content" // useful header information only, successful delete operation
 #define STATUS_205 "205 Reset Content"
 
 enum StatusCode

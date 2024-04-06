@@ -6,25 +6,25 @@ class Request : public HTTPMessage
 {
 	public:
 		Request();
-		Request(Request const &obj);
+		Request(const Request &obj);
 		~Request();
 
-		Request &operator=(Request const &obj);
+		Request &operator=(const Request &obj);
+
+		const Method	&getMethod();
+		const std::string	&getRequestTarget();
+		const std::string	&getVersion();
+		const std::string	&getRequestBody();
+
+		void	setMethod(const Method &method);
+		void	setRequestTarget(const std::string &requestTarget);
+		void	setVersion(const std::string &version);
+		void	setRequestBody(const std::string &requestBody);
 
 	private:
 		Method	method_;
 		std::string	requestTarget_;
-		std::string	version_;
+		Version	version_;
 
 		std::string requestBody_;
-
-		Method	getMethod();
-		std::string	getRequestTarget();
-		std::string	getVersion();
-		std::string	getRequestBody();
-
-		void	setMethod(Method method);
-		void	setRequestTarget(std::string requestTarget);
-		void	setVersion(std::string version);
-		void	setRequestBody(std::string requestBody);
 };

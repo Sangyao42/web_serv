@@ -11,5 +11,11 @@ class HeaderValue
 	public:
 		virtual ~HeaderValue();
 
-		virtual std::string	content() const = 0;
+		enum ValueType
+		{
+			kString,
+			kInt
+		};
+
+		virtual	ValueType	type() const = 0;
 };

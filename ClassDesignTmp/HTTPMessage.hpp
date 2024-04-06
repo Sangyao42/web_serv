@@ -12,14 +12,12 @@ class HTTPMessage
 {
 	public:
 		HTTPMessage();
-		HTTPMessage(HTTPMessage const &obj);
+		HTTPMessage(const HTTPMessage &obj);
 		virtual ~HTTPMessage();
 
-		HTTPMessage &operator=(HTTPMessage const &obj);
+		HTTPMessage &operator=(const HTTPMessage &obj);
 
 	protected:
-		// For Request: request, general, entity headers
-		// For Response: general, entity headers
 		std::map<std::string, HeaderValue *>	headers_;
 
 		// + functions for the map to

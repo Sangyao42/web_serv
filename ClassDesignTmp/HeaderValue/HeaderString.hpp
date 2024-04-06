@@ -1,19 +1,22 @@
 #pragma once
 
-#include "HeaderValue.hpp"
+#include "../HeaderValue.hpp"
 
 class HeaderString : public HeaderValue
 {
 	public:
 		HeaderString();
-		HeaderString(std::string content);
-		HeaderString(HeaderString const &obj);
+		HeaderString(const std::string &content);
+		HeaderString(const HeaderString &obj);
 		~HeaderString();
 
-		HeaderString &operator=(HeaderString const &obj);
+		HeaderString &operator=(const HeaderString &obj);
 
-		std::string content() const;
+		const ValueType	&type() const;
+
+		const std::string &content() const;
 
 	private:
+		ValueType	type_;
 		std::string content_;
 };
