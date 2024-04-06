@@ -159,3 +159,24 @@ TEST_F(TestConfiguration2, query_server_block)
 {
   ASSERT_EQ(config_.query_server_block(3, "hi.com"), &*main_block_->http().servers().first->second);
 }
+
+TEST_F(TestConfiguration2, query_servers_with_same_socket)
+{
+  {
+    const ConfigurationQueryResult result  = config_.query(6, "wtf.fr", "/omg/what.html");
+
+    ASSERT_TRUE(result.location_block == NULL);
+    ASSERT_TRUE(result.location_property != NULL);
+    ASSERT_EQ(result.location_property->autoindex, true);
+    ASSERT_EQ(result.location_property->root, constants::kDefaultRoot);
+  }
+
+  {
+    const ConfigurationQueryResult result = config_.query(6, "whatt.42.fr", "/omg/what.html");
+
+    ASSERT_TRUE(result.location_block == NULL);
+    ASSERT_TRUE(result.location_property != NULL);
+    ASSERT_EQ(result.location_property->autoindex, constants::kDefaultAutoindex);
+    ASSERT_EQ(result.location_property->root, "/Users/Anthony");
+  }
+}

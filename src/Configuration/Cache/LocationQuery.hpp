@@ -51,17 +51,17 @@ namespace cache
     void  construct(const directive::ServerBlock*, const directive::LocationBlock* location_block);
 
     void  construct_match_path(const directive::LocationBlock* location_block);
-    void  construct_allowed_methods(const directive::LocationBlock* location_block);
-    void  construct_client_max_body_size(const directive::LocationBlock* location_block);
-    void  construct_return(const directive::LocationBlock* location_block);
-    void  construct_cgis(const directive::LocationBlock* location_block);
-    void  construct_root(const directive::LocationBlock* location_block);
-    void  construct_indexes(const directive::LocationBlock* location_block);
-    void  construct_autoindex(const directive::LocationBlock* location_block);
-    void  construct_mime_types(const directive::LocationBlock* location_block);
-    void  construct_error_pages(const directive::LocationBlock* location_block);
-    void  construct_access_log(const directive::LocationBlock* location_block);
-    void  construct_error_log(const directive::LocationBlock* location_block);
+    void  construct_allowed_methods(const directive::DirectiveBlock* target_block);
+    void  construct_client_max_body_size(const directive::DirectiveBlock* target_block);
+    void  construct_return(const directive::DirectiveBlock* target_block);
+    void  construct_cgis(const directive::DirectiveBlock* target_block);
+    void  construct_root(const directive::DirectiveBlock* target_block);
+    void  construct_indexes(const directive::DirectiveBlock* target_block);
+    void  construct_autoindex(const directive::DirectiveBlock* target_block);
+    void  construct_mime_types(const directive::DirectiveBlock* target_block);
+    void  construct_error_pages(const directive::DirectiveBlock* target_block);
+    void  construct_access_log(const directive::DirectiveBlock* target_block);
+    void  construct_error_log(const directive::DirectiveBlock* target_block);
 
     const Directive*                closest_directive(const directive::DirectiveBlock* location_block, Directive::Type type);
     std::vector<const Directive*>   collect_directives(const directive::DirectiveBlock* location_block, Directive::Type type, DuplicateChecker is_duplicated);

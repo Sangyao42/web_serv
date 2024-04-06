@@ -38,7 +38,13 @@
  *      listen 127.0.0.1;
  *      server_name wtf.fr;
  *      autoindex on;
- *   }}
+ *   }
+ * 
+ *   server {
+ *     listen 127.0.0.1;
+ *     server_name whatt.42.fr;
+ *     root /Users/Anthony;
+ *   }
  * }
 */
 void  Config2(directive::MainBlock& main)
@@ -136,6 +142,30 @@ void  Config2(directive::MainBlock& main)
       directive::Autoindex*  autoindex = new directive::Autoindex();
       autoindex->set(true);
       server->add_directive(autoindex);
+    }
+  }
+
+  // server 4
+  {
+    directive::ServerBlock*  server = new directive::ServerBlock();
+    http->add_directive(server);
+
+    {
+      directive::Listen*  listen = new directive::Listen();
+      listen->add(uri::Authority("127.0.0.1"));
+      server->add_directive(listen);
+    }
+
+    {
+      directive::ServerName*  server_name = new directive::ServerName();
+      server_name->add("whatt.42.fr");
+      server->add_directive(server_name);
+    }
+
+    {
+      directive::Root*  root = new directive::Root();
+      root->set("/Users/Anthony");
+      server->add_directive(root);
     }
   }
 }

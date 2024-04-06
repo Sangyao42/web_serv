@@ -124,14 +124,26 @@ const ConfigurationQueryResult  Configuration::query(int server_socket_fd,
   if (server_block == NULL)
     return ConfigurationQueryResult();
   const directive::LocationBlock* location_block = query_location_block(server_block, path);
-  if (location_block == NULL)
-    return ConfigurationQueryResult();
-  // find the location property in the location cache
-  for (std::vector<cache::LocationQuery>::iterator it = location_cache_.begin(); it != location_cache_.end(); ++it)
+  if (location_block != NULL)
   {
-    if (it->match_path == location_block->match() && it->server_block == server_block)
+    // find the location property in the location cache
+    for (std::vector<cache::LocationQuery>::iterator it = location_cache_.begin(); it != location_cache_.end(); ++it)
     {
-      return ConfigurationQueryResult(location_block, &(*it));
+      if (it->match_path == location_block->match() && it->server_block == server_block)
+      {
+        return ConfigurationQueryResult(location_block, &(*it));
+      }
+    }
+  }
+  else
+  {
+    // find the location property according to the server name
+    for (std::vector<cache::LocationQuery>::iterator it = location_cache_.begin(); it != location_cache_.end(); ++it)
+    {
+      if (it->server_block == server_block)
+      {
+        return ConfigurationQueryResult(location_block, &(*it));
+      }
     }
   }
   cache::LocationQuery* location_property = NULL;

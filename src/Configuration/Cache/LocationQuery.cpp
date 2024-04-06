@@ -42,20 +42,23 @@ namespace cache
   void  LocationQuery::construct(const directive::ServerBlock* server_block_, const directive::LocationBlock* location_block)
   {
     assert(server_block_ != NULL);
-    assert(location_block != NULL);
     server_block = server_block_;
-    construct_match_path(location_block);
-    construct_allowed_methods(location_block);
-    construct_client_max_body_size(location_block);
-    construct_return(location_block);
-    construct_cgis(location_block);
-    construct_root(location_block);
-    construct_indexes(location_block);
-    construct_autoindex(location_block);
-    construct_mime_types(location_block);
-    construct_error_pages(location_block);
-    construct_access_log(location_block);
-    construct_error_log(location_block);
+    const directive::DirectiveBlock*  target_block = location_block;
+    if (target_block)
+      construct_match_path(location_block);
+    else
+      target_block = server_block;
+    construct_allowed_methods(target_block);
+    construct_client_max_body_size(target_block);
+    construct_return(target_block);
+    construct_cgis(target_block);
+    construct_root(target_block);
+    construct_indexes(target_block);
+    construct_autoindex(target_block);
+    construct_mime_types(target_block);
+    construct_error_pages(target_block);
+    construct_access_log(target_block);
+    construct_error_log(target_block);
   }
 
   void  LocationQuery::construct_match_path(const directive::LocationBlock* location_block)
@@ -63,30 +66,30 @@ namespace cache
     match_path = location_block->match();
   }
 
-  void  LocationQuery::construct_allowed_methods(const directive::LocationBlock* location_block)
+  void  LocationQuery::construct_allowed_methods(const directive::DirectiveBlock* target_block)
   {
     const directive::AllowMethods* directive = 
-      static_cast<const directive::AllowMethods*>(closest_directive(location_block, Directive::kDirectiveAllowMethods));
+      static_cast<const directive::AllowMethods*>(closest_directive(target_block, Directive::kDirectiveAllowMethods));
 
     allowed_methods = directive ? directive->get() : constants::kDefaultAllowedMethods;
   }
 
-  void  LocationQuery::construct_client_max_body_size(const directive::LocationBlock* location_block)
+  void  LocationQuery::construct_client_max_body_size(const directive::DirectiveBlock* target_block)
   {
     const directive::ClientMaxBodySize* directive = 
-      static_cast<const directive::ClientMaxBodySize*>(closest_directive(location_block, Directive::kDirectiveClientMaxBodySize));
+      static_cast<const directive::ClientMaxBodySize*>(closest_directive(target_block, Directive::kDirectiveClientMaxBodySize));
  
     client_max_body_size = directive ? directive->get() : constants::kDefaultClientMaxBodySize; // 1MB
   }
 
-  void  LocationQuery::construct_return(const directive::LocationBlock* location_block)
+  void  LocationQuery::construct_return(const directive::DirectiveBlock* target_block)
   {
-    redirect = static_cast<const directive::Return*>(closest_directive(location_block, Directive::kDirectiveReturn));
+    redirect = static_cast<const directive::Return*>(closest_directive(target_block, Directive::kDirectiveReturn));
   }
 
-  void  LocationQuery::construct_cgis(const directive::LocationBlock* location_block)
+  void  LocationQuery::construct_cgis(const directive::DirectiveBlock* target_block)
   {
-    std::vector<const Directive*> cgis_directives = collect_directives(location_block, Directive::kDirectiveCgi, &CheckCgi);
+    std::vector<const Directive*> cgis_directives = collect_directives(target_block, Directive::kDirectiveCgi, &CheckCgi);
     cgis.reserve(cgis_directives.size());
     for (std::vector<const Directive*>::const_iterator it = cgis_directives.begin(); it != cgis_directives.end(); ++it)
     {
@@ -94,17 +97,17 @@ namespace cache
     }
   }
 
-  void  LocationQuery::construct_root(const directive::LocationBlock* location_block)
+  void  LocationQuery::construct_root(const directive::DirectiveBlock* target_block)
   {
     const directive::Root* directive = 
-      static_cast<const directive::Root*>(closest_directive(location_block, Directive::kDirectiveRoot));
+      static_cast<const directive::Root*>(closest_directive(target_block, Directive::kDirectiveRoot));
 
     root = directive ? directive->get() : constants::kDefaultRoot;
   }
 
-  void  LocationQuery::construct_indexes(const directive::LocationBlock* location_block)
+  void  LocationQuery::construct_indexes(const directive::DirectiveBlock* target_block)
   {
-    std::vector<const Directive*> indexes_directives = collect_directives(location_block, Directive::kDirectiveIndex, &CheckIndex);
+    std::vector<const Directive*> indexes_directives = collect_directives(target_block, Directive::kDirectiveIndex, &CheckIndex);
     if (indexes_directives.empty())
     {
       indexes.push_back(&constants::kDefaultIndex);
@@ -117,24 +120,24 @@ namespace cache
     }
   }
 
-  void  LocationQuery::construct_autoindex(const directive::LocationBlock* location_block)
+  void  LocationQuery::construct_autoindex(const directive::DirectiveBlock* target_block)
   {
     const directive::Autoindex* directive = 
-      static_cast<const directive::Autoindex*>(closest_directive(location_block, Directive::kDirectiveAutoindex));
+      static_cast<const directive::Autoindex*>(closest_directive(target_block, Directive::kDirectiveAutoindex));
     
     autoindex = directive ? directive->get() : constants::kDefaultAutoindex;
   }
 
-  void  LocationQuery::construct_mime_types(const directive::LocationBlock* location_block)
+  void  LocationQuery::construct_mime_types(const directive::DirectiveBlock* target_block)
   {
-    mime_types = static_cast<const directive::MimeTypes*>(closest_directive(location_block, Directive::kDirectiveMimeTypes));
+    mime_types = static_cast<const directive::MimeTypes*>(closest_directive(target_block, Directive::kDirectiveMimeTypes));
     if (!mime_types)
       mime_types = &constants::kDefaultMimeTypes;
   }
 
-  void  LocationQuery::construct_error_pages(const directive::LocationBlock* location_block)
+  void  LocationQuery::construct_error_pages(const directive::DirectiveBlock* target_block)
   {
-    std::vector<const Directive*> error_pages_directives = collect_directives(location_block, Directive::kDirectiveErrorPage, &CheckErrorPage);
+    std::vector<const Directive*> error_pages_directives = collect_directives(target_block, Directive::kDirectiveErrorPage, &CheckErrorPage);
     error_pages.reserve(error_pages_directives.size());
     for (std::vector<const Directive*>::const_iterator it = error_pages_directives.begin(); it != error_pages_directives.end(); ++it)
     {
@@ -142,18 +145,18 @@ namespace cache
     }
   }
 
-  void  LocationQuery::construct_access_log(const directive::LocationBlock* location_block)
+  void  LocationQuery::construct_access_log(const directive::DirectiveBlock* target_block)
   {
     const directive::AccessLog* directive = 
-      static_cast<const directive::AccessLog*>(closest_directive(location_block, Directive::kDirectiveAccessLog));
+      static_cast<const directive::AccessLog*>(closest_directive(target_block, Directive::kDirectiveAccessLog));
 
     access_log = directive ? directive->get() : constants::kDefaultAccessLog;
   }
 
-  void  LocationQuery::construct_error_log(const directive::LocationBlock* location_block)
+  void  LocationQuery::construct_error_log(const directive::DirectiveBlock* target_block)
   {
     const directive::ErrorLog* directive = 
-      static_cast<const directive::ErrorLog*>(closest_directive(location_block, Directive::kDirectiveErrorLog));
+      static_cast<const directive::ErrorLog*>(closest_directive(target_block, Directive::kDirectiveErrorLog));
 
     error_log = directive ? directive->get() : constants::kDefaultErrorLog;
   }
