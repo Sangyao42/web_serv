@@ -4,28 +4,10 @@
 #include <vector>
 #include <utility>
 
-#include "misc/Maybe.hpp"
+#include "Uri/Authority.hpp"
 
 namespace uri
 {
-  struct Host
-  {
-    enum Type
-    {
-      IPV4,
-      IPV6,
-      REGNAME
-    }           type;
-    std::string value;
-  };
-
-  struct Authority
-  {
-    Maybe<std::string>  userinfo;
-    std::string         host;
-    Maybe<int>          port;
-  };
-
   typedef std::vector<std::pair<std::string, std::string> > Query;
 } // namespace uri
 

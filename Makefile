@@ -35,6 +35,9 @@ MAIN_SRC:= \
 	main.cpp \
 	constants.cpp
 
+URI_SRC:= \
+	Uri/Authority.cpp
+
 CONFIGURATION_SRC:= \
 	Configuration.cpp \
 	Configuration/Directive.cpp \
@@ -58,7 +61,7 @@ CONFIGURATION_SRC:= \
 MISC_SRC:= \
 	misc/Nothing.cpp
 
-SRC:= $(MAIN_SRC) $(CONFIGURATION_SRC) $(MISC_SRC)
+SRC:= $(MAIN_SRC) $(URI_SRC) $(CONFIGURATION_SRC) $(MISC_SRC)
 
 ####################################
 ######     Library files     #######
