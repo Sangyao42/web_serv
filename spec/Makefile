@@ -71,7 +71,7 @@ DEPENDS:=$(OBJ:.o=.d)
 #################################
 
 all:
-	@$(MAKE) $(NAME) -j
+	@$(MAKE) $(NAME)
 
 $(NAME): $(LIBWEBSERV) $(OBJ)
 	@$(CC) $(OBJ) -o $(NAME) $(LDFLAGS) && echo "Compilation of $(NAME) successful"
