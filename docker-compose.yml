@@ -3,11 +3,14 @@ version: '3'
 networks:
   web_serv:
 
+volumes:
+  test_cache:
+  src_cache:
+
 services:
   web_serv:
     container_name: web_serv
     image: web_serv
-    platform: linux/amd64
     build:
       context: .
     networks:
@@ -15,3 +18,17 @@ services:
     ports:
       - "80:80"
     restart: unless-stopped
+
+  test:
+    container_name: test
+    image: test
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    networks:
+      - web_serv
+    volumes:
+      - test_cache:/web_serv/spec/obj
+      - src_cache:/web_serv/obj
+    depends_on:
+      - web_serv

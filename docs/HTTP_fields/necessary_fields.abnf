@@ -1,0 +1,88 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   HTTP body fields   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Check RFC9110 8
+
+Content-Type        = media-type
+media-type          = type "/" subtype parameters
+type                = token
+subtype             = token
+
+; Content-Language    = [ language-tag *( OWS "," OWS language-tag ) ]
+; language-tag        = <Language-Tag, see [RFC5646], Section 2.1>
+
+Content-Length      = 1*DIGIT
+Content-Location    = absolute-URI / partial-URI
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   HTTP general fields   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Check RFC 9110 7.6
+Connection          = [ connection-option *( OWS "," OWS connection-option ) ]
+connection-option   = token ; only for close. Keep Alive is by default in HTTP1.1
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   HTTP request fields   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Check RFC9110 7.2
+Host                = uri-host [ ":" port ]
+
+; Check RFC9110 10.1 (Request Context fields)
+
+Referer             = absolute-URI / partial-URI
+
+User-Agent          = product *( RWS ( product / comment ) )
+product             = token [ "/" product-version ]
+product-version     = token
+
+; Optional fields: Check RFC9110 11 (HTTP Authentication)
+
+Authorization       = credentials
+credentials         = auth-scheme [ 1*SP ( token68 / [ auth-param *( OWS "," OWS auth-param ) ] ) ]
+auth-scheme         = token
+auth-param          = token BWS "=" BWS ( token / quoted-string )
+token68             = 1*( ALPHA / DIGIT / "-" / "." / "_" / "~" / "+" / "/" ) *"=" ; used for authentication
+
+; Optional fields: Check RFC9110 12.5 (Content Negotiation)
+
+Accept              = [ ( media-range [ weight ] )     *( OWS "," OWS ( media-range [ weight ] ) ) ]
+media-range         = ( "*/*" / ( type "/*" ) / ( type "/" subtype ) ) parameters
+weight              = OWS ";" OWS "q=" qvalue
+qvalue              = ( "0" [ "." *3DIGIT ] ) / ( "1" [ "." *3"0" ] )
+
+Accept-Charset      = [ ( ( token / "*" ) [ weight ] ) *( OWS "," OWS ( (token / "*" ) [ weight ] ) ) ]
+
+Accept-Language     = [ ( language-range [ weight ] )  *( OWS "," OWS (language-range [ weight ] ) ) ]
+language-range      = <language-range, see [RFC4647], Section 2.1>
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;   HTTP response fields   ;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Check RFC9110 8.8 (Validator fields)
+
+Last-Modified       = HTTP-date
+
+; Check RFC9110 10.2 (Response Context fields)
+
+Allow               = [ method *( OWS "," OWS method ) ]
+
+Location            = URI-reference
+
+Retry-After         = HTTP-date / delay-seconds
+delay-seconds       = 1*DIGIT
+
+Server              = product *( RWS ( product / comment ) )
+
+; Optional fields: Check RFC9110 11 (HTTP Authentication)
+
+WWW-Authenticate    = [ challenge *( OWS "," OWS challenge ) ]
+challenge           = auth-scheme [ 1*SP ( token68 / [ auth-param *( OWS "," OWS auth-param ) ] ) ]
+auth-scheme         = token
+token68             = 1*( ALPHA / DIGIT / "-" / "." / "_" / "~" / "+" / "/" ) *"=" ; used for authentication
+
+Authentication-Info = [ auth-param *( OWS "," OWS auth-param ) ]
+auth-param          = token BWS "=" BWS ( token / quoted-string )
