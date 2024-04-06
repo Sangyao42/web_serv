@@ -80,6 +80,8 @@ class Configuration
     directive::MainBlock*                 main_block_;
 
     void                                  generate_server_cache();
+    void                                  add_unique_server_cache(const uri::Authority* socket,
+                                                                  const directive::ServerBlock* server_block);
 
     Configuration(const Configuration &other);
     Configuration &operator=(const Configuration &other);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Uri/Authority.hpp"
 #include "Configuration/Directive/Simple/MimeTypes.hpp"
 #include "Configuration/Directive/Simple.hpp"
 #include "Configuration/Directive/Simple/AllowMethods.hpp"
@@ -7,6 +8,8 @@
 namespace constants
 {
   extern const int                  kDefaultWorkerConnections;
+
+  extern const uri::Authority       kDefaultAuthority;
 
   extern const directive::Methods   kDefaultAllowedMethods;
 

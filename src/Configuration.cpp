@@ -238,37 +238,46 @@ void  Configuration::generate_server_cache()
     assert(it->second != NULL);
     const directive::ServerBlock* server_block = static_cast<const directive::ServerBlock*>(it->second);
     const directive::DirectivesRange listen_directives = server_block->query_directive(Directive::kDirectiveListen);
-    assert(directive::DirectiveRangeIsValid(listen_directives));
-
-    // iterate over all listen directives
-    for (directive::DirectivesRange::first_type listen_it = listen_directives.first; listen_it != listen_directives.second; ++listen_it)
+    // Use default Authority if no listen directive is specified
+    if (!directive::DirectiveRangeIsValid(listen_directives))
     {
-      assert(listen_it->first == Directive::kDirectiveListen);
-      assert(listen_it->second != NULL);
-      const directive::Listen* listen = static_cast<const directive::Listen*>(listen_it->second);
-      const std::vector<uri::Authority>& sockets = listen->get();
-      assert(!sockets.empty());
-
-      // iterate over all sockets in a listen directive
-      for (std::vector<uri::Authority>::const_iterator socket_it = sockets.begin(); socket_it != sockets.end(); ++socket_it)
+      add_unique_server_cache(&constants::kDefaultAuthority, server_block);
+    }
+    else
+    {
+      // iterate over all listen directives
+      for (directive::DirectivesRange::first_type listen_it = listen_directives.first; listen_it != listen_directives.second; ++listen_it)
       {
-        // if the server cache that has the same socket, then add the server block to the server cache
-        bool  found = false;
-        for (std::vector<cache::ServerQuery>::iterator cache_it = server_cache_.begin();
-             cache_it != server_cache_.end();
-             ++cache_it)
-        {
-          if (*cache_it->socket == *socket_it)
-          {
-            cache_it->server_blocks.push_back(server_block);
-            found = true;
-            break;
-          }
-        }
-        // otherwise, create a new server cache and add the server block to the server cache
-        if (!found)
-          server_cache_.push_back(cache::ServerQuery(&(*socket_it), server_block));
+        assert(listen_it->first == Directive::kDirectiveListen);
+        assert(listen_it->second != NULL);
+        const directive::Listen* listen = static_cast<const directive::Listen*>(listen_it->second);
+        const std::vector<uri::Authority>& sockets = listen->get();
+        assert(!sockets.empty());
+
+        // iterate over all sockets in a listen directive
+        for (std::vector<uri::Authority>::const_iterator socket_it = sockets.begin(); socket_it != sockets.end(); ++socket_it)
+          add_unique_server_cache(&*socket_it, server_block);
       }
     }
   }
+}
+
+void  Configuration::add_unique_server_cache(const uri::Authority* socket, const directive::ServerBlock* server_block)
+{
+  // if the server cache that has the same socket, then add the server block to the server cache
+  bool  found = false;
+  for (std::vector<cache::ServerQuery>::iterator cache_it = server_cache_.begin();
+        cache_it != server_cache_.end();
+        ++cache_it)
+  {
+    if (*cache_it->socket == *socket)
+    {
+      cache_it->server_blocks.push_back(server_block);
+      found = true;
+      break;
+    }
+  }
+  // otherwise, create a new server cache and add the server block to the server cache
+  if (!found)
+    server_cache_.push_back(cache::ServerQuery(socket, server_block));
 }

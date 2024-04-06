@@ -1,5 +1,6 @@
 #include "constants.hpp"
 
+#include "Uri/Authority.hpp"
 #include "Configuration/Directive/Simple/MimeTypes.hpp"
 #include "Configuration/Directive/Simple.hpp"
 #include "Configuration/Directive/Simple/AllowMethods.hpp"
@@ -7,6 +8,8 @@
 namespace constants
 {
   const int kDefaultWorkerConnections = 1024;
+
+  const uri::Authority  kDefaultAuthority;
 
   const directive::Methods  kDefaultAllowedMethods = directive::kMethodGet | directive::kMethodDelete;
 
