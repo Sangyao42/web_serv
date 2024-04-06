@@ -18,16 +18,16 @@
 
 ConfigurationQueryResult::ConfigurationQueryResult()
   : location_block(NULL),
-    location_property(NULL) {}
+    query(NULL) {}
 
 ConfigurationQueryResult::ConfigurationQueryResult(const directive::LocationBlock* location_block,
-                                                   cache::LocationQuery* location_property)
+                                                   cache::LocationQuery* query)
   : location_block(location_block),
-    location_property(location_property) {}
+    query(query) {}
 
 bool  ConfigurationQueryResult::is_empty() const
 {
-  return location_block == NULL && location_property == NULL;
+  return location_block == NULL && query == NULL;
 }
 
 ////////////////////////////////////////////
@@ -146,19 +146,19 @@ const ConfigurationQueryResult  Configuration::query(int server_socket_fd,
       }
     }
   }
-  cache::LocationQuery* location_property = NULL;
+  cache::LocationQuery* query = NULL;
   // if the location property is not found, then create a new location property
   if (location_cache_.size() == location_cache_.capacity())
-    location_property = &location_cache_[location_insertion_index_];
+    query = &location_cache_[location_insertion_index_];
   else
   {
     location_cache_.push_back(cache::LocationQuery());
-    location_property = &location_cache_.back();
+    query = &location_cache_.back();
   }
   location_insertion_index_ = (location_insertion_index_ + 1) % location_cache_.size();
   // construct the configuration query result
-  location_property->construct(server_block, location_block);
-  return ConfigurationQueryResult(location_block, location_property);
+  query->construct(server_block, location_block);
+  return ConfigurationQueryResult(location_block, query);
 }
 
 const directive::LocationBlock*  Configuration::query_location_block(const directive::ServerBlock* server_block,

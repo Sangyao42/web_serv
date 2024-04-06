@@ -90,25 +90,25 @@ TEST_F(TestConfiguration1, query_correct_location_property)
 
   ASSERT_EQ(result.location_block->type(), Directive::kDirectiveLocation);
   ASSERT_EQ(result.location_block->match(), "/develop");
-  ASSERT_EQ(result.location_property->server_block, &*main_block_->http().servers().first->second);
-  ASSERT_EQ(result.location_property->match_path, "/develop");
-  ASSERT_EQ(result.location_property->allowed_methods, constants::kDefaultAllowedMethods);
-  ASSERT_EQ(result.location_property->client_max_body_size, constants::kDefaultClientMaxBodySize); // 1M
+  ASSERT_EQ(result.query->server_block, &*main_block_->http().servers().first->second);
+  ASSERT_EQ(result.query->match_path, "/develop");
+  ASSERT_EQ(result.query->allowed_methods, constants::kDefaultAllowedMethods);
+  ASSERT_EQ(result.query->client_max_body_size, constants::kDefaultClientMaxBodySize); // 1M
   {
-    const directive::Return*  return_ = result.location_property->redirect;
+    const directive::Return*  return_ = result.query->redirect;
     ASSERT_TRUE(return_ != NULL);
     ASSERT_EQ(return_->get(), 301);
     ASSERT_EQ(return_->get_path(), "http://www.develop.com");
   }
-  ASSERT_EQ(result.location_property->cgis.size(), static_cast<size_t>(0));
-  ASSERT_EQ(result.location_property->indexes.size(), static_cast<size_t>(1));
-  ASSERT_EQ(result.location_property->indexes[0], &constants::kDefaultIndex);
-  ASSERT_EQ(result.location_property->root, constants::kDefaultRoot);
-  ASSERT_EQ(result.location_property->autoindex, true);
-  ASSERT_EQ(result.location_property->mime_types, &constants::kDefaultMimeTypes);
-  ASSERT_EQ(result.location_property->error_pages.size(), static_cast<size_t>(0));
-  ASSERT_EQ(result.location_property->access_log, "/var/logs/access.log");
-  ASSERT_EQ(result.location_property->error_log, "/var/logs/error.log");
+  ASSERT_EQ(result.query->cgis.size(), static_cast<size_t>(0));
+  ASSERT_EQ(result.query->indexes.size(), static_cast<size_t>(1));
+  ASSERT_EQ(result.query->indexes[0], &constants::kDefaultIndex);
+  ASSERT_EQ(result.query->root, constants::kDefaultRoot);
+  ASSERT_EQ(result.query->autoindex, true);
+  ASSERT_EQ(result.query->mime_types, &constants::kDefaultMimeTypes);
+  ASSERT_EQ(result.query->error_pages.size(), static_cast<size_t>(0));
+  ASSERT_EQ(result.query->access_log, "/var/logs/access.log");
+  ASSERT_EQ(result.query->error_log, "/var/logs/error.log");
 }
 
 TEST_F(TestConfiguration1, query_correct_location_property2)
@@ -118,31 +118,31 @@ TEST_F(TestConfiguration1, query_correct_location_property2)
 
   ASSERT_EQ(result.location_block->type(), Directive::kDirectiveLocation);
   ASSERT_EQ(result.location_block->match(), "/omg/");
-  ASSERT_EQ(result.location_property->server_block, &*main_block_->http().servers().first->second);
-  ASSERT_EQ(result.location_property->match_path, "/omg/");
-  ASSERT_EQ(result.location_property->allowed_methods, constants::kDefaultAllowedMethods);
-  ASSERT_EQ(result.location_property->client_max_body_size, constants::kDefaultClientMaxBodySize); // 1M
-  ASSERT_TRUE(result.location_property->redirect == NULL);
+  ASSERT_EQ(result.query->server_block, &*main_block_->http().servers().first->second);
+  ASSERT_EQ(result.query->match_path, "/omg/");
+  ASSERT_EQ(result.query->allowed_methods, constants::kDefaultAllowedMethods);
+  ASSERT_EQ(result.query->client_max_body_size, constants::kDefaultClientMaxBodySize); // 1M
+  ASSERT_TRUE(result.query->redirect == NULL);
   {
-    std::vector<const directive::Cgi*>*  cgis = &result.location_property->cgis;
+    std::vector<const directive::Cgi*>*  cgis = &result.query->cgis;
     ASSERT_EQ(cgis->size(), static_cast<size_t>(1));
     ASSERT_EQ((*cgis)[0]->get(), "js");
     ASSERT_EQ((*cgis)[0]->extension(), "js");
     ASSERT_EQ((*cgis)[0]->cgi_path(), "/opt/homebrew/bin/node");
   }
   {
-    std::vector<const directive::Index*>*  indexes = &result.location_property->indexes;
+    std::vector<const directive::Index*>*  indexes = &result.query->indexes;
     ASSERT_EQ(indexes->size(), static_cast<size_t>(3));
     ASSERT_EQ((*indexes)[0]->get(), "index.html");
     ASSERT_EQ((*indexes)[1]->get(), "index.htm");
     ASSERT_EQ((*indexes)[2]->get(), "default.html");
   }
-  ASSERT_EQ(result.location_property->root, "/var/www/omg");
-  ASSERT_EQ(result.location_property->autoindex, constants::kDefaultAutoindex);
-  ASSERT_EQ(result.location_property->mime_types, &constants::kDefaultMimeTypes);
-  ASSERT_EQ(result.location_property->error_pages.size(), static_cast<size_t>(0));
-  ASSERT_EQ(result.location_property->access_log, "/var/logs/access.log");
-  ASSERT_EQ(result.location_property->error_log, "/var/logs/error.log");
+  ASSERT_EQ(result.query->root, "/var/www/omg");
+  ASSERT_EQ(result.query->autoindex, constants::kDefaultAutoindex);
+  ASSERT_EQ(result.query->mime_types, &constants::kDefaultMimeTypes);
+  ASSERT_EQ(result.query->error_pages.size(), static_cast<size_t>(0));
+  ASSERT_EQ(result.query->access_log, "/var/logs/access.log");
+  ASSERT_EQ(result.query->error_log, "/var/logs/error.log");
 }
 
 ///////////////////////////////////////////////
@@ -166,17 +166,17 @@ TEST_F(TestConfiguration2, query_servers_with_same_socket)
     const ConfigurationQueryResult result  = config_.query(6, "wtf.fr", "/omg/what.html");
 
     ASSERT_TRUE(result.location_block == NULL);
-    ASSERT_TRUE(result.location_property != NULL);
-    ASSERT_EQ(result.location_property->autoindex, true);
-    ASSERT_EQ(result.location_property->root, constants::kDefaultRoot);
+    ASSERT_TRUE(result.query != NULL);
+    ASSERT_EQ(result.query->autoindex, true);
+    ASSERT_EQ(result.query->root, constants::kDefaultRoot);
   }
 
   {
     const ConfigurationQueryResult result = config_.query(6, "whatt.42.fr", "/omg/what.html");
 
     ASSERT_TRUE(result.location_block == NULL);
-    ASSERT_TRUE(result.location_property != NULL);
-    ASSERT_EQ(result.location_property->autoindex, constants::kDefaultAutoindex);
-    ASSERT_EQ(result.location_property->root, "/Users/Anthony");
+    ASSERT_TRUE(result.query != NULL);
+    ASSERT_EQ(result.query->autoindex, constants::kDefaultAutoindex);
+    ASSERT_EQ(result.query->root, "/Users/Anthony");
   }
 }

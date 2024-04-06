@@ -17,11 +17,11 @@ extern Configuration ws_database;
 struct ConfigurationQueryResult
 {
   const directive::LocationBlock* location_block;
-  cache::LocationQuery*           location_property;
+  cache::LocationQuery*           query;
 
   ConfigurationQueryResult();
   ConfigurationQueryResult(const directive::LocationBlock* location_block,
-                           cache::LocationQuery* location_property);
+                           cache::LocationQuery* query);
 
   bool  is_empty() const;
 };
