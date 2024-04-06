@@ -17,5 +17,5 @@ class HeaderValue
 			kInt
 		};
 
-		virtual	ValueType	type() const = 0;
+		virtual	const ValueType	&type() const = 0;
 };

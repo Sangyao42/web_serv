@@ -11,7 +11,7 @@ class Response : public HTTPMessage
 
 		Response &operator=(const Response &obj);
 
-		const std::string	&getResponseBody();
+		const std::string	&getResponseBody() const;
 
 		void	setResponseBody(const std::string &responseBody);
 

@@ -26,6 +26,7 @@
 
 enum StatusCode
 {
+	k000, // default value
 	k200,
 	k201,
 	k204,
@@ -33,7 +34,7 @@ enum StatusCode
 	kError
 };
 
-std::string	StatusCodeAsString(enum StatusCode code)
+std::string	statusCodeAsString(enum StatusCode code)
 {
 	switch (code)
 	{

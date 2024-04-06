@@ -11,14 +11,14 @@ class Request : public HTTPMessage
 
 		Request &operator=(const Request &obj);
 
-		const Method	&getMethod();
-		const std::string	&getRequestTarget();
-		const std::string	&getVersion();
-		const std::string	&getRequestBody();
+		const Method	&getMethod() const;
+		const std::string	&getRequestTarget() const;
+		const Version	&getVersion() const;
+		const std::string	&getRequestBody() const;
 
 		void	setMethod(const Method &method);
 		void	setRequestTarget(const std::string &requestTarget);
-		void	setVersion(const std::string &version);
+		void	setVersion(const Version &version);
 		void	setRequestBody(const std::string &requestBody);
 
 	private:

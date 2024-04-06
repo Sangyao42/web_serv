@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../HeaderValue.hpp"
+#include "HeaderValue.hpp"
 
 class HeaderString : public HeaderValue
 {
