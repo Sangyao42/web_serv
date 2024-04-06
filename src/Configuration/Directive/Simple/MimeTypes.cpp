@@ -11,6 +11,14 @@ namespace directive
 {
   MimeTypes::MimeTypes()
     : Directive(), mime_types_() {}
+  
+  MimeTypes::MimeTypes(Nothing)
+    : Directive(), mime_types_()
+  {
+    mime_types_["html"] = "text/html";
+    mime_types_["gif"] = "image/gif";
+    mime_types_["jpg"] = "image/jpeg";
+  }
 
   MimeTypes::MimeTypes(const Context& context)
     : Directive(context), mime_types_() {}

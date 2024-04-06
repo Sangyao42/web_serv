@@ -1,7 +1,6 @@
 #include "Directive.hpp"
 
 #include <utility>
-#include <cassert>
 
 ///////////////////////////////////////////////
 ////////////   Directive Context   ////////////

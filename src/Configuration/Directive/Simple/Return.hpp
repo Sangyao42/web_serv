@@ -19,6 +19,7 @@ namespace directive
       virtual Type        type() const;
 
       void                set(const std::string& path, int status_code);
+      int                 get() const;
       const std::string&  get_path() const;
       int                 status_code() const;
 

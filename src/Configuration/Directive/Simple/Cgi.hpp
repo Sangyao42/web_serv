@@ -20,6 +20,11 @@ namespace directive
       virtual Type        type() const;
 
       void                set(const std::string& extension, const std::string& cgi_path);
+
+      const std::string&  extension() const;
+      const std::string&  cgi_path() const;
+      const std::string&  get() const;
+
       Maybe<std::string>  match(std::string extension) const;
 
     private:

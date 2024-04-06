@@ -18,6 +18,7 @@ class Directive
     enum Type
     {
       // Blocks
+      kDirectiveMain,
       kDirectiveHttp,
       kDirectiveServer,
       kDirectiveEvents,
@@ -33,7 +34,7 @@ class Directive
       kDirectiveErrorPage,
       // for HTTP request generation (generating content)
       kDirectiveClientMaxBodySize,
-      kDirectiveRedirect,
+      kDirectiveReturn,
       kDirectiveAutoindex,
       kDirectiveCgi,
       // misc
@@ -44,7 +45,7 @@ class Directive
       kDirectiveWorkerConnections
     };
     Directive();
-    Directive(const Context& context);
+    explicit Directive(const Context& context);
     Directive(const Directive& other);
     Directive& operator=(const Directive& other);
     virtual ~Directive();

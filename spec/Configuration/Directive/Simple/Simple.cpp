@@ -48,15 +48,15 @@ TYPED_TEST(TestDirectiveSimple, constructor)
 
 TYPED_TEST(TestDirectiveSimple, constructor2)
 {
-  this->test_targets_.push_back(new directive::DirectiveSimple<TypeParam, Directive::kDirectiveRoot>(50));
-  this->test_targets_.push_back(new directive::DirectiveSimple<TypeParam, Directive::kDirectiveIndex>(50));
-  this->test_targets_.push_back(new directive::DirectiveSimple<TypeParam, Directive::kDirectiveErrorPage>(50));
-  this->test_targets_.push_back(new directive::DirectiveSimple<TypeParam, Directive::kDirectiveClientMaxBodySize>(50));
-  this->test_targets_.push_back(new directive::DirectiveSimple<TypeParam, Directive::kDirectiveAutoindex>(50));
-  this->test_targets_.push_back(new directive::DirectiveSimple<TypeParam, Directive::kDirectiveAccessLog>(50));
-  this->test_targets_.push_back(new directive::DirectiveSimple<TypeParam, Directive::kDirectiveErrorLog>(50));
-  this->test_targets_.push_back(new directive::DirectiveSimple<TypeParam, Directive::kDirectiveInclude>(50));
-  this->test_targets_.push_back(new directive::DirectiveSimple<TypeParam, Directive::kDirectiveWorkerConnections>(50));
+  this->test_targets_.push_back(new directive::DirectiveSimple<TypeParam, Directive::kDirectiveRoot>(Directive::Context(50)));
+  this->test_targets_.push_back(new directive::DirectiveSimple<TypeParam, Directive::kDirectiveIndex>(Directive::Context(50)));
+  this->test_targets_.push_back(new directive::DirectiveSimple<TypeParam, Directive::kDirectiveErrorPage>(Directive::Context(50)));
+  this->test_targets_.push_back(new directive::DirectiveSimple<TypeParam, Directive::kDirectiveClientMaxBodySize>(Directive::Context(50)));
+  this->test_targets_.push_back(new directive::DirectiveSimple<TypeParam, Directive::kDirectiveAutoindex>(Directive::Context(50)));
+  this->test_targets_.push_back(new directive::DirectiveSimple<TypeParam, Directive::kDirectiveAccessLog>(Directive::Context(50)));
+  this->test_targets_.push_back(new directive::DirectiveSimple<TypeParam, Directive::kDirectiveErrorLog>(Directive::Context(50)));
+  this->test_targets_.push_back(new directive::DirectiveSimple<TypeParam, Directive::kDirectiveInclude>(Directive::Context(50)));
+  this->test_targets_.push_back(new directive::DirectiveSimple<TypeParam, Directive::kDirectiveWorkerConnections>(Directive::Context(50)));
   std::vector<Directive::Type>::const_iterator it = simple_directive_names.begin();
   for (auto& test_target : this->test_targets_)
   {

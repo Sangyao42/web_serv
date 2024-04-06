@@ -1,6 +1,5 @@
 #include "Server.hpp"
 
-#include "misc/Maybe.hpp"
 #include "Configuration/Directive.hpp"
 #include "Configuration/Directive/Block.hpp"
 #include "Configuration/Directive/Block/Location.hpp"
@@ -8,20 +7,19 @@
 namespace directive
 {
   ServerBlock::ServerBlock()
-    : DirectiveBlock(), locations_() {}
+    : DirectiveBlock() {}
 
   ServerBlock::ServerBlock(const Context& context)
-    : DirectiveBlock(context), locations_() {}
+    : DirectiveBlock(context) {}
   
   ServerBlock::ServerBlock(const ServerBlock& other)
-    : DirectiveBlock(other), locations_() {}
+    : DirectiveBlock(other) {}
   
   ServerBlock& ServerBlock::operator=(const ServerBlock& other)
   {
     if (this != &other)
     {
       DirectiveBlock::operator=(other);
-      locations_ = Nothing();
     }
     return *this;
   }
@@ -33,14 +31,8 @@ namespace directive
     return Directive::kDirectiveServer;
   }
 
-  Maybe<Locations> ServerBlock::locations()
+  Locations ServerBlock::locations() const
   {
-    if (!locations_.is_ok())
-    {
-      Locations locations = static_cast<const Directives>(directives_).equal_range(Directive::kDirectiveLocation);
-      if (locations.first != locations.second)
-        locations_ = locations;
-    }
-    return locations_;
+    return directives_.equal_range(Directive::kDirectiveLocation);
   }
 } // namespace configuration

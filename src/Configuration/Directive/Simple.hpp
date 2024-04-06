@@ -9,7 +9,8 @@ namespace directive
   {
     public:
       DirectiveSimple();
-      DirectiveSimple(const Context& context);
+      DirectiveSimple(const T& value);
+      explicit DirectiveSimple(const Context& context);
       DirectiveSimple(const DirectiveSimple& other);
       DirectiveSimple& operator=(const DirectiveSimple& other);
       virtual ~DirectiveSimple();
@@ -30,7 +31,6 @@ namespace directive
 
   typedef DirectiveSimple<std::string, Directive::kDirectiveRoot> Root;
   typedef DirectiveSimple<std::string, Directive::kDirectiveIndex> Index;
-  typedef DirectiveSimple<std::string, Directive::kDirectiveErrorPage> ErrorPage;
   typedef DirectiveSimple<size_t, Directive::kDirectiveClientMaxBodySize> ClientMaxBodySize;
   typedef DirectiveSimple<bool, Directive::kDirectiveAutoindex> Autoindex;
   typedef DirectiveSimple<std::string, Directive::kDirectiveAccessLog> AccessLog;
@@ -45,6 +45,10 @@ namespace directive
   template <typename T, Directive::Type TypeEnum>
   DirectiveSimple<T, TypeEnum>::DirectiveSimple()
     : Directive(), value_() {}
+  
+  template <typename T, Directive::Type TypeEnum>
+  DirectiveSimple<T, TypeEnum>::DirectiveSimple(const T& value)
+    : Directive(), value_(value) {}
   
   template <typename T, Directive::Type TypeEnum>
   DirectiveSimple<T, TypeEnum>::DirectiveSimple(const Context& context)
