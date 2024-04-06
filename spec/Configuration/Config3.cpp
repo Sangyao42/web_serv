@@ -2,7 +2,7 @@
 
 #include "constants.hpp"
 #include "Configuration.hpp"
-#include "Configuration/Directive/Socket.hpp"
+#include "Uri/Authority.hpp"
 #include "Configuration/Directive/Block/Main.hpp"
 #include "Configuration/Directive/Block/Http.hpp"
 #include "Configuration/Directive/Block/Server.hpp"

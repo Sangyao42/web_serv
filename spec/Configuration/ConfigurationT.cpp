@@ -4,7 +4,7 @@
 
 #include "constants.hpp"
 #include "Configuration.hpp"
-#include "Configuration/Directive/Socket.hpp"
+#include "Uri/Authority.hpp"
 #include "Configuration/Directive/Block/Main.hpp"
 #include "Configuration/Directive/Block/Http.hpp"
 #include "Configuration/Directive/Block/Server.hpp"
@@ -20,7 +20,7 @@ TEST(TestConfiguration0, all_server_sockets)
 {
   Configuration config(8);
   EXPECT_DEATH({
-    std::vector<const directive::Socket *> sockets = config.all_server_sockets();
+    std::vector<const uri::Authority *> sockets = config.all_server_sockets();
   }, "Assertion.*");
 }
 

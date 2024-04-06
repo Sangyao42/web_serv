@@ -2,7 +2,7 @@
 
 #include "constants.hpp"
 #include "Configuration.hpp"
-#include "Configuration/Directive/Socket.hpp"
+#include "Uri/Authority.hpp"
 #include "Configuration/Directive/Block/Main.hpp"
 #include "Configuration/Directive/Block/Http.hpp"
 #include "Configuration/Directive/Block/Server.hpp"
@@ -53,12 +53,12 @@ void  Config2(directive::MainBlock& main)
 
     {
       directive::Listen*  listen = new directive::Listen();
-      listen->add(directive::Socket("198.13.20.5", "443"));
+      listen->add(uri::Authority("198.13.20.5", "443"));
       server->add_directive(listen);
     }
     {
       directive::Listen*  listen = new directive::Listen();
-      listen->add(directive::Socket("::", "443"));
+      listen->add(uri::Authority("::", "443"));
       server->add_directive(listen);
     }
     {
@@ -122,7 +122,7 @@ void  Config2(directive::MainBlock& main)
 
     {
       directive::Listen*  listen = new directive::Listen();
-      listen->add(directive::Socket("127.0.0.1"));
+      listen->add(uri::Authority("127.0.0.1"));
       server->add_directive(listen);
     }
 

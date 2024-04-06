@@ -7,8 +7,8 @@ namespace cache
       socket(NULL),
       server_blocks() {}
 
-  ServerQuery::ServerQuery(const directive::Socket* socket,
-                                    const directive::ServerBlock* server_block)
+  ServerQuery::ServerQuery(const uri::Authority* socket,
+                           const directive::ServerBlock* server_block)
     : server_socket_fd(-1),
       socket(socket),
       server_blocks()

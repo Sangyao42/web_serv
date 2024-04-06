@@ -61,7 +61,7 @@ Configuration::~Configuration()
 ////////////   setters   ////////////
 /////////////////////////////////////
 
-void  Configuration::register_server_socket(int server_socket_fd, const directive::Socket& socket)
+void  Configuration::register_server_socket(int server_socket_fd, const uri::Authority& socket)
 {
   assert(!server_cache_.empty());
   for (std::vector<cache::ServerQuery>::iterator it = server_cache_.begin(); it != server_cache_.end(); ++it)
@@ -97,11 +97,11 @@ size_t Configuration::worker_connections() const
   return worker_connections.value();
 }
 
-std::vector<const directive::Socket*> Configuration::all_server_sockets()
+std::vector<const uri::Authority*> Configuration::all_server_sockets()
 {
   if (server_cache_.empty())
     generate_server_cache();
-  std::vector<const directive::Socket*> sockets;
+  std::vector<const uri::Authority*> sockets;
   for (std::vector<cache::ServerQuery>::const_iterator it = server_cache_.begin(); it != server_cache_.end(); ++it)
   {
     if (it->socket != NULL)
@@ -246,11 +246,11 @@ void  Configuration::generate_server_cache()
       assert(listen_it->first == Directive::kDirectiveListen);
       assert(listen_it->second != NULL);
       const directive::Listen* listen = static_cast<const directive::Listen*>(listen_it->second);
-      const std::vector<directive::Socket>& sockets = listen->get();
+      const std::vector<uri::Authority>& sockets = listen->get();
       assert(!sockets.empty());
 
       // iterate over all sockets in a listen directive
-      for (std::vector<directive::Socket>::const_iterator socket_it = sockets.begin(); socket_it != sockets.end(); ++socket_it)
+      for (std::vector<uri::Authority>::const_iterator socket_it = sockets.begin(); socket_it != sockets.end(); ++socket_it)
       {
         // if the server cache that has the same socket, then add the server block to the server cache
         bool  found = false;

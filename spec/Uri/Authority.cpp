@@ -1,21 +1,21 @@
-#include "./Socket.hpp"
+#include "./Authority.hpp"
 
 #include <gtest/gtest.h>
 #include <sys/socket.h>
 
-#include "Configuration/Directive/Socket.hpp"
+#include "Uri/Authority.hpp"
 
-TEST_P(TestConfigurationSocket, recognize_family)
+TEST_P(TestUriAuthority, recognize_family)
 {
-  SocketTest params = GetParam();
-  directive::Socket socket(std::get<0>(params), std::get<1>(params));
+  UriAuthorityTestCase params = GetParam();
+  uri::Authority authority(std::get<0>(params), std::get<1>(params));
 
-  EXPECT_EQ(socket.ip_address(), std::get<0>(params));
-  EXPECT_EQ(socket.port(), std::get<1>(params));
-  EXPECT_EQ(socket.family(), std::get<2>(params));
+  EXPECT_EQ(authority.host.value, std::get<0>(params));
+  EXPECT_EQ(authority.port, std::get<1>(params));
+  EXPECT_EQ(authority.family(), std::get<2>(params));
 }
 
-INSTANTIATE_TEST_SUITE_P(sockets, TestConfigurationSocket, testing::Values(
+INSTANTIATE_TEST_SUITE_P(authoritys, TestUriAuthority, testing::Values(
   std::make_tuple("0.0.0.0", "80", AF_INET),
   std::make_tuple("::", "80", AF_INET6),
   std::make_tuple("0000:0000:0000:0000:0000:0000:0000:0001", "80", AF_INET6),
@@ -26,16 +26,16 @@ INSTANTIATE_TEST_SUITE_P(sockets, TestConfigurationSocket, testing::Values(
   std::make_tuple("0:0:0001:0000:000:0000:0100:0000", "9000", AF_INET6)
 ));
 
-TEST_P(TestConfigurationSocketSerialized, operator_equal)
+TEST_P(TestUriAuthoritySerialized, operator_equal)
 {
-  SocketSerializedTest params = GetParam();
-  directive::Socket socket(std::get<0>(params), std::get<1>(params));
-  directive::Socket socket2(std::get<3>(params), std::get<1>(params));
+  uriAuthoritySerializedTestCase params = GetParam();
+  uri::Authority authority(std::get<0>(params), std::get<1>(params));
+  uri::Authority authority2(std::get<3>(params), std::get<1>(params));
 
-  EXPECT_EQ(socket, socket2);
+  EXPECT_EQ(authority, authority2);
 }
 
-INSTANTIATE_TEST_SUITE_P(sockets, TestConfigurationSocketSerialized, testing::Values(
+INSTANTIATE_TEST_SUITE_P(authoritys, TestUriAuthoritySerialized, testing::Values(
   std::make_tuple("0.0.0.0", "80", AF_INET, "0.0.0.0"),
   std::make_tuple("::", "80", AF_INET6, "::"),
   std::make_tuple("0000:0000:0000:0000:0000:0000:0000:0001", "80", AF_INET6, "::1"),

@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "Configuration/Directive/Socket.hpp"
+#include "Uri/Authority.hpp"
 #include "Configuration/Directive/Simple.hpp"
 #include "Configuration/Directive/Simple/AllowMethods.hpp"
 #include "Configuration/Directive/Simple/Cgi.hpp"
@@ -33,7 +33,7 @@
 */
 
 class TestDirectiveListen :
-  public ::testing::TestWithParam<std::vector<directive::Socket> >
+  public ::testing::TestWithParam<std::vector<uri::Authority> >
 {
 protected:
   directive::Listen test_target_;
