@@ -32,19 +32,26 @@ OBJS_DIR:= obj
 # contatenate them in the SRC variable like this:
 
 MAIN_SRC:= \
-	main.cpp
+	main.cpp \
+	constants.cpp
+
+URI_SRC:= \
+	Uri/Authority.cpp
 
 CONFIGURATION_SRC:= \
 	Configuration.cpp \
 	Configuration/Directive.cpp \
-	Configuration/Directive/Socket.cpp \
+	Configuration/Cache/LocationQuery.cpp \
+	Configuration/Cache/ServerQuery.cpp \
 	Configuration/Directive/Block.cpp \
+	Configuration/Directive/Block/Main.cpp \
 	Configuration/Directive/Block/Http.cpp \
 	Configuration/Directive/Block/Server.cpp \
 	Configuration/Directive/Block/Events.cpp \
 	Configuration/Directive/Block/Location.cpp \
 	Configuration/Directive/Simple/Listen.cpp \
 	Configuration/Directive/Simple/ServerName.cpp \
+	Configuration/Directive/Simple/ErrorPage.cpp \
 	Configuration/Directive/Simple/AllowMethods.cpp \
 	Configuration/Directive/Simple/MimeTypes.cpp \
 	Configuration/Directive/Simple/Return.cpp \
@@ -53,7 +60,7 @@ CONFIGURATION_SRC:= \
 MISC_SRC:= \
 	misc/Nothing.cpp
 
-SRC:= $(MAIN_SRC) $(CONFIGURATION_SRC) $(MISC_SRC)
+SRC:= $(MAIN_SRC) $(URI_SRC) $(CONFIGURATION_SRC) $(MISC_SRC)
 
 ####################################
 ######     Library files     #######

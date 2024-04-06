@@ -1,6 +1,9 @@
 #pragma once
 
-#include "misc/Maybe.hpp"
+#include <string>
+#include <vector>
+#include <utility>
+
 #include "Configuration/Directive/Block.hpp"
 
 namespace directive
@@ -9,7 +12,7 @@ namespace directive
    * @brief Locations points to a range of Directives that are of type
    * DirectiveLocation.
   */
-  typedef DirectivesRange Locations;
+  typedef DirectivesRange   Locations;
 
   class LocationBlock : public DirectiveBlock
   {
@@ -20,11 +23,20 @@ namespace directive
       LocationBlock& operator=(const LocationBlock& other);
       virtual ~LocationBlock();
 
-      virtual Type      type() const;
+      bool  operator<(const LocationBlock& rhs) const;
 
-      Maybe<Locations>  locations();
+      virtual Type          type() const;
+
+      Locations             locations() const;
+      const std::string&    match() const;
+      void                  set(const std::string& match);
+
+      bool                  is_match(const std::string& uri) const;
+
+      const LocationBlock*  best_match(const std::string& uri) const;
 
     private:
-      Maybe<Locations>  locations_;
+      std::string           match_;
   };
+
 } // namespace configuration

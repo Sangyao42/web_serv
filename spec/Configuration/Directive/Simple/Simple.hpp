@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "Configuration/Socket.hpp"
+#include "Uri/Authority.hpp"
 #include "Configuration/Directive/Simple.hpp"
 #include "Configuration/Directive/Simple/AllowMethods.hpp"
 #include "Configuration/Directive/Simple/Cgi.hpp"
@@ -10,6 +10,7 @@
 #include "Configuration/Directive/Simple/MimeTypes.hpp"
 #include "Configuration/Directive/Simple/Return.hpp"
 #include "Configuration/Directive/Simple/ServerName.hpp"
+#include "Configuration/Directive/Simple/ErrorPage.hpp"
 
 /**
  * [/] Listen
@@ -32,7 +33,7 @@
 */
 
 class TestDirectiveListen :
-  public ::testing::TestWithParam<std::vector<directive::Socket> >
+  public ::testing::TestWithParam<std::vector<uri::Authority> >
 {
 protected:
   directive::Listen test_target_;
@@ -94,6 +95,13 @@ class TestDirectiveCgi :
 {
 protected:
   directive::Cgi test_target_;
+};
+
+class TestDirectiveErrorPage :
+  public ::testing::TestWithParam<std::pair<int, std::string> >
+{
+protected:
+  directive::ErrorPage test_target_;
 };
 
 template <typename T>

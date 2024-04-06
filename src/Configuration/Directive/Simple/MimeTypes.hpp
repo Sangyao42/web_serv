@@ -14,6 +14,7 @@ namespace directive
       typedef std::string Extension;
       typedef std::string MimeType;
       MimeTypes();
+      MimeTypes(Nothing);
       MimeTypes(const Context& context);
       MimeTypes(const MimeTypes& other);
       MimeTypes& operator=(const MimeTypes& other);

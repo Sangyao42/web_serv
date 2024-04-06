@@ -43,7 +43,7 @@ Supported configuration options:
 | root                 | Simple | http,server,location      | html               | overwrite | yes           | path                   |
 | index                | Simple | http,server,location      | index.html         | append    | yes           | path*                  |
 | types                | Simple | http,server,location      | N/A                | overwrite | yes           | { text/plain * }       |
-| error_page           | Simple | http,server,location      | N/A                | append    | yes           | path                   |
+| error_page           | Simple | http,server,location      | N/A                | append    | yes           | word path              |
 | client_max_body_size | Simple | http,server,location      | 1m                 | overwrite | yes           | number unit            |
 | redirect             | Simple | server,location           | N/A                | overwrite | yes           | path (redirect \| permanent) |
 | autoindex            | Simple | http,server,location      | off                | overwrite | yes           | on \| off              |
@@ -78,36 +78,35 @@ location / {}; inside this block, index is hello.htm
 
 ### API of the Configuration class
 
-| Directive            | status code | API                                 | used by
-| -------------------- | ----------- | ----------------------------------- | -------------------
-| http                 |             | search_server, get_all_ip_addresses |
-| server               |             | search_location                     |
-| listen               |             | get_all_ip_addresses                |
-| location             |             | search_location                     |
-| server_name          |             | search_server                       |
-| allow_methods        | 405         |                                     | request_is_accepted
-| root                 | 403,404     |                                     | construct_full_path
-| index                | 403,404     |                                     | construct_full_path
-| types                |             | get_response_content_type           |
-| error_page           | all         |                                     | generate_templated_response
-| client_max_body_size | 413         | get_request_max_size                | request_is_accepted
-| redirect             | 301,307     |                                     | generate_redirect_response
-| autoindex            |             |                                     | construct_full_path, generate_templated_response
-| cgi                  |             |                                     | generate_cgi_response
-| access_log           |             |                                     | log_response
-| error_log            |             |                                     | log_response
-| include              |             |                                     |
-| events               |             | get_worker_connections              | socker_manager
-| worker_connections   |             | get_worker_connections              | socker_manager
+| Directive            | status code | API                       | used by
+| -------------------- | ----------- | ------------------------- | -------------------
+| http                 |             | query, all_server_sockets |
+| server               |             | query_location_block      |
+| listen               |             | all_server_sockets        |
+| location             |             | query_location_block      |
+| server_name          |             | query_server_block        |
+| allow_methods        | 405         | query                     | request_is_accepted
+| root                 | 403,404     | query                     | construct_full_path
+| index                | 403,404     | query                     | construct_full_path
+| types                |             | query                     |
+| error_page           | all         | query                     | generate_templated_response
+| client_max_body_size | 413         | query                     | request_is_accepted
+| redirect             | 301,307     | query                     | generate_redirect_response
+| autoindex            |             | query                     | construct_full_path, generate_templated_response
+| cgi                  |             | query                     | generate_cgi_response
+| access_log           |             | query                     | log_response
+| error_log            |             | query                     | log_response
+| include              |             | query                     |
+| events               |             | worker_connections        | socker_manager
+| worker_connections   |             | worker_connections        | socker_manager
 
-- `index` has to match all the entries to find the best match.
-- `search` has to return a path to the best match. The path is used to decide which directive is in relevant to the current path match.
-- 
+- `index` has to match all the entries to find the best match. 
 
 socket manager needs:
 
-- get_all_ip_addresses
-- get_worker_connections
+- all_server_sockets
+- worker_connections
+- register_server_socket
 
 Imagining the use of data in the configuration file:
 

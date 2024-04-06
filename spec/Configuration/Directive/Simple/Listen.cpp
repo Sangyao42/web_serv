@@ -40,7 +40,7 @@ TEST(TestDirectiveListen, set_context)
 
 TEST_P(TestDirectiveListen, add)
 {
-  using Sockets = std::vector<directive::Socket>;
+  using Sockets = std::vector<uri::Authority>;
   Sockets sockets = GetParam();
   
   for (Sockets::const_iterator it = sockets.begin(); it != sockets.end(); ++it)
@@ -63,7 +63,7 @@ TEST_P(TestDirectiveListen, add)
 
 TEST_P(TestDirectiveListen, add_then_assignment)
 {
-  using Sockets = std::vector<directive::Socket>;
+  using Sockets = std::vector<uri::Authority>;
   directive::Listen directive;
   Sockets sockets = GetParam();
   
@@ -89,7 +89,7 @@ TEST_P(TestDirectiveListen, add_then_assignment)
 
 TEST_P(TestDirectiveListen, add_then_copy)
 {
-  using Sockets = std::vector<directive::Socket>;
+  using Sockets = std::vector<uri::Authority>;
   Sockets sockets = GetParam();
   
   for (Sockets::const_iterator it = sockets.begin(); it != sockets.end(); ++it)
@@ -113,19 +113,19 @@ TEST_P(TestDirectiveListen, add_then_copy)
 }
 
 INSTANTIATE_TEST_SUITE_P(Sockets, TestDirectiveListen, testing::Values(
-  std::vector<directive::Socket>(),
-	std::vector<directive::Socket>{
-    directive::Socket(),
-    directive::Socket(),
-    directive::Socket()
+  std::vector<uri::Authority>(),
+	std::vector<uri::Authority>{
+    uri::Authority(),
+    uri::Authority(),
+    uri::Authority()
   },
-	std::vector<directive::Socket>{
-    directive::Socket("0.0.0.0", "80"),
-    directive::Socket("127.27.34.52", "8080")
+	std::vector<uri::Authority>{
+    uri::Authority("0.0.0.0", "80"),
+    uri::Authority("127.27.34.52", "8080")
   },
-	std::vector<directive::Socket>{
-    directive::Socket("192.27.34.52", "8080"),
-    directive::Socket("34.128.55.52", "443"),
-    directive::Socket("0.0.0.0", "80")
+	std::vector<uri::Authority>{
+    uri::Authority("192.27.34.52", "8080"),
+    uri::Authority("34.128.55.52", "443"),
+    uri::Authority("0.0.0.0", "80")
   }
 ));

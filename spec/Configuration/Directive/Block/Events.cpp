@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "./Simple.hpp"
+#include "Configuration/Directive/Simple.hpp"
 
 TEST_F(TestDirectiveEvents, constructor)
 {

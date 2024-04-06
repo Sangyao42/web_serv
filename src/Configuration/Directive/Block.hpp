@@ -21,19 +21,25 @@ namespace directive
   {
     public:
       DirectiveBlock();
-      DirectiveBlock(const Context& context);
+      explicit DirectiveBlock(const Context& context);
       DirectiveBlock(const DirectiveBlock& other);
       DirectiveBlock& operator=(const DirectiveBlock& other);
       virtual ~DirectiveBlock();
 
       virtual bool            is_block() const;
       virtual Type            type() const = 0;
+      const Directives&       directives() const;
+      DirectiveBlock*         parent();
+      const DirectiveBlock*   parent() const;
+      void                    set_parent(DirectiveBlock* parent);
 
       virtual void            add_directive(Directive* directive);
       virtual DirectivesRange query_directive(Type type) const;
+      Directives::const_iterator  end() const;
 
     protected:
       Directives              directives_;
+      DirectiveBlock*         parent_;
   };
 
   bool  DirectiveRangeIsValid(const DirectivesRange& range);
