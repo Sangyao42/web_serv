@@ -4,9 +4,9 @@
 #include <string>
 #include <vector>
 
+#include "Uri/Authority.hpp"
 #include "Configuration/Cache/LocationQuery.hpp"
 #include "Configuration/Cache/ServerQuery.hpp"
-#include "Configuration/Directive/Socket.hpp"
 #include "Configuration/Directive/Block/Main.hpp"
 #include "Configuration/Directive/Block/Server.hpp"
 #include "Configuration/Directive/Block/Location.hpp"
@@ -46,13 +46,12 @@ class Configuration
     void  set_main_block(directive::MainBlock* main_block);
 
     // Get all the server sockets.
-    std::vector<const directive::Socket*> all_server_sockets();
+    std::vector<const uri::Authority*>    all_server_sockets();
 
     // After getting all the server sockets, one has to register them with the socket file descriptor
     // associated with the parsed socket object.
     void                                  register_server_socket(int server_socket_fd,
-                                                                 const directive::Socket& socket);
-
+                                                                 const uri::Authority& socket);
 
     /////////////////////////////////////
     ////////////   getters   ////////////

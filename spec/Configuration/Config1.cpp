@@ -2,7 +2,7 @@
 
 #include "constants.hpp"
 #include "Configuration.hpp"
-#include "Configuration/Directive/Socket.hpp"
+#include "Uri/Authority.hpp"
 #include "Configuration/Directive/Block/Main.hpp"
 #include "Configuration/Directive/Block/Http.hpp"
 #include "Configuration/Directive/Block/Server.hpp"
@@ -76,7 +76,7 @@ void  Config1(directive::MainBlock& config)
 
     {
       directive::Listen*  listen = new directive::Listen();
-      listen->add(directive::Socket("80"));
+      listen->add(uri::Authority("80"));
       server->add_directive(listen);
     }
 

@@ -2,8 +2,8 @@
 
 #include <vector>
 
+#include "Uri/Authority.hpp"
 #include "Configuration/Directive.hpp"
-#include "Configuration/Directive/Socket.hpp"
 
 namespace directive
 {
@@ -38,12 +38,12 @@ namespace directive
     return Directive::kDirectiveListen;
   }
 
-  void Listen::add(const Socket& socket)
+  void Listen::add(const uri::Authority& socket)
   {
     sockets_.push_back(socket);
   }
 
-  const std::vector<Socket>& Listen::get() const
+  const std::vector<uri::Authority>& Listen::get() const
   {
     return sockets_;
   }

@@ -43,7 +43,6 @@ CONFIGURATION_SRC:= \
 	Configuration/Directive.cpp \
 	Configuration/Cache/LocationQuery.cpp \
 	Configuration/Cache/ServerQuery.cpp \
-	Configuration/Directive/Socket.cpp \
 	Configuration/Directive/Block.cpp \
 	Configuration/Directive/Block/Main.cpp \
 	Configuration/Directive/Block/Http.cpp \

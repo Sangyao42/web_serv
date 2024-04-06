@@ -2,8 +2,8 @@
 
 #include <vector>
 
+#include "Uri/Authority.hpp"
 #include "Configuration/Directive.hpp"
-#include "Configuration/Directive/Socket.hpp"
 
 namespace directive
 {
@@ -19,10 +19,10 @@ namespace directive
       virtual bool                is_block() const;
       virtual Type                type() const;
 
-      void                        add(const Socket& socket);
-      const std::vector<Socket>&  get() const;
+      void                        add(const uri::Authority& socket);
+      const std::vector<uri::Authority>&  get() const;
 
     private:
-      std::vector<Socket>         sockets_;
+      std::vector<uri::Authority> sockets_;
   };
 } // namespace configuration

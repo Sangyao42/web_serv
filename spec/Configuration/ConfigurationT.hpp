@@ -27,12 +27,12 @@ protected:
     Config1(*main_block_);
     config_.set_main_block(main_block_);
 
-    std::vector<const directive::Socket *> sockets = config_.all_server_sockets();
+    std::vector<const uri::Authority *> sockets = config_.all_server_sockets();
   
     ASSERT_EQ(sockets.size(), static_cast<size_t>(1));
-    ASSERT_EQ(*sockets[0], directive::Socket("80"));
+    ASSERT_EQ(*sockets[0], uri::Authority("80"));
     int fd = 3;
-    for (std::vector<const directive::Socket *>::iterator it = sockets.begin(); it != sockets.end(); ++it)
+    for (std::vector<const uri::Authority *>::iterator it = sockets.begin(); it != sockets.end(); ++it)
     {
       config_.register_server_socket(fd, **it);
       fd++;
@@ -57,10 +57,10 @@ protected:
     Config2(*main_block_);
     config_.set_main_block(main_block_);
 
-    std::vector<const directive::Socket *> sockets = config_.all_server_sockets();
+    std::vector<const uri::Authority *> sockets = config_.all_server_sockets();
   
     int fd = 3;
-    for (std::vector<const directive::Socket *>::iterator it = sockets.begin(); it != sockets.end(); ++it)
+    for (std::vector<const uri::Authority *>::iterator it = sockets.begin(); it != sockets.end(); ++it)
     {
       config_.register_server_socket(fd, **it);
       fd++;
