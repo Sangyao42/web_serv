@@ -6,27 +6,17 @@
 #include "SocketManager.hpp"
 #include "Configuration.hpp"
 
-
-class Client
+struct Client
 {
-	public:
-		Client();
-		Client(const Client &obj);
-		virtual ~Client();
+	StatusCode	statusCode;
+	struct ClientSocket	*clientSocket;
+	struct ConfigurationQueryResult	*config;
+	Request	*request;
+	Response	*response;
+}
 
-		Client &operator=(const Client &obj);
+// generateErrorResponse()
+// ...
 
-		generateErrorResponse
-		...
-
-	private:
-		StatusCode	statusCode_;
-		struct ClientSocket	*clientSocket_;
-		struct ConfigurationQueryResult	*conf_;
-		Request	*request_;
-		Response	*response_;
-
-		buildStatusLine
-		buildHeaders
-		concatenate
-};
+// buildStatusLine()
+// buildHeaders()
