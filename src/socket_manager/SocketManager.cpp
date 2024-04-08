@@ -1,6 +1,7 @@
 #include "SocketManager.hpp"
 
 #include <unistd.h>
+#include <fcntl.h>
 
 #define LISTEN_BACKLOG 10
 
@@ -68,6 +69,12 @@ enum SocketError SocketManager::set_servers(std::vector<std::pair<configuration:
 				freeaddrinfo(res);
 				return (kSetSockOptError);
 			}
+			if (fcntl(serv_sock, F_SETFL, O_NONBLOCK) == -1)
+			{
+				std::cerr << "fcntl: " << strerror(errno) << std::endl;
+				freeaddrinfo(res);
+				return (kFcntlError);
+			}
 			if (bind(serv_sock, ai_ptr->ai_addr, ai_ptr->ai_addrlen) == -1)
 			{
 				close(serv_sock);
@@ -111,10 +118,19 @@ int SocketManager::accept_client(int server_socket)
 	}
 	else
 	{
-		client.socket = client_socket;
-		client.server = get_one_server(server_socket);
-		clients_.push_back(client);
-		return (client_socket);
+		if (fcntl(client_socket, F_SETFL, O_NONBLOCK) == -1)
+		{
+			std::cerr << "fcntl: client socket" << strerror(errno) << std::endl;
+			return (-1);
+		}
+		else
+		{
+			client.socket = client_socket;
+			client.server = get_one_server(server_socket);
+			clients_.push_back(client);
+			std::cout << "accept: client connected with fd " << client_socket << std::endl;
+			return (client_socket);
+		}
 	}
 }
 
@@ -166,6 +182,7 @@ ssize_t SocketManager::send_all(int client_socket)
 	if (sent_bytes == -1)
 	{
 		delete_client(client_socket);
+		return (-1);
 	}
 	else
 	{
