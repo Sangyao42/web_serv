@@ -1,4 +1,4 @@
-CC:=g++
+CC:=c++
 CXXFLAGS= -std=c++98 -pedantic -Wall -Wextra -Werror -MMD -MP -O2
 LDFLAGS= -std=c++98 -pedantic
 ifdef FSANITIZE
@@ -7,7 +7,7 @@ ifdef FSANITIZE
 endif
 
 NAME:= memory.out
-SRC:= main.cpp memory.cpp
+SRC:= main.cpp memory.cpp arena.cpp
 SRCS:= $(SRC:.cpp=.o)
 
 all: $(NAME)
