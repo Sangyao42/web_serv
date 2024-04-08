@@ -7,6 +7,8 @@
 
 #include <vector>
 
+#define POLL_TIMEOUT 30
+
 namespace pollfds
 {
 	int add_server_fd(std::vector<struct pollfd> &pfds, std::vector<struct ServerSocket> servers)
@@ -39,25 +41,17 @@ namespace pollfds
 int main(int argc, char **argv)
 {
 	int server_running = 1;
-	Configuration conf;
 	SocketManager sm;
 	std::vector<struct pollfd> pfds;
 	static char recv_buf[1024];
 
-	int max_clients = conf.getMaxClients();
+	int max_clients = ws_database.worker_connections();
 	int client_count = 0;
-	if (sm.set_servers(conf.getPorts()) != kNoError) //assert inside make sure at least one server is available
-	{
-		//TODO: error handling
-		return (kConnectionError);
-	}
-	//vector of SocketConfiguration/ServerConfiguration
 	int server_socket_count = pollfds::add_server_fd(pfds, sm.get_servers());
-	int fd_count = server_socket_count;
 	while (server_running)
 	{
 		//poll for events
-		int poll_count = poll(pfds.data(), pfds.size(), -1);
+		int poll_count = poll(pfds.data(), pfds.size(), POLL_TIMEOUT * 1000);
 		if (poll_count == -1)
 		{
 			std::cerr << "poll: " << strerror(errno) << std::endl;
@@ -65,11 +59,62 @@ int main(int argc, char **argv)
 			return (kPollError);
 		}
 		//check for events
-		for (int i = 0; i < pfds.size(); i++)
+		// for (int i = 0; i < pfds.size(); i++)
+		// {
+		// 	if (pfds[i].revents & POLLIN)
+		// 	{
+		// 		if ( i < server_socket_count && client_count < max_clients)
+		// 		{
+		// 			//accept connection if max clients not reached
+		// 			int client_socket = sm.accept_client(pfds[i].fd);
+		// 			if (client_socket == -1)
+		// 				continue ;
+		// 			else
+		// 			{
+		// 				//add client to pollfd
+		// 				pollfds::add_client_fd(pfds, client_socket);
+		// 				client_count++;
+		// 			}
+		// 		}
+		// 		else
+		// 		{
+		// 			//check request timeout before recv and set the bool of timeout to false and continue???
+		// 			//recv from client and add to request buffer
+		// 			ssize_t recv_len = sm.recv_append(pfds[i].fd, recv_buf);
+		// 			//1st timestamp for timeout, using Maybe<time_t> init_time;
+		// 			if (recv_len <= 0)
+		// 			{
+		// 				close(pfds[i].fd);
+		// 				pollfds::delete_client_fd(pfds, i);
+		// 				client_count--;
+		// 			}
+		// 			else
+		// 			{
+		// 				//parse request
+		// 				//process request
+		// 			}
+		// 		}
+		// 	}
+		// 	else if (pfds[i].revents & POLLOUT)
+		// 	{
+		// 		//send response to client
+		// 		ssize_t send_len = sm.send_all(pfds[i].fd);
+		// 		//TODO: do I need to close the client socket if send fails?
+		// 		if (send_len == -1)
+		// 		{
+		// 			close(pfds[i].fd);
+		// 			pollfds::delete_client_fd(pfds, i);
+		// 			client_count--;
+		// 		}
+		// 	}
+		// }
+
+		//check events for server sockets
+		for (int i = 0; i < server_socket_count; i++)
 		{
 			if (pfds[i].revents & POLLIN)
 			{
-				if ( i < server_socket_count && client_count < max_clients)
+				if (client_count < max_clients)
 				{
 					//accept connection if max clients not reached
 					int client_socket = sm.accept_client(pfds[i].fd);
@@ -82,28 +127,35 @@ int main(int argc, char **argv)
 						client_count++;
 					}
 				}
+			}
+		}
+		//check events for client sockets
+		for (int i = server_socket_count; i < pfds.size(); i++)
+		{
+			//socket is ready for reading
+			if (pfds[i].revents & POLLIN)
+			{
+				//check request timeout before recv and set the bool of timeout to false and continue???
+				//recv from client and add to request buffer
+				ssize_t recv_len = sm.recv_append(pfds[i].fd, recv_buf);
+				//1st timestamp for timeout, using Maybe<time_t> init_time;
+				if (recv_len <= 0)
+				{
+					close(pfds[i].fd);
+					pollfds::delete_client_fd(pfds, i);
+					client_count--;
+				}
 				else
 				{
-					//recv from client and add to request buffer
-					ssize_t recv_len = sm.recv_append(pfds[i].fd, recv_buf);
-					if (recv_len <= 0)
-					{
-						close(pfds[i].fd);
-						pollfds::delete_client_fd(pfds, i);
-						client_count--;
-					}
-					else
-					{
-						//parse request
-						//process request
-					}
+					//parse request
+					//process request
 				}
 			}
+			//socket is ready for writing
 			else if (pfds[i].revents & POLLOUT)
 			{
 				//send response to client
 				ssize_t send_len = sm.send_all(pfds[i].fd);
-				//TODO: do I need to close the client socket if send fails?
 				if (send_len == -1)
 				{
 					close(pfds[i].fd);
@@ -114,3 +166,26 @@ int main(int argc, char **argv)
 		}
 	}
 }
+
+/**
+ * request timeout:
+ * When the 408 Request Timeout error message is received,
+ * it means that a client has initiated a request but for some reason,
+ * it has not been transmitted in full. This may occur because an internet connection is very slow, or has been dropped.
+ * The response will include the Connection header, specifying that it has been closed.
+ *
+*/
+
+/**
+ * TODO:
+ * 1. refactory: related to  configuration class
+ *
+ * 2. refactory: related to request timeout --
+ * 2.1 using Maybe<time_t> init_time;
+ * 2.2 check request timeout before recv and set the bool of timeout
+ * 2.3 seperate for loop for server sockets and client sockets
+ *
+ * 3. fcntl() for both server and client sockets -- done
+ *
+ * 4. check send_all function for checking if send() fails -- done
+*/
