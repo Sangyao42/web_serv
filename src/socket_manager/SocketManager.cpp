@@ -1,5 +1,7 @@
 #include "SocketManager.hpp"
 
+#include "../misc/Maybe.hpp"
+
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -125,8 +127,11 @@ int SocketManager::accept_client(int server_socket)
 		}
 		else
 		{
+			Maybe<time_t> init_time;
 			client.socket = client_socket;
 			client.server = get_one_server(server_socket);
+			client.init_time = init_time;
+			client.timeout = false;
 			clients_.push_back(client);
 			std::cout << "accept: client connected with fd " << client_socket << std::endl;
 			return (client_socket);
@@ -265,4 +270,33 @@ struct addrinfo *SocketManager::get_server_addrinfo(int server_socket)
 	}
 	std::cerr << "get_server_addrinfo: server not found" << std::endl;
 	return (NULL);
+}
+
+//udpate for managing client timeouts
+void	SocketManager::update_init_time(int client_socket)
+{
+	ClientSocket *client = get_one_client(client_socket);
+	if (client->init_time.is_ok() == false)
+	{
+		client->init_time = time(NULL);
+	}
+}
+
+void	SocketManager::update_timeout(ClientSocket *client)
+{
+	if (client->init_time.is_ok() == true)
+	{
+		time_t current_time = time(NULL);
+		if (current_time - client->init_time.value() > TIMEOUT * 1000)
+		{
+			client->timeout = true;
+		}
+	}
+}
+
+bool	SocketManager::is_timeout(int client_socket)
+{
+	ClientSocket *client = get_one_client(client_socket);
+	update_timeout(client);
+	return (client->timeout);
 }

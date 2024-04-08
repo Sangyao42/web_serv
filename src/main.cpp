@@ -132,13 +132,19 @@ int main(int argc, char **argv)
 		//check events for client sockets
 		for (int i = server_socket_count; i < pfds.size(); i++)
 		{
+			if (poll_count == 0)
+			{
+			//TODO: do I need to handle timeout here to close the client whose request is timeout?
+			}
+			//check if client socket is timeout
+			bool timeout = sm.is_timeout(pfds[i].fd);
 			//socket is ready for reading
-			if (pfds[i].revents & POLLIN)
+			if (timeout == false && pfds[i].revents & POLLIN)
 			{
 				//check request timeout before recv and set the bool of timeout to false and continue???
 				//recv from client and add to request buffer
 				ssize_t recv_len = sm.recv_append(pfds[i].fd, recv_buf);
-				//1st timestamp for timeout, using Maybe<time_t> init_time;
+				//1st timestamp for timeout, using Maybe<time_t> init_time in the else block of recv_append()
 				if (recv_len <= 0)
 				{
 					close(pfds[i].fd);
@@ -147,6 +153,7 @@ int main(int argc, char **argv)
 				}
 				else
 				{
+					sm.update_init_time(pfds[i].fd);
 					//parse request
 					//process request
 				}
@@ -154,6 +161,10 @@ int main(int argc, char **argv)
 			//socket is ready for writing
 			else if (pfds[i].revents & POLLOUT)
 			{
+				if (timeout == true)
+				{
+					//generate 408 Request Timeout and build std::string response in client
+				}
 				//send response to client
 				ssize_t send_len = sm.send_all(pfds[i].fd);
 				if (send_len == -1)
@@ -181,9 +192,9 @@ int main(int argc, char **argv)
  * 1. refactory: related to  configuration class
  *
  * 2. refactory: related to request timeout --
- * 2.1 using Maybe<time_t> init_time;
+ * 2.1 using Maybe<time_t> init_time; -- done
  * 2.2 check request timeout before recv and set the bool of timeout
- * 2.3 seperate for loop for server sockets and client sockets
+ * 2.3 seperate for loop for server sockets and client sockets -- done
  *
  * 3. fcntl() for both server and client sockets -- done
  *

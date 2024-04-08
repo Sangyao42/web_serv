@@ -1,8 +1,7 @@
 #pragma once
 
 #include "SocketError.hpp"
-// #include "configuration.hpp"
-// #include "SocketConfiguration.hpp"
+#include "../src/Configuration.hpp"
 
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -67,20 +66,22 @@ struct in6_addr {
 */
 
 //TEST: struct from configuration.hpp
-namespace configuration
-{
-	struct Socket
-	{
-		std::string ip;
-		std::string port;
-		unsigned int   family_;
-	};
-}
+// namespace configuration
+// {
+// 	struct Socket
+// 	{
+// 		std::string ip;
+// 		std::string port;
+// 		unsigned int   family_;
+// 	};
+// }
 
-struct SocketConfiguration
-{
-	int server_socket;
-};
+// struct SocketConfiguration
+// {
+// 	int server_socket;
+// };
+
+#define TIMEOUT 75
 
 struct ClientSocket
 {
@@ -90,7 +91,24 @@ struct ClientSocket
 	struct ServerSocket server;
 	std::string req_buf;
 	std::string res_buf;
+
+	Maybe<time_t> init_time;
+	//time_t currernt_time;
+	bool timeout;
 };
+
+// {
+// 	Maybe<time_t> init_time;
+
+// 	if (init_time.is_ok())
+// 	{
+// 		init_time.value()
+// 	}
+// 	else
+// 	{
+// 		init_time = 130;
+// 	}
+// }
 
 //save the full linked list of res from getaddrinfo()
 //use addr_to_bind to query the correct node in the linked list
@@ -121,6 +139,11 @@ class SocketManager
 		struct ServerSocket get_one_server(int server_socket) const; //query server by socket
 		struct ClientSocket *get_one_client(int client_socket); //query client by socket
 		struct addrinfo *get_server_addrinfo(int server_socket);
+
+		//update for managing client timeout
+		void	update_init_time(int client_socket);
+		void	update_timeout(ClientSocket *client);
+		bool	is_timeout(int client_socket);
 	private:
 		std::vector<struct ServerSocket> servers_;
 		std::vector<struct ClientSocket> clients_;
