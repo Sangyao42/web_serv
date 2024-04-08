@@ -27,11 +27,18 @@ Only Informational: User-Agent, Referer, Date, Accept ...
 
 ### Error Response
 
-- 400 Bad Request: invalid query parameters, invalid URL
+(optional)
+- 304 Not Modified : for the tag "If-Modified-Since"
+- 412 Precondition Failed : for the tag "If-Unmodified-Since"
+
+- 400 Bad Request : invalid query parameters, invalid URL (parsing)
 
 - 403 Forbidden : no permission
 - 404 Not Found : incorrect URL
 - 408 Request Timeout : the client failed to produce a request within the server's timeout period
+
+- 413 Content Too Large (parsing)
+- 414 URI Too Long (parsing)
 
 - 500 Internal Server Error : misconfiguration, programming error ...
 - 503 Service Unavailable : server overload ...

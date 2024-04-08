@@ -15,7 +15,8 @@ Entity body exists
 - 200 OK
 - 201 Created
 
-- Fields: Content-Type, Content-Length(when the response body has a fixed length), Date, Server, Allow(methods allowed for the requested resource)
+- Fields: Content-Type, Content-Length(when the response body has a fixed length),
+	Date, Server, Allow(methods allowed for the requested resource)
 - For 201: Location (the URL of the newly created resource)
 
 ### Error Response
@@ -26,6 +27,8 @@ Entity body exists
 - 404 Not Found
 - 408 Request Timeout
 
+- 409 Conflict
+- 415 Unsupported Media Type
 - 422 Unprocessable Entity : validation errors, data integrity issues
 
 ...?
