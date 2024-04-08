@@ -2,32 +2,52 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <string>
+#include <vector>
 
-struct test {
-    int a;
-    int b;
-    int c;
+#include "arena.hpp"
 
-    test() {
-        a = 1;
-        b = 2;
-        c = 3;
-    }
+// typedef std::string ArenaString;
+// typedef std::vector<int> ArenaIntVector;
+namespace ws
+{
+  typedef std::basic_string<char, std::char_traits<char>, ArenaAllocator<char, &arena::temporary> > string;
 
-    void print() const {
-        std::cout << a << " " << b << " " << c << std::endl;
-    }
-};
+  template <class T, Arena* arena = &arena::temporary>
+  struct vector : public std::vector<T, ArenaAllocator<T, arena> > {};
+} // namespace ws
+
 
 int main() {
-    Arena arena(1024);
-    test* t = arena.allocate<test>(3);
+    ws::string a;
+    a = "Hello, world!";
+    a += " This is a test.";
+    std::cout << a << std::endl;
 
-    t->print();
-    t[1].print();
-    t[2].print();
+    {
+      ws::vector<int> b;
 
-    arena.print();
+      b.push_back(1);
+      b.push_back(2);
+      b.push_back(3);
+
+      for (ws::vector<int>::const_iterator it = b.begin(); it != b.end(); ++it) {
+          std::cout << *it << std::endl;
+      }
+
+    }
+    {
+      ws::vector<int> c;
+
+      c.push_back(1);
+      c.push_back(2);
+      c.push_back(3);
+
+      for (ws::vector<int>::const_iterator it = c.begin(); it != c.end(); ++it) {
+          std::cout << *it << std::endl;
+      }
+
+    }
 
     return EXIT_SUCCESS;
 }
