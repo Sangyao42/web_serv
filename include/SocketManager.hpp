@@ -92,8 +92,8 @@ struct ClientSocket
 	std::string req_buf;
 	std::string res_buf;
 
-	Maybe<time_t> init_time;
-	//time_t currernt_time;
+	time_t last_active; //accept time or last request time
+	Maybe<time_t> first_recv_time; //time of first recv of one request
 	bool timeout;
 };
 
@@ -141,9 +141,10 @@ class SocketManager
 		struct addrinfo *get_server_addrinfo(int server_socket);
 
 		//update for managing client timeout
-		void	update_init_time(int client_socket);
+		void	set_first_recv_time(int client_socket);
 		void	update_timeout(ClientSocket *client);
 		bool	is_timeout(int client_socket);
+		void	set_time_assets(int client_socket);
 	private:
 		std::vector<struct ServerSocket> servers_;
 		std::vector<struct ClientSocket> clients_;

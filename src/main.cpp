@@ -28,7 +28,7 @@ namespace pollfds
 	{
 		struct pollfd pfd;
 		pfd.fd = client_socket;
-		pfd.events = POLLIN | POLLOUT;
+		pfd.events = POLLIN;
 		pfds.push_back(pfd);
 	}
 
@@ -132,19 +132,30 @@ int main(int argc, char **argv)
 		//check events for client sockets
 		for (int i = server_socket_count; i < pfds.size(); i++)
 		{
-			if (poll_count == 0)
-			{
-			//TODO: do I need to handle timeout here to close the client whose request is timeout?
-			}
 			//check if client socket is timeout
 			bool timeout = sm.is_timeout(pfds[i].fd);
-			//socket is ready for reading
-			if (timeout == false && pfds[i].revents & POLLIN)
+			if ((pfds[i].revents & POLLIN) == 0 && (pfds[i].revents & POLLOUT) == 0) //no client events
 			{
-				//check request timeout before recv and set the bool of timeout to false and continue???
+				if (timeout == true)
+				{
+					close(pfds[i].fd);
+					pollfds::delete_client_fd(pfds, i);
+					client_count--;
+				}
+				continue;
+			}
+			//socket is ready for reading
+			if (pfds[i].revents & POLLIN)
+			{
+				if (timeout == true)
+				{
+					//generate 408 Request Timeout and build std::string response in client
+					pfds[i].events = POLLOUT;
+					continue;
+				}
 				//recv from client and add to request buffer
 				ssize_t recv_len = sm.recv_append(pfds[i].fd, recv_buf);
-				//1st timestamp for timeout, using Maybe<time_t> init_time in the else block of recv_append()
+				//1st timestamp for timeout, using Maybe<time_t> first_recv_time in the else block of recv_append()
 				if (recv_len <= 0)
 				{
 					close(pfds[i].fd);
@@ -153,18 +164,19 @@ int main(int argc, char **argv)
 				}
 				else
 				{
-					sm.update_init_time(pfds[i].fd);
-					//parse request
-					//process request
+					sm.set_first_recv_time(pfds[i].fd); //set first recv time if it is not set
+					//if request exceeds max body size
+						//set pfds[i].events = POLLOUT;
+						//generate 413 Request Entity Too Large and build std::string response in client
+					//if request is complete
+						//set pfds[i].events = POLLOUT;
+						//parse request
+						//process request
 				}
 			}
 			//socket is ready for writing
 			else if (pfds[i].revents & POLLOUT)
 			{
-				if (timeout == true)
-				{
-					//generate 408 Request Timeout and build std::string response in client
-				}
 				//send response to client
 				ssize_t send_len = sm.send_all(pfds[i].fd);
 				if (send_len == -1)
@@ -172,6 +184,15 @@ int main(int argc, char **argv)
 					close(pfds[i].fd);
 					pollfds::delete_client_fd(pfds, i);
 					client_count--;
+				}
+				else
+				{
+					//set pfds[i].events = POLLIN;
+					//set last_active time to time(NULL);
+					//set first_recv_time to to Maybe<time_t> init_time, which is_ok_ = false; and value does not matter
+					//set timeout to false
+					pfds[i].events = POLLIN;
+					sm.set_time_assets(pfds[i].fd);
 				}
 			}
 		}

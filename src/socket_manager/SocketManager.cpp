@@ -127,10 +127,10 @@ int SocketManager::accept_client(int server_socket)
 		}
 		else
 		{
-			Maybe<time_t> init_time;
 			client.socket = client_socket;
 			client.server = get_one_server(server_socket);
-			client.init_time = init_time;
+			client.last_active = time(NULL);
+			client.first_recv_time = Maybe<time_t>();
 			client.timeout = false;
 			clients_.push_back(client);
 			std::cout << "accept: client connected with fd " << client_socket << std::endl;
@@ -273,24 +273,13 @@ struct addrinfo *SocketManager::get_server_addrinfo(int server_socket)
 }
 
 //udpate for managing client timeouts
-void	SocketManager::update_init_time(int client_socket)
+//set first_recv_time to time of first recv of one request
+void	SocketManager::set_first_recv_time(int client_socket)
 {
 	ClientSocket *client = get_one_client(client_socket);
-	if (client->init_time.is_ok() == false)
+	if (client->first_recv_time.is_ok() == false)
 	{
-		client->init_time = time(NULL);
-	}
-}
-
-void	SocketManager::update_timeout(ClientSocket *client)
-{
-	if (client->init_time.is_ok() == true)
-	{
-		time_t current_time = time(NULL);
-		if (current_time - client->init_time.value() > TIMEOUT * 1000)
-		{
-			client->timeout = true;
-		}
+		client->first_recv_time = time(NULL); //set the time and set is_ok to true
 	}
 }
 
@@ -299,4 +288,34 @@ bool	SocketManager::is_timeout(int client_socket)
 	ClientSocket *client = get_one_client(client_socket);
 	update_timeout(client);
 	return (client->timeout);
+}
+
+void	SocketManager::update_timeout(ClientSocket *client)
+{
+	//timeout when complete request not received within TIMEOUT
+	if (client->first_recv_time.is_ok() == true)
+	{
+		time_t current_time = time(NULL);
+		if (current_time - client->first_recv_time.value() > TIMEOUT * 1000)
+		{
+			client->timeout = true;
+		}
+	}
+	//timeout when no new request received after last response sent
+	else
+	{
+		time_t current_time = time(NULL);
+		if (current_time - client->last_active > TIMEOUT * 1000)
+		{
+			client->timeout = true;
+		}
+	}
+}
+
+void	SocketManager::set_time_assets(int client_socket)
+{
+	ClientSocket *client = get_one_client(client_socket);
+	client->last_active = time(NULL);
+	client->first_recv_time = Maybe<time_t>();
+	client->timeout = false;
 }
