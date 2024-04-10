@@ -5,8 +5,8 @@
 Start line: method, path/to/resources and the HTTP version
 
 Entity headers: Content-Type, Content-Length
-General headers: User-Agent, Referer
-Request headers: Accept
+General headers: User-Agent, Referer, Date
+Request headers: Host, Connection, Accept
 
 Entity body exists
 
@@ -37,11 +37,12 @@ Entity body exists
 - 422 Unprocessable Entity : validation errors, data integrity issues
 
 - 500 Internal Server Error
-- 501 Not Implemented : Unsupported methods
 - 503 Service Unavailable
 
 - Fields: Content-Type, Content-Length, Date, Server, Connection
 - For 408: Retry-After
 - For 415: Accept, Accept-Encoding
+
+* For methods other than GET, POST, DELETE : 501 Not Implemented for Unsupported methods (parsing)
 
 ## CGI POST Request
