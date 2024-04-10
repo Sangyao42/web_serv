@@ -35,12 +35,14 @@ Only Informational: User-Agent, Referer, Date, Accept ...
 
 - 403 Forbidden : no permission
 - 404 Not Found : incorrect URL
+- 405 Method Not Allowed : method not supported by the target resource
 - 408 Request Timeout : the client failed to produce a request within the server's timeout period
 
 - 413 Content Too Large (parsing)
 - 414 URI Too Long (parsing)
 
 - 500 Internal Server Error : misconfiguration, programming error ...
+- 501 Not Implemented : Unsupported methods
 - 503 Service Unavailable : server overload ...
 
 - Fields: Content-Type, Content-Length, Date, Server, Connection
