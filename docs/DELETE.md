@@ -2,9 +2,9 @@
 ## Simple DELETE Request
 ### Information contained
 
-Start line: method, path/to/resources and the HTTP version
+    Start line: method, path/to/resources and the HTTP version
 
-Host, Connection, User-Agent, Date ...
+    Host, Connection, User-Agent, Date ...
 
 ### Success Response
 
@@ -12,9 +12,7 @@ Host, Connection, User-Agent, Date ...
    
 - 204 No Content : if the action has been enacted and no further information is to be supplied.
 
-Fields:
-Date, Server ...
-optionally Content-Type, Content-Length
+    Fields: Date, Server, optionally Content-Type and Content-Length
 
 ### Error Response
 

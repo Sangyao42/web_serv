@@ -2,10 +2,11 @@
 ## Simple Get Request (No Authentification, No CGI)
 ### Information contained
 
-Start line: method, path/to/resources and the HTTP version
+    Start line: method, path/to/resources and the HTTP version
 
-Important Fields: Host, Connection
-Only Informational: User-Agent, Referer, Date, Accept ...
+    Important Fields: Host, Connection
+
+    Only Informational: User-Agent, Referer, Date, Accept ...
 
 ** while a GET request typically does not have a body, a response to a GET request has a html body sent back, successful or not
 
@@ -15,16 +16,16 @@ Only Informational: User-Agent, Referer, Date, Accept ...
 
 - 200 OK
 
-Fields: Content-Type, Content-Length, Date, Server, Connection   
+    Fields: Content-Type, Content-Length, Date, Server, Connection   
 
-For the Cache: Last-Modified
+    For the Cache: Last-Modified
 
 2) Redirection
 
 - 301 Moved Permanently
 - 307 Temporary Redirection
 
-Fields: Content-Type, Content-Length, Location, Date, Server, Connection
+    Fields: Content-Type, Content-Length, Location, Date, Server, Connection
 
 ### Error Response
 
