@@ -14,18 +14,18 @@
 
 1) No Redirection
 
-- 200 OK
+    - 200 OK
 
-    Fields: Content-Type, Content-Length, Date, Server, Connection   
+        Fields: Content-Type, Content-Length, Date, Server, Connection   
 
-    For the Cache: Last-Modified
+        For the Cache: Last-Modified
 
 2) Redirection
 
-- 301 Moved Permanently
-- 307 Temporary Redirection
+    - 301 Moved Permanently
+    - 307 Temporary Redirection
 
-    Fields: Content-Type, Content-Length, Location, Date, Server, Connection
+        Fields: Content-Type, Content-Length, Location, Date, Server, Connection
 
 ### Error Response
 
