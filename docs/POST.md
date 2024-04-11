@@ -15,9 +15,10 @@ Entity body exists
 - 200 OK
 - 201 Created
 
-- Fields: Content-Type, Content-Length(when the response body has a fixed length),
-	Date, Server, Allow(methods allowed for the requested resource)
-- For 201: Location (the URL of the newly created resource)
+Fields: Content-Type, Content-Length(when the response body has a fixed length),
+	Date, Server, Allow(methods allowed for the requested resource)   
+
+For 201: Location (the URL of the newly created resource)
 
 ### Error Response
 
@@ -25,24 +26,25 @@ Entity body exists
 
 - 403 Forbidden
 - 404 Not Found
-- 405 Method Not Allowed : method not supported by the target resource
+- 405 Method Not Allowed
 - 408 Request Timeout
 
-- 413 Content Too Large (parsing)
-- 414 URI Too Long (parsing)
+- 413 Content Too Large
+- 414 URI Too Long
 
 - 415 Unsupported Media Type
 
-(optional)
-- 422 Unprocessable Entity : validation errors, data integrity issues
+- 422 Unprocessable Entity : validation errors, data integrity issues (optional)
 
 - 500 Internal Server Error
 - 503 Service Unavailable
 
-- Fields: Content-Type, Content-Length, Date, Server, Connection
-- For 408: Retry-After
-- For 415: Accept, Accept-Encoding
+Fields: Content-Type, Content-Length, Date, Server, Connection   
 
-* For methods other than GET, POST, DELETE : 501 Not Implemented for Unsupported methods (parsing)
+For 408: Retry-After   
+
+For 415: Accept, Accept-Encoding
+
+** For methods other than GET, POST, DELETE : 501 Not Implemented for Unsupported methods (parsing)
 
 ## CGI POST Request

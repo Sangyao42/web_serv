@@ -15,21 +15,21 @@ Only Informational: User-Agent, Referer, Date, Accept ...
 
 - 200 OK
 
-- Fields: Content-Type, Content-Length, Date, Server, Connection
-- For the Cache: Last-Modified
+Fields: Content-Type, Content-Length, Date, Server, Connection   
+
+For the Cache: Last-Modified
 
 2) Redirection
 
 - 301 Moved Permanently
 - 307 Temporary Redirection
 
-- Fields: Content-Type, Content-Length, Location, Date, Server, Connection
+Fields: Content-Type, Content-Length, Location, Date, Server, Connection
 
 ### Error Response
 
-(optional)
-- 304 Not Modified : for the tag "If-Modified-Since"
-- 412 Precondition Failed : for the tag "If-Unmodified-Since"
+- 304 Not Modified : for the tag "If-Modified-Since" (optional)
+- 412 Precondition Failed : for the tag "If-Unmodified-Since" (optional)
 
 - 400 Bad Request : invalid query parameters, invalid URL (parsing)
 
@@ -44,7 +44,8 @@ Only Informational: User-Agent, Referer, Date, Accept ...
 - 500 Internal Server Error : misconfiguration, programming error ...
 - 503 Service Unavailable : server overload ...
 
-- Fields: Content-Type, Content-Length, Date, Server, Connection
-- For 408: Retry-After
+Fields: Content-Type, Content-Length, Date, Server, Connection   
+
+For 408: Retry-After
 
 ## CGI GET Request
