@@ -22,22 +22,17 @@ For 201: Location (the URL of the newly created resource)
 
 ### Error Response
 
-- 400 Bad Request
-
-- 403 Forbidden
-- 404 Not Found
-- 405 Method Not Allowed
-- 408 Request Timeout
-
-- 413 Content Too Large
-- 414 URI Too Long
-
-- 415 Unsupported Media Type
-
-- 422 Unprocessable Entity : validation errors, data integrity issues (optional)
-
-- 500 Internal Server Error
-- 503 Service Unavailable
+> - 400 Bad Request
+> - 403 Forbidden
+> - 404 Not Found
+> - 405 Method Not Allowed
+> - 408 Request Timeout
+> - 413 Content Too Large
+> - 414 URI Too Long
+> - 415 Unsupported Media Type
+> - 422 Unprocessable Entity : validation errors, data integrity issues (optional)
+> - 500 Internal Server Error
+> - 503 Service Unavailable
 
 Fields: Content-Type, Content-Length, Date, Server, Connection   
 

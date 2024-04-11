@@ -28,21 +28,20 @@ Fields: Content-Type, Content-Length, Location, Date, Server, Connection
 
 ### Error Response
 
-- 304 Not Modified : for the tag "If-Modified-Since" (optional)
-- 412 Precondition Failed : for the tag "If-Unmodified-Since" (optional)
+> - 304 Not Modified : for the tag "If-Modified-Since" (optional)
+> - 412 Precondition Failed : for the tag "If-Unmodified-Since" (optional)
 
-- 400 Bad Request : invalid query parameters, invalid URL (parsing)
+> - 400 Bad Request : invalid query parameters, invalid URL (parsing)
+> - 413 Content Too Large (parsing)
+> - 414 URI Too Long (parsing)
 
-- 403 Forbidden : no permission
-- 404 Not Found : incorrect URL
-- 405 Method Not Allowed : method not supported by the target resource
-- 408 Request Timeout : the client failed to produce a request within the server's timeout period
+> - 403 Forbidden : no permission
+> - 404 Not Found : incorrect URL
+> - 405 Method Not Allowed : method not supported by the target resource
+> - 408 Request Timeout : the client failed to produce a request within the server's timeout period
 
-- 413 Content Too Large (parsing)
-- 414 URI Too Long (parsing)
-
-- 500 Internal Server Error : misconfiguration, programming error ...
-- 503 Service Unavailable : server overload ...
+> - 500 Internal Server Error : misconfiguration, programming error ...
+> - 503 Service Unavailable : server overload ...
 
 Fields: Content-Type, Content-Length, Date, Server, Connection   
 
