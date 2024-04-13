@@ -40,6 +40,8 @@ namespace pollfds
 
 int main(int argc, char **argv)
 {
+	(void) argc;
+	(void) argv;
 	int server_running = 1;
 	SocketManager sm;
 	std::vector<struct pollfd> pfds;
@@ -47,6 +49,9 @@ int main(int argc, char **argv)
 
 	int max_clients = ws_database.worker_connections();
 	int client_count = 0;
+	enum SocketError err = sm.set_servers(ws_database.all_server_sockets());
+	if (err != kNoError)
+		return (err);
 	int server_socket_count = pollfds::add_server_fd(pfds, sm.get_servers());
 	while (server_running)
 	{
@@ -130,22 +135,39 @@ int main(int argc, char **argv)
 			}
 		}
 		//check events for client sockets
-		for (int i = server_socket_count; i < pfds.size(); i++)
+		for (unsigned long i = server_socket_count; i < pfds.size(); i++)
 		{
 			//check if client socket is timeout
 			bool timeout = sm.is_timeout(pfds[i].fd);
-			if ((pfds[i].revents & (POLLIN | POLLOUT)) == 0) //no client events
+			if ((pfds[i].revents & POLLERR))
+			{
+				close(pfds[i].fd);
+				pollfds::delete_client_fd(pfds, i);
+				sm.delete_client(pfds[i].fd);
+				client_count--;
+				continue;
+			}
+			else if ((pfds[i].revents & POLLHUP))
+			{
+				close(pfds[i].fd);
+				pollfds::delete_client_fd(pfds, i);
+				sm.delete_client(pfds[i].fd);
+				client_count--;
+				continue;
+			}
+			else if ((pfds[i].revents & (POLLIN | POLLOUT)) == 0) //no client events
 			{
 				if (timeout == true)
 				{
 					close(pfds[i].fd);
 					pollfds::delete_client_fd(pfds, i);
+					sm.delete_client(pfds[i].fd);
 					client_count--;
 				}
 				continue;
 			}
 			//socket is ready for reading
-			if (pfds[i].revents & POLLIN)
+			else if (pfds[i].revents & POLLIN)
 			{
 				if (timeout == true)
 				{
@@ -160,6 +182,7 @@ int main(int argc, char **argv)
 				{
 					close(pfds[i].fd);
 					pollfds::delete_client_fd(pfds, i);
+					sm.delete_client(pfds[i].fd);
 					client_count--;
 				}
 				else
@@ -183,6 +206,7 @@ int main(int argc, char **argv)
 				{
 					close(pfds[i].fd);
 					pollfds::delete_client_fd(pfds, i);
+					sm.delete_client(pfds[i].fd);
 					client_count--;
 				}
 				else
