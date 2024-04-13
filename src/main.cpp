@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 		{
 			//check if client socket is timeout
 			bool timeout = sm.is_timeout(pfds[i].fd);
-			if ((pfds[i].revents & POLLIN) == 0 && (pfds[i].revents & POLLOUT) == 0) //no client events
+			if ((pfds[i].revents & (POLLIN | POLLOUT)) == 0) //no client events
 			{
 				if (timeout == true)
 				{
@@ -206,18 +206,4 @@ int main(int argc, char **argv)
  * it has not been transmitted in full. This may occur because an internet connection is very slow, or has been dropped.
  * The response will include the Connection header, specifying that it has been closed.
  *
-*/
-
-/**
- * TODO:
- * 1. refactory: related to  configuration class
- *
- * 2. refactory: related to request timeout --
- * 2.1 using Maybe<time_t> init_time; -- done
- * 2.2 check request timeout before recv and set the bool of timeout
- * 2.3 seperate for loop for server sockets and client sockets -- done
- *
- * 3. fcntl() for both server and client sockets -- done
- *
- * 4. check send_all function for checking if send() fails -- done
 */
