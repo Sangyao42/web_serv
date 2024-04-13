@@ -49,7 +49,7 @@ enum SocketError SocketManager::set_servers(std::vector<const uri::Authority*> s
 		else
 			hints.ai_family = AF_UNSPEC;
 		hints.ai_socktype = SOCK_STREAM;
-		if ((*it)->family() == uri::Host::REGNAME)
+		if ((*it)->host.value == "0.0.0.0")
 		{
 			hints.ai_flags = AI_PASSIVE;
 			status = getaddrinfo(NULL, (*it)->port.c_str(), &hints, &res);

@@ -9,6 +9,8 @@
 
 #define POLL_TIMEOUT 30
 
+void  Config2(directive::MainBlock& main);
+
 namespace pollfds
 {
 	int add_server_fd(std::vector<struct pollfd> &pfds, std::vector<struct ServerSocket> servers)
@@ -45,6 +47,11 @@ int main(int argc, char **argv)
 	int server_running = 1;
 	SocketManager sm;
 	std::vector<struct pollfd> pfds;
+
+	directive::MainBlock* main_block = new directive::MainBlock();
+	Config2(*main_block);
+	ws_database.set_main_block(main_block);
+
 	static char recv_buf[1024];
 
 	int max_clients = ws_database.worker_connections();

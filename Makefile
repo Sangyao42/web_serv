@@ -33,6 +33,7 @@ OBJS_DIR:= obj
 
 MAIN_SRC:= \
 	main.cpp \
+	Config2.cpp \
 	constants.cpp
 
 URI_SRC:= \
@@ -60,7 +61,10 @@ CONFIGURATION_SRC:= \
 MISC_SRC:= \
 	misc/Nothing.cpp
 
-SRC:= $(MAIN_SRC) $(URI_SRC) $(CONFIGURATION_SRC) $(MISC_SRC)
+SOCKETMANAGER_SRC:= \
+	socket_manager/SocketManager.cpp
+
+SRC:= $(MAIN_SRC) $(URI_SRC) $(CONFIGURATION_SRC) $(MISC_SRC) $(SOCKETMANAGER_SRC)
 
 ####################################
 ######     Library files     #######
@@ -133,7 +137,7 @@ test:
 ######     Cleaning     #######
 ###############################
 
-clean: 
+clean:
 	@rm -f $(OBJ)
 
 fclean: clean
