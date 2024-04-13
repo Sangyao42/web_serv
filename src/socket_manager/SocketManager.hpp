@@ -13,6 +13,15 @@
 
 #define TIMEOUT 75
 
+//save the full linked list of res from getaddrinfo()
+//use addr_to_bind to query the correct node in the linked list
+struct ServerSocket
+{
+	int socket;
+	struct addrinfo *add_info;
+	int addr_to_bind;
+};
+
 struct ClientSocket
 {
 	int socket;
@@ -25,15 +34,6 @@ struct ClientSocket
 	time_t last_active; //accept time or last request time
 	Maybe<time_t> first_recv_time; //time of first recv of one request
 	bool timeout;
-};
-
-//save the full linked list of res from getaddrinfo()
-//use addr_to_bind to query the correct node in the linked list
-struct ServerSocket
-{
-	int socket;
-	struct addrinfo *add_info;
-	int addr_to_bind;
 };
 
 class SocketManager
@@ -50,7 +50,7 @@ class SocketManager
 		//helpers
 		void delete_client(int client_socket);
 		//getters and setters
-		enum SocketError set_servers(std::vector<std::pair<configuration::Socket,SocketConfiguration *> > socket_configs); //getaddrinfo(), socket(), bind(), listen()
+		enum SocketError set_servers(std::vector<const uri::Authority*> socket_configs); //getaddrinfo(), socket(), bind(), listen()
 		std::vector<struct ServerSocket> get_servers() const;
 		std::vector<struct ClientSocket> * get_clients();
 		struct ServerSocket get_one_server(int server_socket) const; //query server by socket
