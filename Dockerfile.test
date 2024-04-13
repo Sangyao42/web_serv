@@ -1,7 +1,7 @@
 FROM debian:bookworm
 
 RUN apt-get update && \
-    apt-get upgrade && \
+    apt-get upgrade -y && \
     apt-get install -y \
         cmake \
         make \
@@ -15,9 +15,7 @@ RUN apt-get update && \
     make && \
     make install
 
-COPY Makefile /web_serv/
-COPY src /web_serv/src
-COPY spec /web_serv/spec
+VOLUME /web_serv
 WORKDIR /web_serv/spec
-RUN make FSANITIZE=yes
-CMD ./debug.out --gtest_filter=-Example* && tail -f /dev/null
+CMD make FSANITIZE=yes && ./debug.out --gtest_filter=-Example* && tail -f /dev/null
+# CMD tail -f /dev/null

@@ -2,7 +2,7 @@
 ######     Variables     #######
 ################################
 
-CC:=g++
+CC:=c++
 CXXFLAGS= -std=c++98 -pedantic -Wall -Wextra -Werror -MMD -MP
 LDFLAGS= -std=c++98 -pedantic
 ifdef FSANITIZE
