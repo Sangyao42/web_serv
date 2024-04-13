@@ -1,5 +1,11 @@
-### logic for Request Timeout 408 when polling
-#### 408 --  The client did not produce a request within the time that the serve was prepared to wait. The client MAY repeat the request without modifications at any later time.
+### Logic for Request Timeout 408 while polling
+
+#### 408 Request Timeout
+
+According to [RFC 2616](https://datatracker.ietf.org/doc/html/rfc2616#section-10.4.9), it means that the client did not produce a request within the time that the serve was prepared to wait. The client MAY repeat the request without modifications at any later time.
+
+ - This may occur because an internet connection is very slow, or has been dropped.
+ - The response will include the Connection header, specifying that it has been closed.
 
 #### the following will happen in next loop after the client timeout:
 | pollin/out | timeout_yes | time_out_no |

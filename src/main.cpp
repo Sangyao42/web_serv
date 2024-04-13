@@ -1,6 +1,6 @@
-#include "SocketManager.hpp"
+#include "socket_manager/SocketManager.hpp"
+#include "socket_manager/SocketError.hpp"
 #include "Configuration.hpp"
-#include "SocketError.hpp"
 
 #include <poll.h>
 #include <unistd.h>
@@ -198,12 +198,3 @@ int main(int argc, char **argv)
 		}
 	}
 }
-
-/**
- * request timeout:
- * When the 408 Request Timeout error message is received,
- * it means that a client has initiated a request but for some reason,
- * it has not been transmitted in full. This may occur because an internet connection is very slow, or has been dropped.
- * The response will include the Connection header, specifying that it has been closed.
- *
-*/
