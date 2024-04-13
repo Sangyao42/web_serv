@@ -1,6 +1,8 @@
 #include "SocketManager.hpp"
 
-#include "../misc/Maybe.hpp"
+#include "misc/Maybe.hpp"
+#include "Uri/Authority.hpp"
+#include "Configuration.hpp"
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -14,6 +16,7 @@ SocketManager::~SocketManager()
 	std::vector<ServerSocket>::iterator it;
 	for (it = servers_.begin(); it != servers_.end(); it++)
 	{
+		close(it->socket);
 		if (it->add_info != NULL)
 			freeaddrinfo(it->add_info);
 	}
@@ -21,7 +24,7 @@ SocketManager::~SocketManager()
 
 //setter for servers_, which uses getaddrinfo(), socket(), bind(), listen() to set up the server sockets
 //This means server.start()
-enum SocketError SocketManager::set_servers(std::vector<std::pair<configuration::Socket,SocketConfiguration *> > socket_configs)
+enum SocketError SocketManager::set_servers(std::vector<const uri::Authority*> socket_configs)
 {
 	assert(socket_configs.size() > 0);
 
@@ -29,7 +32,7 @@ enum SocketError SocketManager::set_servers(std::vector<std::pair<configuration:
 	int serv_sock;
 	int status;
 
-	std::vector<std::pair<configuration::Socket,SocketConfiguration *> >::iterator it;
+	std::vector<const uri::Authority*>::const_iterator it;
 	for (it = socket_configs.begin(); it != socket_configs.end(); it++)
 	{
 		//for setsockopt()
@@ -39,20 +42,20 @@ enum SocketError SocketManager::set_servers(std::vector<std::pair<configuration:
 
 		//set socketaddress hints
 		memset(&hints, 0, sizeof(hints));
-		if (it->first.family_ == 4)
+		if ((*it)->family() == uri::Host::IPV4)
 			hints.ai_family = AF_INET;
-		else if (it->first.family_ == 6)
+		else if ((*it)->family() == uri::Host::IPV6)
 			hints.ai_family = AF_INET6;
 		else
 			hints.ai_family = AF_UNSPEC;
 		hints.ai_socktype = SOCK_STREAM;
-		if (it->first.ip.empty())
+		if ((*it)->family() == uri::Host::REGNAME)
 		{
 			hints.ai_flags = AI_PASSIVE;
-			status = getaddrinfo(NULL, it->first.port.c_str(), &hints, &res);
+			status = getaddrinfo(NULL, (*it)->port.c_str(), &hints, &res);
 		}
 		else
-			status = getaddrinfo(it->first.ip.c_str(), it->first.port.c_str(), &hints, &res);
+			status = getaddrinfo((*it)->host.value.c_str(), (*it)->port.c_str(), &hints, &res);
 		if (status != 0)
 		{
 			std::cerr << "getaddrinfo: " << gai_strerror(status) << std::endl;
@@ -64,33 +67,32 @@ enum SocketError SocketManager::set_servers(std::vector<std::pair<configuration:
 			res_len++;
 			serv_sock = socket(ai_ptr->ai_family, ai_ptr->ai_socktype, ai_ptr->ai_protocol);
 			if (serv_sock == -1)
+			{
+				std::cerr << "socket: " << strerror(errno) << std::endl;
 				continue;
+			}
 			if (setsockopt(serv_sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
 			{
 				std::cerr << "setsockopt: " << strerror(errno) << std::endl;
+				close(serv_sock);
 				freeaddrinfo(res);
 				return (kSetSockOptError);
 			}
 			if (fcntl(serv_sock, F_SETFL, O_NONBLOCK) == -1)
 			{
 				std::cerr << "fcntl: " << strerror(errno) << std::endl;
+				close(serv_sock);
 				freeaddrinfo(res);
 				return (kFcntlError);
 			}
 			if (bind(serv_sock, ai_ptr->ai_addr, ai_ptr->ai_addrlen) == -1)
 			{
-				close(serv_sock);
 				std::cerr << "bind: " << strerror(errno) << std::endl;
+				close(serv_sock);
 				continue;
 			}
 			break;
 		}
-		//free the addrinfo struct in SocketManager destructor
-		ServerSocket server;
-		server.socket = serv_sock;
-		server.add_info = res;
-		server.addr_to_bind = res_len;
-		servers_.push_back(server);
 		if (ai_ptr == NULL)
 		{
 			std::cerr << "bind: failed to bind" << std::endl;
@@ -100,10 +102,19 @@ enum SocketError SocketManager::set_servers(std::vector<std::pair<configuration:
 		if (listen(serv_sock, LISTEN_BACKLOG) == -1)
 		{
 			std::cerr << "listen: " << strerror(errno) << std::endl;
+			close(serv_sock);
 			freeaddrinfo(res);
 			return (kListenError);
 		}
+		//free the addrinfo struct and close the socket fd in SocketManager destructor
+		ServerSocket server;
+		server.socket = serv_sock;
+		server.add_info = res;
+		server.addr_to_bind = res_len;
+		servers_.push_back(server);
+		ws_database.register_server_socket(serv_sock, **it);
 	}
+	return (kNoError);
 }
 
 int SocketManager::accept_client(int server_socket)
