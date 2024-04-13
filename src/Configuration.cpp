@@ -34,7 +34,7 @@ bool  ConfigurationQueryResult::is_empty() const
 ////////////   Configuration   /////////////
 ////////////////////////////////////////////
 
-Configuration ws_configuration(16);
+Configuration ws_database(16);
 
 Configuration::Configuration()
   : server_cache_(),
