@@ -21,10 +21,10 @@ namespace directive
 
       virtual void        add_directive(Directive* directive);
 
-      HttpBlock&          http();
-      const HttpBlock&    http() const;
-      EventsBlock&        events();
-      const EventsBlock&  events() const;
+      HttpBlock*          http();
+      const HttpBlock*    http() const;
+      EventsBlock*        events();
+      const EventsBlock*  events() const;
 
     private:
       HttpBlock*          http_;

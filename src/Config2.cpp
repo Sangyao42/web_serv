@@ -52,17 +52,6 @@ void  Config2(directive::MainBlock& main)
   directive::HttpBlock*    http = new directive::HttpBlock();
   main.add_directive(http);
 
-  {
-	directive::EventsBlock*  events = new directive::EventsBlock();
-	main.add_directive(events);
-
-	{
-	  directive::WorkerConnections*  worker_connections = new directive::WorkerConnections();
-	  worker_connections->set(1024);
-	  events->add_directive(worker_connections);
-	}
-  }
-
   // server 1
   {
     directive::ServerBlock*  server = new directive::ServerBlock();
