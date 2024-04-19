@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-std::string	statusCodeAsString(enum StatusCode code)
+const std::string	&statusCodeAsString(enum StatusCode code)
 {
 	switch (code)
 	{
@@ -44,6 +44,6 @@ std::string	statusCodeAsString(enum StatusCode code)
 			return ("503 Service Unavailable");
 		// ...
 		default:
-		 return (std::string()); // Error
+		 return (""); // Error
 	}	
 }

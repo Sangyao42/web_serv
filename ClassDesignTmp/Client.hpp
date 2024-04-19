@@ -11,9 +11,9 @@ struct Client
 	StatusCode	statusCode;
 	struct ClientSocket	*clientSocket;
 	struct ConfigurationQueryResult	*config;
-	Request	*request;
-	Response	*response;
-}
+	Request	*req;
+	Response	*res;
+};
 
 // generateErrorResponse()
 // ...
@@ -21,4 +21,4 @@ struct Client
 // buildStatusLine()
 // buildHeaders()
 
-std::string	statusCodeAsString(enum StatusCode code);
+const std::string	&statusCodeAsString(enum StatusCode code);

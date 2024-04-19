@@ -43,7 +43,7 @@ enum StatusCode
 	k415,
 	k422,
 	k500,
-	k503
+	k503,
 	// ...
 	kError
 };

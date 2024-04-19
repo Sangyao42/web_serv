@@ -18,4 +18,5 @@ class HeaderValue
 		};
 
 		virtual	const ValueType	&type() const = 0;
+		virtual HeaderValue	*clone() const = 0;
 };

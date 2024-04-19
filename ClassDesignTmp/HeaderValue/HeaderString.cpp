@@ -26,3 +26,8 @@ const std::string	&HeaderString::content() const
 {
 	return (content_);
 }
+
+HeaderString	*HeaderString::clone() const
+{
+	return (new HeaderString(*this));
+}
