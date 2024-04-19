@@ -5,7 +5,7 @@
 #include "HeaderValue.hpp"
 
 /*
-	An abstract class having data types and functions
+	An abstract class having member variables and functions
 	shared by Request and Response classes */
 
 class HTTPMessage

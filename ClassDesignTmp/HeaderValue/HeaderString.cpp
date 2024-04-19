@@ -17,7 +17,7 @@ HeaderString &HeaderString::operator=(const HeaderString &obj)
 	content_ = obj. content_;
 }
 
-HeaderString::ValueType	HeaderString::type() const
+const HeaderString::ValueType	&HeaderString::type() const
 {
 	return (type_);
 }

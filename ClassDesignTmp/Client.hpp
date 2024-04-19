@@ -2,9 +2,9 @@
 
 #include "Request.hpp"
 #include "Response.hpp"
-#include "ResponseStatus.hpp"
-#include "SocketManager.hpp"
-#include "Configuration.hpp"
+#include "Protocol.hpp"
+// #include "SocketManager.hpp"
+// #include "Configuration.hpp"
 
 struct Client
 {
@@ -20,3 +20,5 @@ struct Client
 
 // buildStatusLine()
 // buildHeaders()
+
+std::string	statusCodeAsString(enum StatusCode code);
