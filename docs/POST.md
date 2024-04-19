@@ -26,7 +26,6 @@
 
 > Parsing
 > - 400 Bad Request
-> - 403 Forbidden
 > - 413 Request Entity Too Large
 > - 414 URI Too Long
 

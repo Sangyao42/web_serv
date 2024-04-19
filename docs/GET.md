@@ -36,10 +36,9 @@
 
 > Parsing
 > - 400 Bad Request : invalid query parameters, invalid URL (parsing), no Host Header in Request (parsing)
-> - 403 Forbidden : Server refuse to fulfill the request. Possible reason: no index in Configuration(parsing), Log in the error.log file.
 > - 414 Request URI Too Long (parsing)
 
-> - 403 Forbidden : Server refuse to fulfill the request. Possible reason: no permission. Log in the error.log file.
+> - 403 Forbidden : Server refuse to fulfill the request. Possible reason: no permission; when handling request "/"(directory), autoindex is off and no index directive. Log in the error.log file.
 > - 404 Not Found : incorrect URL
 > - 405 Method Not Allowed : method not supported by the target resource
 > - 406 Not Acceptable: for request with Accept header, sender cannot send the resources which are acceptable by the reciever
