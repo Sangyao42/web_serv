@@ -12,6 +12,7 @@
 #include <iostream>
 
 #define TIMEOUT 75
+#define RECV_BUF_SIZE 1024
 
 //save the full linked list of res from getaddrinfo()
 //use addr_to_bind to query the correct node in the linked list

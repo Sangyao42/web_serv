@@ -6,6 +6,7 @@
 
 #include <unistd.h>
 #include <fcntl.h>
+#include <arpa/inet.h>
 
 #define LISTEN_BACKLOG 10
 
@@ -49,13 +50,16 @@ enum SocketError SocketManager::set_servers(std::vector<const uri::Authority*> s
 		else
 			hints.ai_family = AF_UNSPEC;
 		hints.ai_socktype = SOCK_STREAM;
-		if ((*it)->host.value == "0.0.0.0")
+		//testing the address and port and family
+		// std::cout << "host: " << (*it)->host.value << " port: " << (*it)->port << " family: " << (*it)->family() <<std::endl;
+		if ((*it)->host.value == "::" || (*it)->host.value.empty() || (*it)->host.value == "0.0.0.0")
 		{
 			hints.ai_flags = AI_PASSIVE;
 			status = getaddrinfo(NULL, (*it)->port.c_str(), &hints, &res);
 		}
 		else
 			status = getaddrinfo((*it)->host.value.c_str(), (*it)->port.c_str(), &hints, &res);
+
 		if (status != 0)
 		{
 			std::cerr << "getaddrinfo: " << gai_strerror(status) << std::endl;
@@ -87,7 +91,7 @@ enum SocketError SocketManager::set_servers(std::vector<const uri::Authority*> s
 			}
 			if (bind(serv_sock, ai_ptr->ai_addr, ai_ptr->ai_addrlen) == -1)
 			{
-				std::cerr << "bind: " << strerror(errno) << std::endl;
+				std::cerr << "1st bind: " << strerror(errno) << std::endl;
 				close(serv_sock);
 				continue;
 			}
@@ -113,6 +117,29 @@ enum SocketError SocketManager::set_servers(std::vector<const uri::Authority*> s
 		server.addr_to_bind = res_len;
 		servers_.push_back(server);
 		ws_database.register_server_socket(serv_sock, **it);
+		//for testing the address and port
+		void *addr;
+        std::string ipver;
+		char ipstr[INET6_ADDRSTRLEN];
+		int port;
+    	   // get the pointer to the address itself,
+       	// different fields in IPv4 and IPv6:
+        if (ai_ptr->ai_family == AF_INET) { // IPv4
+        	struct sockaddr_in *ipv4 = (struct sockaddr_in *)ai_ptr->ai_addr;
+           	addr = &(ipv4->sin_addr);
+			port = ntohs(ipv4->sin_port);
+           	ipver = "IPv4";
+        }
+		else { // IPv6
+           	struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)ai_ptr->ai_addr;
+           	addr = &(ipv6->sin6_addr);
+			port = ntohs(ipv6->sin6_port);
+           	ipver = "IPv6";
+       	}
+        // convert the IP to a string and print it:
+        inet_ntop(ai_ptr->ai_family, addr, ipstr, sizeof ipstr);
+		std::cout << "server socket: " << serv_sock << " is listeing on: " << ipver << ": [" << ipstr << "]:" << port << std::endl;
+		//end of testing
 	}
 	return (kNoError);
 }
@@ -144,7 +171,7 @@ int SocketManager::accept_client(int server_socket)
 			client.first_recv_time = Maybe<time_t>();
 			client.timeout = false;
 			clients_.push_back(client);
-			std::cout << "accept: client connected with fd " << client_socket << std::endl;
+			std::cout << "accept: client connected with fd " << client_socket << " to server port " << server_socket << std::endl;
 			return (client_socket);
 		}
 	}
@@ -153,7 +180,7 @@ int SocketManager::accept_client(int server_socket)
 ssize_t SocketManager::recv_append(int client_socket, char *buf)
 {
 	ssize_t recv_len;
-	recv_len = recv(client_socket, buf, sizeof(buf), 0);
+	recv_len = recv(client_socket, buf, RECV_BUF_SIZE, 0);
 	if (recv_len <= 0)
 	{
 		if (recv_len < 0)

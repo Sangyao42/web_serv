@@ -70,12 +70,12 @@ void  Config2(directive::MainBlock& main)
 
     {
       directive::Listen*  listen = new directive::Listen();
-      listen->add(uri::Authority("198.13.20.5", "443"));
+      listen->add(uri::Authority("localhost", "8080"));
       server->add_directive(listen);
     }
     {
       directive::Listen*  listen = new directive::Listen();
-      listen->add(uri::Authority("::", "443"));
+      listen->add(uri::Authority("::", "8080"));
       server->add_directive(listen);
     }
     {
@@ -102,81 +102,81 @@ void  Config2(directive::MainBlock& main)
     }
   }
 
-  // server 2
-  {
-    directive::ServerBlock*  server = new directive::ServerBlock();
-    http->add_directive(server);
+//   // server 2
+//   {
+//     directive::ServerBlock*  server = new directive::ServerBlock();
+//     http->add_directive(server);
 
-    {
-      directive::Root*  root = new directive::Root();
-      root->set("what/hello/");
-      server->add_directive(root);
-    }
+//     {
+//       directive::Root*  root = new directive::Root();
+//       root->set("what/hello/");
+//       server->add_directive(root);
+//     }
 
-    {
-      directive::Cgi*  cgi = new directive::Cgi();
-      cgi->set("php", "/usr/local/bin/php4.3");
-      server->add_directive(cgi);
-    }
+//     {
+//       directive::Cgi*  cgi = new directive::Cgi();
+//       cgi->set("php", "/usr/local/bin/php4.3");
+//       server->add_directive(cgi);
+//     }
 
-    {
-      directive::Cgi*  cgi = new directive::Cgi();
-      cgi->set("js", "/opt/homebrew/bin/node");
-      server->add_directive(cgi);
-    }
+//     {
+//       directive::Cgi*  cgi = new directive::Cgi();
+//       cgi->set("js", "/opt/homebrew/bin/node");
+//       server->add_directive(cgi);
+//     }
 
-    {
-      directive::Cgi*  cgi = new directive::Cgi();
-      cgi->set("php", "/usr/local/bin/php4.8");
-      server->add_directive(cgi);
-    }
-  }
+//     {
+//       directive::Cgi*  cgi = new directive::Cgi();
+//       cgi->set("php", "/usr/local/bin/php4.8");
+//       server->add_directive(cgi);
+//     }
+//   }
 
-  // server 3
-  {
-    directive::ServerBlock*  server = new directive::ServerBlock();
-    http->add_directive(server);
+//   // server 3
+//   {
+//     directive::ServerBlock*  server = new directive::ServerBlock();
+//     http->add_directive(server);
 
-    {
-      directive::Listen*  listen = new directive::Listen();
-      listen->add(uri::Authority("127.0.0.1"));
-      server->add_directive(listen);
-    }
+//     {
+//       directive::Listen*  listen = new directive::Listen();
+//       listen->add(uri::Authority("127.0.0.1"));
+//       server->add_directive(listen);
+//     }
 
-    {
-      directive::ServerName*  server_name = new directive::ServerName();
-      server_name->add("wtf.fr");
-      server->add_directive(server_name);
-    }
+//     {
+//       directive::ServerName*  server_name = new directive::ServerName();
+//       server_name->add("wtf.fr");
+//       server->add_directive(server_name);
+//     }
 
-    {
-      directive::Autoindex*  autoindex = new directive::Autoindex();
-      autoindex->set(true);
-      server->add_directive(autoindex);
-    }
-  }
+//     {
+//       directive::Autoindex*  autoindex = new directive::Autoindex();
+//       autoindex->set(true);
+//       server->add_directive(autoindex);
+//     }
+//   }
 
-  // server 4
-  {
-    directive::ServerBlock*  server = new directive::ServerBlock();
-    http->add_directive(server);
+//   // server 4
+//   {
+//     directive::ServerBlock*  server = new directive::ServerBlock();
+//     http->add_directive(server);
 
-    {
-      directive::Listen*  listen = new directive::Listen();
-      listen->add(uri::Authority("127.0.0.1"));
-      server->add_directive(listen);
-    }
+//     {
+//       directive::Listen*  listen = new directive::Listen();
+//       listen->add(uri::Authority("127.0.0.1"));
+//       server->add_directive(listen);
+//     }
 
-    {
-      directive::ServerName*  server_name = new directive::ServerName();
-      server_name->add("whatt.42.fr");
-      server->add_directive(server_name);
-    }
+//     {
+//       directive::ServerName*  server_name = new directive::ServerName();
+//       server_name->add("whatt.42.fr");
+//       server->add_directive(server_name);
+//     }
 
-    {
-      directive::Root*  root = new directive::Root();
-      root->set("/Users/Anthony");
-      server->add_directive(root);
-    }
-  }
+//     {
+//       directive::Root*  root = new directive::Root();
+//       root->set("/Users/Anthony");
+//       server->add_directive(root);
+//     }
+//   }
 }

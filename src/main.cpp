@@ -52,7 +52,7 @@ int main(int argc, char **argv)
 	Config2(*main_block);
 	ws_database.set_main_block(main_block);
 
-	static char recv_buf[1024];
+	static char recv_buf[RECV_BUF_SIZE];
 
 	int max_clients = ws_database.worker_connections();
 	int client_count = 0;
@@ -194,6 +194,17 @@ int main(int argc, char **argv)
 				}
 				else
 				{
+					//TEST: the request buffer
+					std::string whatigot = sm.get_one_client(pfds[i].fd)->req_buf;
+					std::cout << "client request: " << std::endl;
+					std::cout << whatigot << std::endl;
+					std::cout << "recv_len: " << recv_len << std::endl;
+					unsigned long pos = whatigot.find("\r\n\r\n");
+					if (pos != std::string::npos && pos + 4 == whatigot.size())
+						std::cout << "end of request" << std::endl;
+					else
+						std::cout << "not end of request" << std::endl;
+					//TEST: end
 					sm.set_first_recv_time(pfds[i].fd); //set first recv time if it is not set
 					//if request exceeds max body size
 						//set pfds[i].events = POLLOUT;
