@@ -50,3 +50,49 @@ For 415: Accept, Accept-Encoding
 ** For methods other than GET, POST, DELETE : 501 Not Implemented for Unsupported methods (parsing)
 
 ## CGI POST Request
+### Request Message
+
+    Request line: Method URI(w./wo. query) HTTP-Version
+
+	Request headers: Host(mandatory), Accept
+	General headers: Transfer-Encoding: chunked, Date, User-Agent, Referer
+	Entity headers: Content-Type, Content-Length
+
+	Entity body
+
+
+### Success Response
+
+1) No Redirection
+
+    - 200 OK
+
+          Fields: Content-Type, Content-Length, Date, Server
+
+2) Redirection
+
+    - 301 Moved Permanently
+    - 307 Temporary Redirection
+
+		  Fields: Content-Type, Content-Length, Location, Date, Server
+
+### Error Response
+
+> Parsing
+> - 400 Bad Request
+> - 414 Request URI Too Long
+
+> - 400 Bad Request : <b>missing or incorrect query</b>(based on the cgi implementation)
+> - 403 Forbidden : <b>upload executable code with cgi extention</b> Log in the error.log file.
+> - 404 Not Found
+> - 405 Method Not Allowed
+> - 406 Not Acceptable
+> - 408 Request Timeout
+
+> - 500 Internal Server Error : misconfiguration, programming error, <b>cgi failure</b>
+
+    Fields: Content-Type, Content-Length, Date, Server
+
+    For 405: Allow
+
+    For 408: Connection: close
