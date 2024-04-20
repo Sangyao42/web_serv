@@ -80,6 +80,7 @@ For 408: Connection: close
 > - 400 Bad Request : Request syntax error, invalid query parameters, invalid URL, no Host Header in Request
 > - 414 Request URI Too Long
 
+> - 400 Bad Request : <b>missing or incorrect query</b>(based on the cgi implementation)
 > - 403 Forbidden : Server refuse to fulfill the request. Possible reason: no permission; <b>when handling request "/"(directory), autoindex is off and no index directive.</b> Log in the error.log file.
 > - 404 Not Found : incorrect URL
 > - 405 Method Not Allowed : method not supported by the target resource
