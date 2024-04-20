@@ -19,4 +19,5 @@ class HeaderValue
 
 		virtual	const ValueType	&type() const = 0;
 		virtual HeaderValue	*clone() const = 0;
+		virtual std::string valueAsString() = 0; // all HeaderValue better has a private string variable to return when this function is called
 };

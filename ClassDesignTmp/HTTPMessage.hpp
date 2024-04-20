@@ -5,8 +5,9 @@
 #include "Protocol.hpp"
 #include "HeaderValue.hpp"
 
-typedef std::map<std::string, HeaderValue *>::iterator HeaderMapIt;
 typedef std::pair<std::string, HeaderValue *>	HeaderPair;
+typedef std::map<std::string, HeaderValue *>	HeaderMap;
+typedef HeaderMap::const_iterator HeaderMapIt;
 
 /*
 	An abstract class having member variables and functions
@@ -21,16 +22,16 @@ class HTTPMessage
 
 		HTTPMessage &operator=(const HTTPMessage &obj);
 
-	protected:
 		std::map<std::string, HeaderValue *>	headers_;
 
 		void	addNewPair(std::string key, HeaderValue *value);
 		void	addNewPair(HeaderPair pair);
 
-		HeaderValue	*returnValueAsPointer(std::string key); // memory managed by this class
-		HeaderValue	*returnValueAsClonePointer(std::string key); // should be freed elsewhere
-		std::string	returnValueAsString(std::string key); // not implemented yet
-		HeaderPair	returnClonedPair(std::string key); // should be freed elsewhere
+		HeaderValue	*returnValueAsPointer(std::string key) const; // memory managed by this class
+		HeaderValue	*returnValueAsClonedPointer(std::string key) const; // should be freed elsewhere
+		HeaderPair	returnClonedPair(std::string key) const; // should be freed elsewhere
+		const std::string	&returnMapAsString(std::string key) const;
 
+	protected:
 		void	cleanHeaderMap();
 };

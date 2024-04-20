@@ -5,7 +5,8 @@ HTTPMessage::HTTPMessage() {}
 HTTPMessage::HTTPMessage(const HTTPMessage &obj)
 {
 	HeaderMapIt it;
-	for (it == obj.headers_.begin(); it != obj.headers_.end(); ++it)
+
+	for (it = obj.headers_.begin(); it != obj.headers_.end(); ++it)
 	{
 		addNewPair(it->first, it->second->clone());
 	}
@@ -21,7 +22,8 @@ HTTPMessage &HTTPMessage::operator=(const HTTPMessage &obj)
 	cleanHeaderMap();
 
 	HeaderMapIt it;
-	for (it == obj.headers_.begin(); it != obj.headers_.end(); ++it)
+
+	for (it = obj.headers_.begin(); it != obj.headers_.end(); ++it)
 	{
 		addNewPair(it->first, it->second->clone());
 	}
@@ -37,9 +39,10 @@ void	HTTPMessage::addNewPair(HeaderPair pair)
 	headers_.insert(pair);
 }
 
-HeaderValue	*HTTPMessage::returnValueAsPointer(std::string key)
+HeaderValue	*HTTPMessage::returnValueAsPointer(std::string key) const
 {
 	HeaderMapIt it;
+
 	for (it = headers_.begin(); it != headers_.end(); ++it)
 	{
 		if (it->first == key)
@@ -48,10 +51,10 @@ HeaderValue	*HTTPMessage::returnValueAsPointer(std::string key)
 	return (NULL); // key not found
 }
 
-HeaderValue	*HTTPMessage::returnValueAsClonePointer(std::string key)
+HeaderValue	*HTTPMessage::returnValueAsClonedPointer(std::string key) const
 {
 	HeaderMapIt it;
-	
+
 	for (it = headers_.begin(); it != headers_.end(); ++it)
 	{
 		if (it->first == key)
@@ -60,14 +63,22 @@ HeaderValue	*HTTPMessage::returnValueAsClonePointer(std::string key)
 	return (NULL); // key not found
 }
 
-std::string	HTTPMessage::returnValueAsString(std::string key)
+const std::string	&HTTPMessage::returnMapAsString(std::string key) const
 {
-	// a to-string converting function when needed
-	// this function calls a pure virtual function of the HeaderValue class
-	// for each type the derived class will have different implementation of it
+	// for generation of headers in response
+
+	HeaderMapIt it;
+	std::string	map;
+
+	for (it = headers_.begin(); it != headers_.end(); ++it)
+	{
+		map += it->first + ": " + it->second->valueAsString() + "\r\n";
+	}
+	map += "\r\n";
+	return (map);
 }
 
-HeaderPair	HTTPMessage::returnClonedPair(std::string key)
+HeaderPair	HTTPMessage::returnClonedPair(std::string key) const
 {
 	HeaderMapIt it;
 

@@ -15,10 +15,10 @@ struct Client
 	Response	*res;
 };
 
-// generateErrorResponse()
-// ...
-
-// buildStatusLine()
-// buildHeaders()
+void	generateErrorResponse(struct Client clt);
+void	generateRedirectResponse(struct Client clt);
+void	generateChunkedResponse(struct Client clt);
+void	generateAutoindexResponse(struct Client clt);
+void	generateFileResponse(struct Client clt);
 
 const std::string	&statusCodeAsString(enum StatusCode code);
