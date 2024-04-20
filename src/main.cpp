@@ -149,16 +149,16 @@ int main(int argc, char **argv)
 			if ((pfds[i].revents & POLLERR))
 			{
 				close(pfds[i].fd);
-				pollfds::delete_client_fd(pfds, i);
 				sm.delete_client(pfds[i].fd);
+				pollfds::delete_client_fd(pfds, i);
 				client_count--;
 				continue;
 			}
 			else if ((pfds[i].revents & POLLHUP))
 			{
 				close(pfds[i].fd);
-				pollfds::delete_client_fd(pfds, i);
 				sm.delete_client(pfds[i].fd);
+				pollfds::delete_client_fd(pfds, i);
 				client_count--;
 				continue;
 			}
@@ -167,8 +167,8 @@ int main(int argc, char **argv)
 				if (timeout == true)
 				{
 					close(pfds[i].fd);
-					pollfds::delete_client_fd(pfds, i);
 					sm.delete_client(pfds[i].fd);
+					pollfds::delete_client_fd(pfds, i);
 					client_count--;
 				}
 				continue;
@@ -189,7 +189,7 @@ int main(int argc, char **argv)
 				{
 					close(pfds[i].fd);
 					pollfds::delete_client_fd(pfds, i);
-					sm.delete_client(pfds[i].fd);
+					// sm.delete_client(pfds[i].fd);
 					client_count--;
 				}
 				else
