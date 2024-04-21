@@ -1,0 +1,117 @@
+# Pseudo code for the response generation
+
+```c
+
+void	processRequest(struct Client *clt)
+{
+	if (!clt->clientSocket || !clt->req || !clt->res)
+		// something went wrong unexpectedly, struct empty
+
+	if (statusCode != k000)
+		return (generateErrorResponse(clt)); // there is an existing error
+
+	HeaderValue	*Host = clt->req->returnValueAsPointer("Host")
+	if (!Host)
+	{
+		clt->statusCode = k400;
+		return (generateErrorResponse(clt));
+	}
+
+	// query configuration
+	clt->config = query(clt->clientSocket->socket, \
+	Host->valueAsString(), clt->req->getRequestTarget());
+
+	if (!clt->config)
+		// something went wrong while querying
+
+	if (clt->req->getRequestBody().size() > client_max_body_size)
+	{
+		clt->statusCode = k413;
+		return (generateErrorResponse(clt));
+	}
+
+	if (redirect)
+		return (generateRedirectResponse(clt)); // 301 or 307
+
+	switch(clt->req->getMethod())
+	{
+		case kGet:
+			return (processGetRequest(clt));
+		case kPost:
+			return (processPostRequest(clt));
+		case kDelete:
+			return (processDeleteRequest(clt));
+		default:
+			clt->statusCode = k501; // actually it is a program error to come down to here
+			return (generateErrorResponse(clt));
+	}
+}
+
+// where/where else do we check
+// 403 Forbidden and 406 Not Acceptable?
+void	processGetRequest(clt)
+{
+	if (!config->query->allowed_methods & directive::kMethodGet)
+	{
+		clt->statusCode = k405;
+		return (generateErrorResponse(clt));
+	}
+
+	if (is_filename?)
+	{
+		if (is_cgi?)
+			return (processGetRequestCGI(clt));
+
+		if (404?)
+		{
+			clt->statusCode = k404;
+			return (generateErrorResponse(clt));
+		}
+
+		clt->statusCode = k200;
+		return (generateFileResponse(clt));
+	}
+
+	// the server will search for index files first
+	// regardless of the autoindex
+	if (match_with_index?)
+	{
+		clt->statusCode = k200;
+		return (generateFileResponse(clt));
+	}
+
+	if (autoindex)
+		return (returnAutoindexResponse(clt));
+	else
+	{
+		// 403 or 404 depending on the detailed configuration
+		// i guess we can simply choose one of two
+		clt->statusCode = k403 or k404;
+		return (generateFileResponse(clt));
+	}
+}
+
+void	processPostRequest(clt)
+{
+	// do not know if it is alright to check this first before cgi
+	if (!config->query->allowed_methods & directive::kMethodPost)
+	{
+		clt->statusCode = k405;
+		return (generateErrorResponse(clt));
+	}
+
+	...
+}
+
+void	processDeleteRequest(clt)
+{
+	if (!config->query->allowed_methods & directive::kMethodDelete)
+	{
+		clt->statusCode = k405;
+		return (generateErrorResponse(clt));
+	}
+
+	...
+}
+
+```
