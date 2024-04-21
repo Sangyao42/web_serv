@@ -42,7 +42,7 @@ void	processRequest(struct Client *clt)
 		case kDelete:
 			return (processDeleteRequest(clt));
 		default:
-			clt->statusCode = k501; // actually it is a program error to come down to here
+			clt->statusCode = k501;
 			return (generateErrorResponse(clt));
 	}
 }
@@ -68,6 +68,7 @@ void	processGetRequest(clt)
 			return (generateErrorResponse(clt));
 		}
 
+		// process get request
 		clt->statusCode = k200;
 		return (generateFileResponse(clt));
 	}
@@ -76,6 +77,7 @@ void	processGetRequest(clt)
 	// regardless of the autoindex
 	if (match_with_index?)
 	{
+		// process get request
 		clt->statusCode = k200;
 		return (generateFileResponse(clt));
 	}
@@ -93,7 +95,6 @@ void	processGetRequest(clt)
 
 void	processPostRequest(clt)
 {
-	// do not know if it is alright to check this first before cgi
 	if (!config->query->allowed_methods & directive::kMethodPost)
 	{
 		clt->statusCode = k405;
@@ -111,7 +112,29 @@ void	processDeleteRequest(clt)
 		return (generateErrorResponse(clt));
 	}
 
-	...
+	if (is_filename?)
+	{
+		if (404?)
+		{
+			clt->statusCode = k404;
+			return (generateErrorResponse(clt));
+		}
+
+		if (403?) // access denied?
+		{
+			clt->statusCode = k403;
+			return (generateErrorResponse(clt));
+		}
+
+		// process delete request
+		clt->statusCode = k204; // can be k200 as well
+		return (generateFileResponse(clt));
+	}
+	else // is a directory
+	{
+		clt->statusCode = k403; // I chose 403 over 405
+		return (generateErrorResponse(clt));
+	}
 }
 
 ```
