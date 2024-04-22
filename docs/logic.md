@@ -11,15 +11,11 @@ void	processRequest(struct Client *clt)
 		return (generateErrorResponse(clt)); // there is an existing error
 
 	HeaderValue	*Host = clt->req->returnValueAsPointer("Host")
-	if (!Host)
-	{
-		clt->statusCode = k400;
-		return (generateErrorResponse(clt));
-	}
 
 	// query configuration
 	clt->config = query(clt->clientSocket->socket, \
-	Host->valueAsString(), clt->req->getRequestTarget());
+		Host ? Host->valueAsString() : "" \
+		clt->req->getRequestTarget());
 
 	if (!clt->config)
 		// something went wrong while querying
