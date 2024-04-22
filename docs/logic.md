@@ -115,9 +115,6 @@ void	processDeleteRequest(clt)
 	}
 	else // is a directory and cannot be deleted
 	{
-		if (force_delete?)
-			// process delete request
-
 		clt->statusCode = k403; // I chose 403 over 405
 		return (generateErrorResponse(clt));
 	}
