@@ -13,11 +13,11 @@ void	processRequest(struct Client *clt)
 	if (clt->statusCode != k000)
 		return (generateErrorResponse(clt)); // there is an existing error
 
-	HeaderValue	*host = clt->req->returnValueAsPointer("Host")
+	HeaderValue	*Host = clt->req->returnValueAsPointer("Host");
 
 	// query configuration
 	clt->config = query(clt->clientSocket->socket, \
-		(host ? host->valueAsString() : "") \
+		(Host ? host->valueAsString() : "") \
 		clt->req->getRequestTarget());
 
 	if (!clt->config)
@@ -38,7 +38,9 @@ void	processRequest(struct Client *clt)
 		return (generateErrorResponse(clt));
 	}
 
-	if (clt->req->getRequestBody().size() > client_max_body_size)
+	HeaderValue	*Content-Length = clt->req->returnValueAsPointer("Host");
+
+	if (Content-Length.content() > client_max_body_size)
 	{
 		clt->statusCode = k413;
 		return (generateErrorResponse(clt));
