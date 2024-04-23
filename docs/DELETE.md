@@ -18,7 +18,6 @@
 
 > Parsing
 > - 400 Bad Request
-> - 403 Forbidden
 > - 414 URI Too Long
 
 > - 403 Forbidden
