@@ -49,7 +49,7 @@ class SocketManager
 		ssize_t recv_append(int client_socket, char *buf);
 		ssize_t send_all(int client_socket);
 		//helpers
-		void delete_client(int client_socket);
+		void delete_client_socket(int client_socket);
 		//getters and setters
 		enum SocketError set_servers(std::vector<const uri::Authority*> socket_configs); //getaddrinfo(), socket(), bind(), listen()
 		std::vector<struct ServerSocket> get_servers() const;

@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 			{
 				std::cout << "poll error" << std::endl;
 				close(pfds[i].fd);
-				sm.delete_client(pfds[i].fd);
+				sm.delete_client_socket(pfds[i].fd);
 				pollfds::delete_client_fd(pfds, i);
 				client_count--;
 				continue;
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
 			{
 				std::cout << "poll hup" << std::endl;
 				close(pfds[i].fd);
-				sm.delete_client(pfds[i].fd);
+				sm.delete_client_socket(pfds[i].fd);
 				pollfds::delete_client_fd(pfds, i);
 				client_count--;
 				continue;
@@ -121,7 +121,7 @@ int main(int argc, char **argv)
 				{
 					std::cout << "timeout" << std::endl;
 					close(pfds[i].fd);
-					sm.delete_client(pfds[i].fd);
+					sm.delete_client_socket(pfds[i].fd);
 					pollfds::delete_client_fd(pfds, i);
 					client_count--;
 				}
@@ -145,7 +145,7 @@ int main(int argc, char **argv)
 					std::cout << "recv_len <= 0" << std::endl;
 					close(pfds[i].fd);
 					pollfds::delete_client_fd(pfds, i);
-					// sm.delete_client(pfds[i].fd);
+					// sm.delete_client_socket(pfds[i].fd);
 					client_count--;
 				}
 				else
@@ -182,7 +182,7 @@ int main(int argc, char **argv)
 				{
 					close(pfds[i].fd);
 					pollfds::delete_client_fd(pfds, i);
-					sm.delete_client(pfds[i].fd);
+					sm.delete_client_socket(pfds[i].fd);
 					client_count--;
 				}
 				else

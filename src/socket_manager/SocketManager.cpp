@@ -199,7 +199,7 @@ ssize_t SocketManager::recv_append(int client_socket, char *buf)
 		{
 			std::cout << "recv: client disconnected" << std::endl;
 		}
-		delete_client(client_socket);
+		delete_client_socket(client_socket);
 	}
 	else
 	{
@@ -232,7 +232,7 @@ ssize_t SocketManager::send_all(int client_socket)
 	//TODO: do I need to close the client socket if send fails?
 	if (sent_bytes == -1)
 	{
-		delete_client(client_socket);
+		delete_client_socket(client_socket);
 		return (-1);
 	}
 	else
@@ -242,7 +242,7 @@ ssize_t SocketManager::send_all(int client_socket)
 	return (total_sent);
 }
 
-void SocketManager::delete_client(int client_socket)
+void SocketManager::delete_client_socket(int client_socket)
 {
 	std::vector<ClientSocket>::iterator it;
 	for (it = clients_.begin(); it != clients_.end(); it++)
