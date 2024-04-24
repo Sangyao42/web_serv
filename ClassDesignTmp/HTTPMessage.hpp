@@ -30,7 +30,7 @@ class HTTPMessage
 		HeaderValue	*returnValueAsPointer(std::string key) const; // memory managed by this class
 		HeaderValue	*returnValueAsClonedPointer(std::string key) const; // should be freed elsewhere
 		HeaderPair	returnClonedPair(std::string key) const; // should be freed elsewhere
-		const std::string	&returnMapAsString(std::string key) const;
+		const std::string	&returnMapAsString() const;
 
 	protected:
 		void	cleanHeaderMap();

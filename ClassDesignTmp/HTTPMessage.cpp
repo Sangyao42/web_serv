@@ -63,7 +63,7 @@ HeaderValue	*HTTPMessage::returnValueAsClonedPointer(std::string key) const
 	return (NULL); // key not found
 }
 
-const std::string	&HTTPMessage::returnMapAsString(std::string key) const
+const std::string	&HTTPMessage::returnMapAsString() const
 {
 	// for generation of headers in response
 

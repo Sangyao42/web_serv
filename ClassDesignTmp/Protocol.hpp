@@ -9,10 +9,11 @@
 
 enum Method
 {
-	kGet,
-	kPost,
-	kDelete,
-	kUnmatched // 501 Not Implemented
+	kGet = 1,
+	kPost = 2,
+	kDelete = 4,
+	kUnmatched = 8, // 501 Not Implemented
+	kWrong = 16 // 400 Bad Request
 };
 
 enum Version
@@ -24,26 +25,26 @@ enum Version
 
 enum StatusCode
 {
-	k000, // default value
-	k200,
-	k201,
-	k204,
-	k301,
-	k304,
-	k307,
-	k400,
-	k403,
-	k404,
-	k405,
-	k406,
-	k408,
-	k412,
-	k413,
-	k414,
-	k415,
-	k422,
-	k500,
-	k503,
-	// ...
-	kError
+	k000 = 0, // default value
+	k200 = 200,
+	k201 = 201,
+	k204 = 204,
+	k301 = 301,
+	k303 = 303,
+	k304 = 304,
+	k307 = 307,
+	k400 = 400,
+	k403 = 403,
+	k404 = 404,
+	k405 = 405,
+	k406 = 406,
+	k408 = 408,
+	k412 = 412,
+	k413 = 413,
+	k414 = 414,
+	k415 = 415,
+	k422 = 422,
+	k500 = 500,
+	k503 = 503,
+	kError = 999
 };
