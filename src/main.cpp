@@ -148,6 +148,7 @@ int main(int argc, char **argv)
 			bool timeout = sm.is_timeout(pfds[i].fd);
 			if ((pfds[i].revents & POLLERR))
 			{
+				std::cout << "poll error" << std::endl;
 				close(pfds[i].fd);
 				sm.delete_client(pfds[i].fd);
 				pollfds::delete_client_fd(pfds, i);
@@ -156,6 +157,7 @@ int main(int argc, char **argv)
 			}
 			else if ((pfds[i].revents & POLLHUP))
 			{
+				std::cout << "poll hup" << std::endl;
 				close(pfds[i].fd);
 				sm.delete_client(pfds[i].fd);
 				pollfds::delete_client_fd(pfds, i);
@@ -166,6 +168,7 @@ int main(int argc, char **argv)
 			{
 				if (timeout == true)
 				{
+					std::cout << "timeout" << std::endl;
 					close(pfds[i].fd);
 					sm.delete_client(pfds[i].fd);
 					pollfds::delete_client_fd(pfds, i);
@@ -179,6 +182,7 @@ int main(int argc, char **argv)
 				if (timeout == true)
 				{
 					//generate 408 Request Timeout and build std::string response in client
+					std::cout << "timeout" << std::endl;
 					pfds[i].events = POLLOUT;
 					continue;
 				}
@@ -187,6 +191,7 @@ int main(int argc, char **argv)
 				//1st timestamp for timeout, using Maybe<time_t> first_recv_time in the else block of recv_append()
 				if (recv_len <= 0)
 				{
+					std::cout << "recv_len <= 0" << std::endl;
 					close(pfds[i].fd);
 					pollfds::delete_client_fd(pfds, i);
 					// sm.delete_client(pfds[i].fd);
@@ -218,6 +223,7 @@ int main(int argc, char **argv)
 			//socket is ready for writing
 			else if (pfds[i].revents & POLLOUT)
 			{
+				std::cout << "POLLOUT" << std::endl;
 				//send response to client
 				ssize_t send_len = sm.send_all(pfds[i].fd);
 				if (send_len == -1)
