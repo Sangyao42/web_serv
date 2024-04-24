@@ -2,7 +2,7 @@
 ######     Variables     #######
 ################################
 
-CC:=g++
+CC:=c++
 CXXFLAGS= -std=c++14 -pedantic -Wall -Wextra -Werror -MMD -MP -O2
 LDFLAGS= -std=c++14 -pedantic
 ifdef FSANITIZE
@@ -71,7 +71,7 @@ DEPENDS:=$(OBJ:.o=.d)
 #################################
 
 all:
-	@$(MAKE) $(NAME) -j
+	@$(MAKE) $(NAME)
 
 $(NAME): $(LIBWEBSERV) $(OBJ)
 	@$(CC) $(OBJ) -o $(NAME) $(LDFLAGS) && echo "Compilation of $(NAME) successful"
