@@ -59,7 +59,6 @@ enum SocketError SocketManager::set_servers(std::vector<const uri::Authority*> s
 		}
 		else
 			status = getaddrinfo((*it)->host.value.c_str(), (*it)->port.c_str(), &hints, &res);
-
 		if (status != 0)
 		{
 			std::cerr << "getaddrinfo: " << gai_strerror(status) << std::endl;
@@ -68,6 +67,9 @@ enum SocketError SocketManager::set_servers(std::vector<const uri::Authority*> s
 		struct addrinfo *ai_ptr;
 		for (ai_ptr = res; ai_ptr != NULL; ai_ptr = ai_ptr->ai_next)
 		{
+			//testing the address and port and family
+			std::cout << "famliy: " << ai_ptr->ai_family << " socktype: " << ai_ptr->ai_socktype << " protocol: " << ai_ptr->ai_protocol << std::endl;
+			//end of testing
 			res_len++;
 			serv_sock = socket(ai_ptr->ai_family, ai_ptr->ai_socktype, ai_ptr->ai_protocol);
 			if (serv_sock == -1)
@@ -91,10 +93,15 @@ enum SocketError SocketManager::set_servers(std::vector<const uri::Authority*> s
 			}
 			if (bind(serv_sock, ai_ptr->ai_addr, ai_ptr->ai_addrlen) == -1)
 			{
-				std::cerr << "1st bind: " << strerror(errno) << std::endl;
+				std::cerr << "bind of socket addresses: " << strerror(errno) << std::endl;
 				close(serv_sock);
 				continue;
 			}
+			// if (hints.ai_family == AF_UNSPEC && ai_ptr->ai_next != NULL)
+			// {
+			// 	printf("server socket is bind to both ipv4 and ipv6\n");
+			// 	continue;
+			// }
 			break;
 		}
 		if (ai_ptr == NULL)
@@ -122,24 +129,25 @@ enum SocketError SocketManager::set_servers(std::vector<const uri::Authority*> s
         std::string ipver;
 		char ipstr[INET6_ADDRSTRLEN];
 		int port;
-    	   // get the pointer to the address itself,
-       	// different fields in IPv4 and IPv6:
-        if (ai_ptr->ai_family == AF_INET) { // IPv4
+    	// get the pointer to the address itself, different fields in IPv4 and IPv6:
+		if (ai_ptr->ai_family == AF_INET) { // IPv4
         	struct sockaddr_in *ipv4 = (struct sockaddr_in *)ai_ptr->ai_addr;
            	addr = &(ipv4->sin_addr);
 			port = ntohs(ipv4->sin_port);
            	ipver = "IPv4";
+
         }
-		else { // IPv6
+		else { // IPv6, if ai_family is UNSPEC, getaddrinfo() will return socket addresses either IPv4 or IPv6. In out case, it returns IPv6.
            	struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)ai_ptr->ai_addr;
            	addr = &(ipv6->sin6_addr);
 			port = ntohs(ipv6->sin6_port);
            	ipver = "IPv6";
        	}
-        // convert the IP to a string and print it:
-        inet_ntop(ai_ptr->ai_family, addr, ipstr, sizeof ipstr);
+		// convert the IP to a string and print it:
+		inet_ntop(ai_ptr->ai_family, addr, ipstr, sizeof ipstr);
 		std::cout << "server socket: " << serv_sock << " is listeing on: " << ipver << ": [" << ipstr << "]:" << port << std::endl;
 		//end of testing
+
 	}
 	return (kNoError);
 }
