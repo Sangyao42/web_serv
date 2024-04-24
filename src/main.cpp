@@ -9,6 +9,8 @@
 
 #define POLL_TIMEOUT 30
 
+// TODO: Add info to Client struct
+
 void  Config2(directive::MainBlock& main);
 
 namespace pollfds
@@ -70,57 +72,6 @@ int main(int argc, char **argv)
 			//TODO: error handling
 			return (kPollError);
 		}
-		//check for events
-		// for (int i = 0; i < pfds.size(); i++)
-		// {
-		// 	if (pfds[i].revents & POLLIN)
-		// 	{
-		// 		if ( i < server_socket_count && client_count < max_clients)
-		// 		{
-		// 			//accept connection if max clients not reached
-		// 			int client_socket = sm.accept_client(pfds[i].fd);
-		// 			if (client_socket == -1)
-		// 				continue ;
-		// 			else
-		// 			{
-		// 				//add client to pollfd
-		// 				pollfds::add_client_fd(pfds, client_socket);
-		// 				client_count++;
-		// 			}
-		// 		}
-		// 		else
-		// 		{
-		// 			//check request timeout before recv and set the bool of timeout to false and continue???
-		// 			//recv from client and add to request buffer
-		// 			ssize_t recv_len = sm.recv_append(pfds[i].fd, recv_buf);
-		// 			//1st timestamp for timeout, using Maybe<time_t> init_time;
-		// 			if (recv_len <= 0)
-		// 			{
-		// 				close(pfds[i].fd);
-		// 				pollfds::delete_client_fd(pfds, i);
-		// 				client_count--;
-		// 			}
-		// 			else
-		// 			{
-		// 				//parse request
-		// 				//process request
-		// 			}
-		// 		}
-		// 	}
-		// 	else if (pfds[i].revents & POLLOUT)
-		// 	{
-		// 		//send response to client
-		// 		ssize_t send_len = sm.send_all(pfds[i].fd);
-		// 		//TODO: do I need to close the client socket if send fails?
-		// 		if (send_len == -1)
-		// 		{
-		// 			close(pfds[i].fd);
-		// 			pollfds::delete_client_fd(pfds, i);
-		// 			client_count--;
-		// 		}
-		// 	}
-		// }
-
 		//check events for server sockets
 		for (int i = 0; i < server_socket_count; i++)
 		{
@@ -181,7 +132,7 @@ int main(int argc, char **argv)
 			{
 				if (timeout == true)
 				{
-					//generate 408 Request Timeout and build std::string response in client
+					//TODO: generate 408 Request Timeout and build std::string response in client
 					std::cout << "timeout" << std::endl;
 					pfds[i].events = POLLOUT;
 					continue;
@@ -211,6 +162,7 @@ int main(int argc, char **argv)
 						std::cout << "not end of request" << std::endl;
 					//TEST: end
 					sm.set_first_recv_time(pfds[i].fd); //set first recv time if it is not set
+					//TODO:
 					//if request exceeds max body size
 						//set pfds[i].events = POLLOUT;
 						//generate 413 Request Entity Too Large and build std::string response in client
