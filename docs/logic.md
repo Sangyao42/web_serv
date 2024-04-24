@@ -79,7 +79,7 @@ void	processGetRequest(clt)
 		// process get request
 		// save the content of the file into res using res->setResponseBody()
 		clt->statusCode = k200;
-		return (generateFileResponse(clt));
+		return (generateSuccessResponse(clt));
 	}
 
 	// the server will search for index files first
@@ -89,7 +89,7 @@ void	processGetRequest(clt)
 	{
 		// process get request
 		clt->statusCode = k200;
-		return (generateFileResponse(clt));
+		return (generateSuccessResponse(clt));
 	}
 
 	if (autoindex)
@@ -97,14 +97,33 @@ void	processGetRequest(clt)
 	else
 	{
 		clt->statusCode = k403; // I chose 403 over 404
-		return (generateFileResponse(clt));
+		return (generateSuccessResponse(clt));
 	}
 }
 
 void	processPostRequest(clt)
 {
-	if ()
-	...
+	if (is_cgi)
+		return (processGetRequestCGI(clt));
+
+	if (is_filename)
+	{
+		if (is_created)
+		{
+			clt->statusCode = k303;
+			return (generateSuccessResponse(clt));
+		}
+
+		// upload body as a file
+		// create all the directories
+		clt->statusCode = k200;
+		return (generateSuccessResponse(clt));
+	}
+	else // is a directory
+	{
+		clt->statusCode = k403;
+		return (generateSuccessResponse(clt));
+	}
 }
 
 void	processDeleteRequest(clt)
@@ -113,7 +132,7 @@ void	processDeleteRequest(clt)
 	{
 		// process delete request
 		clt->statusCode = k204; // can be 200 as well
-		return (generateFileResponse(clt)); // 204 does not have a body
+		return (generateSuccessResponse(clt));
 	}
 	else // is a directory and cannot be deleted
 	{
