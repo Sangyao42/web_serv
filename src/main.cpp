@@ -4,6 +4,9 @@
 
 #include <poll.h>
 #include <unistd.h>
+#include <string.h>
+#include <cerrno>
+#include <cassert>
 
 #include <vector>
 

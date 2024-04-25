@@ -1,7 +1,7 @@
 #pragma once
 
 #include "SocketError.hpp"
-#include "../Configuration.hpp"
+#include "Configuration.hpp"
 
 #include <sys/socket.h>
 #include <sys/types.h>
