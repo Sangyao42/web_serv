@@ -14,4 +14,4 @@ COPY Makefile /web_serv/
 COPY src /web_serv/src
 WORKDIR /web_serv
 RUN make
-CMD  ./web_serv || tail -f /dev/null
+CMD  ./webserv || tail -f /dev/null
