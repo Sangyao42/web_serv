@@ -87,6 +87,16 @@ enum SocketError SocketManager::set_servers(std::vector<const uri::Authority*> s
 				freeaddrinfo(res);
 				return (kSetSockOptError);
 			}
+			#ifdef __linux__
+				int yes = 1;
+				if (ai_ptr->ai_family == AF_INET6 && setsockopt(serv_sock, IPPROTO_IPV6, IPV6_V6ONLY, &yes, sizeof(int)) == -1)
+				{
+					std::cerr << "setsockopt linux: " << strerror(errno) << std::endl;
+					close(serv_sock);
+					freeaddrinfo(res);
+					return (kSetSockOptError);
+				}
+			#endif
 			if (fcntl(serv_sock, F_SETFL, O_NONBLOCK) == -1)
 			{
 				std::cerr << "fcntl: " << strerror(errno) << std::endl;
