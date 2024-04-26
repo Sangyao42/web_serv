@@ -121,9 +121,9 @@ void	processPostRequest(clt)
 		return (generateSuccessResponse(clt));
 	}
 
-	if (415?) // MIME type checking
+	if (406?) // MIME type checking
 	{
-		clt->statusCode = k415;
+		clt->statusCode = k406;
 		return (generateErrorResponse(clt));
 	}
 
@@ -141,6 +141,11 @@ void	processPostRequest(clt)
 	if (file_exists)
 	{
 		// append
+		if (415?) // MIME type checking
+		{
+			clt->statusCode = k415;
+			return (generateErrorResponse(clt));
+		}
 		clt->statusCode = k200;
 	}
 	else
