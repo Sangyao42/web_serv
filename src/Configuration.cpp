@@ -34,7 +34,7 @@ bool  ConfigurationQueryResult::is_empty() const
 ////////////   Configuration   /////////////
 ////////////////////////////////////////////
 
-Configuration ws_configuration(16);
+Configuration ws_database(16);
 
 Configuration::Configuration()
   : server_cache_(),
@@ -91,7 +91,10 @@ void  Configuration::set_main_block(directive::MainBlock* main_block)
 size_t Configuration::worker_connections() const
 {
   assert(main_block_ != NULL);
-  const Maybe<size_t> worker_connections = main_block_->events().worker_connections();
+  directive::EventsBlock* events = main_block_->events();
+  if (events == NULL)
+    return constants::kDefaultWorkerConnections;
+  const Maybe<size_t> worker_connections = events->worker_connections();
   if (!worker_connections.is_ok())
     return constants::kDefaultWorkerConnections;
   return worker_connections.value();
@@ -241,8 +244,9 @@ Configuration::ServerBlocksQueryResult Configuration::query_server_blocks(int se
 void  Configuration::generate_server_cache()
 {
   assert(main_block_ != NULL);
-  assert(directive::DirectiveRangeIsValid(main_block_->http().servers()));
-  directive::Servers servers = main_block_->http().servers();
+  assert(main_block_->http() != NULL);
+  directive::Servers servers = main_block_->http()->servers();
+  assert(directive::DirectiveRangeIsValid(servers));
   // iterate over all server blocks
   for (directive::Servers::first_type it = servers.first; it != servers.second; ++it)
   {

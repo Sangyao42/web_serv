@@ -53,7 +53,7 @@ TEST_F(TestConfiguration1, query_wrong_socket)
 
 TEST_F(TestConfiguration1, query_server_block)
 {
-  ASSERT_EQ(config_.query_server_block(3, "hi.com"), &*main_block_->http().servers().first->second);
+  ASSERT_EQ(config_.query_server_block(3, "hi.com"), &*main_block_->http()->servers().first->second);
 }
 
 TEST_F(TestConfiguration1, query)
@@ -90,7 +90,7 @@ TEST_F(TestConfiguration1, query_correct_location_property)
 
   ASSERT_EQ(result.location_block->type(), Directive::kDirectiveLocation);
   ASSERT_EQ(result.location_block->match(), "/develop");
-  ASSERT_EQ(result.query->server_block, &*main_block_->http().servers().first->second);
+  ASSERT_EQ(result.query->server_block, &*main_block_->http()->servers().first->second);
   ASSERT_EQ(result.query->match_path, "/develop");
   ASSERT_EQ(result.query->allowed_methods, constants::kDefaultAllowedMethods);
   ASSERT_EQ(result.query->client_max_body_size, constants::kDefaultClientMaxBodySize); // 1M
@@ -118,7 +118,7 @@ TEST_F(TestConfiguration1, query_correct_location_property2)
 
   ASSERT_EQ(result.location_block->type(), Directive::kDirectiveLocation);
   ASSERT_EQ(result.location_block->match(), "/omg/");
-  ASSERT_EQ(result.query->server_block, &*main_block_->http().servers().first->second);
+  ASSERT_EQ(result.query->server_block, &*main_block_->http()->servers().first->second);
   ASSERT_EQ(result.query->match_path, "/omg/");
   ASSERT_EQ(result.query->allowed_methods, constants::kDefaultAllowedMethods);
   ASSERT_EQ(result.query->client_max_body_size, constants::kDefaultClientMaxBodySize); // 1M
@@ -157,7 +157,7 @@ TEST_F(TestConfiguration2, query_wrong_socket)
 
 TEST_F(TestConfiguration2, query_server_block)
 {
-  ASSERT_EQ(config_.query_server_block(3, "hi.com"), &*main_block_->http().servers().first->second);
+  ASSERT_EQ(config_.query_server_block(3, "hi.com"), &*main_block_->http()->servers().first->second);
 }
 
 TEST_F(TestConfiguration2, query_servers_with_same_socket)

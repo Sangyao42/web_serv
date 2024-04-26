@@ -55,23 +55,23 @@ namespace directive
     DirectiveBlock::add_directive(directive);
   }
 
-  HttpBlock&  MainBlock::http()
+  HttpBlock*  MainBlock::http()
   {
-    return *http_;
+    return http_;
   }
 
-  const HttpBlock&  MainBlock::http() const
+  const HttpBlock*  MainBlock::http() const
   {
-    return *http_;
+    return http_;
   }
 
-  EventsBlock&  MainBlock::events()
+  EventsBlock*  MainBlock::events()
   {
-    return *events_;
+    return events_;
   }
 
-  const EventsBlock&  MainBlock::events() const
+  const EventsBlock*  MainBlock::events() const
   {
-    return *events_;
+    return events_;
   }
 } // namespace directive

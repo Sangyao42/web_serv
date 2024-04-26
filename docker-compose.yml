@@ -17,7 +17,7 @@ services:
     volumes:
       - src_cache:/web_serv/obj
     ports:
-      - "80:80"
+      - "8080:8080"
     restart: unless-stopped
 
   test:
