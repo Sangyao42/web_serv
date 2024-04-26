@@ -121,18 +121,33 @@ void	processPostRequest(clt)
 		return (generateSuccessResponse(clt));
 	}
 
+	if (415?) // MIME type checking
+	{
+		clt->statusCode = k415;
+		return (generateErrorResponse(clt));
+	}
+
 	if (is_cgi)
 		return (processPostRequestCGI(clt));
 
-	if (is_created)
+	if (is_same_file) // optional
 	{
 		clt->statusCode = k303;
 		return (generateSuccessResponse(clt));
 	}
 
-	// upload body as a file
+	// upload body as a file or append
 	// create all the directories
-	clt->statusCode = k201;
+	if (file_exists)
+	{
+		// append
+		clt->statusCode = k200;
+	}
+	else
+	{
+		// upload
+		clt->statusCode = k201;
+	}
 	return (generateSuccessResponse(clt));
 }
 
