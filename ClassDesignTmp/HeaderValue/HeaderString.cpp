@@ -32,7 +32,7 @@ HeaderString	*HeaderString::clone() const
 	return (new HeaderString(*this));
 }
 
-std::string HeaderString::valueAsString()
+const std::string &HeaderString::valueAsString()
 {
 	return (content_);
 }

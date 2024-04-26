@@ -59,7 +59,13 @@ void	resBuilder::generateErrorResponse(struct Client *clt)
 	if (it != errorPages.end())
 	{
 		pathErrorPage = (*it)->file_path;
-		response += readFileToString(pathErrorPage);
+		if (readFileToString(pathErrorPage, &response) != kNoError);
+		{
+			clt->statusCode = k500;
+			delete clt->res;
+			clt->res = new Response();
+			generateErrorResponse(clt);
+		}
 	}	
 	else
 		response += buildErrorPage(clt);
@@ -73,19 +79,20 @@ void	resBuilder::utils::buildStatusLine(const struct Client *clt, std::string &r
 	response += "\r\n";
 }
 
-const std::string &resBuilder::utils::readFileToString(const std::string &path)
+enum ResponseBuilder	resBuilder::utils::readFileToString(const std::string &path)
 {
 	std::ifstream	file(path);
 	std::stringstream	ss;
 
 	if (!file)
-		// throw error
-	if (file.fail())
-		// throw error
+		return (kFileOpenError);
 
 	ss << file.rdbuf();
 
-	return (ss.str());
+	if (file.fail())
+	 return (kFilestreamError);
+
+	return (kNoError);
 }
 
 const std::string	&resBuilder::utils::statusCodeAsString(enum StatusCode code)

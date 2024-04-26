@@ -9,6 +9,13 @@
 #include "SocketManager.hpp"
 #include "Configuration.hpp"
 
+enum ResponseError
+{
+	kNoError,
+	kFileOpenError,
+	kFilestreamError
+}
+
 struct Client
 {
 	StatusCode	statusCode;
@@ -29,7 +36,7 @@ namespace resBuilder
 	namespace helper
 	{
 		void	buildErrorHeaders(struct Client *clt)
-		const std::string	&buildErrorPage(const struct Client *clt)
+		enum ResponseBuilder	buildErrorPage(const struct Client *clt)
 	}
 
 	namespace utils
