@@ -21,6 +21,8 @@ struct Client
 	StatusCode	statusCode;
 	struct ClientSocket	*clientSocket;
 	struct ConfigurationQueryResult	*config;
+	struct stat	statBuff;
+	std::string path;
 	Request	*req;
 	Response	*res;
 };
