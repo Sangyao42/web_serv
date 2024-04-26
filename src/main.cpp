@@ -18,7 +18,7 @@ void  Config2(directive::MainBlock& main);
 
 namespace pollfds
 {
-	int add_server_fd(std::vector<struct pollfd> &pfds, std::vector<struct ServerSocket> servers)
+	int AddServerFd(std::vector<struct pollfd> &pfds, std::vector<struct ServerSocket> servers)
 	{
 		std::vector<struct ServerSocket>::iterator it;
 		for (it = servers.begin(); it != servers.end(); it++)
@@ -31,7 +31,7 @@ namespace pollfds
 		return (servers.size());
 	}
 
-	void add_client_fd(std::vector<struct pollfd> &pfds, int client_socket)
+	void AddClientFd(std::vector<struct pollfd> &pfds, int client_socket)
 	{
 		struct pollfd pfd;
 		pfd.fd = client_socket;
@@ -39,7 +39,7 @@ namespace pollfds
 		pfds.push_back(pfd);
 	}
 
-	void delete_client_fd(std::vector<struct pollfd> &pfds, int i)
+	void DeleteClientFd(std::vector<struct pollfd> &pfds, int i)
 	{
 		pfds.erase(pfds.begin() + i);
 	}
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 	enum SocketError err = sm.set_servers(ws_database.all_server_sockets());
 	if (err != kNoError)
 		return (err);
-	int server_socket_count = pollfds::add_server_fd(pfds, sm.get_servers());
+	int server_socket_count = pollfds::AddServerFd(pfds, sm.get_servers());
 	while (server_running)
 	{
 		//poll for events
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 					else
 					{
 						//add client to pollfd
-						pollfds::add_client_fd(pfds, client_socket);
+						pollfds::AddClientFd(pfds, client_socket);
 						client_count++;
 					}
 				}
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 				std::cout << "poll error" << std::endl;
 				close(pfds[i].fd);
 				sm.delete_client_socket(pfds[i].fd);
-				pollfds::delete_client_fd(pfds, i);
+				pollfds::DeleteClientFd(pfds, i);
 				client_count--;
 				continue;
 			}
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 				std::cout << "poll hup" << std::endl;
 				close(pfds[i].fd);
 				sm.delete_client_socket(pfds[i].fd);
-				pollfds::delete_client_fd(pfds, i);
+				pollfds::DeleteClientFd(pfds, i);
 				client_count--;
 				continue;
 			}
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
 					std::cout << "timeout" << std::endl;
 					close(pfds[i].fd);
 					sm.delete_client_socket(pfds[i].fd);
-					pollfds::delete_client_fd(pfds, i);
+					pollfds::DeleteClientFd(pfds, i);
 					client_count--;
 				}
 				continue;
@@ -147,7 +147,7 @@ int main(int argc, char **argv)
 				{
 					std::cout << "recv_len <= 0" << std::endl;
 					close(pfds[i].fd);
-					pollfds::delete_client_fd(pfds, i);
+					pollfds::DeleteClientFd(pfds, i);
 					// sm.delete_client_socket(pfds[i].fd);
 					client_count--;
 				}
@@ -184,7 +184,7 @@ int main(int argc, char **argv)
 				if (send_len == -1)
 				{
 					close(pfds[i].fd);
-					pollfds::delete_client_fd(pfds, i);
+					pollfds::DeleteClientFd(pfds, i);
 					sm.delete_client_socket(pfds[i].fd);
 					client_count--;
 				}
