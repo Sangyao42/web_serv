@@ -2,6 +2,8 @@
 
 ```c
 
+#include <sys/stat.h>
+
 void	processRequest(struct Client *clt)
 {
 	if (!clt || !clt->clientSocket || !clt->req || !clt->res)
@@ -32,10 +34,20 @@ void	processRequest(struct Client *clt)
 		return (generateErrorResponse(clt));
 	}
 
-	if (404?) // check if the path is valid (for get and delete)
+	std::string path = getExactPath(clt);
+
+	if (404? && (req->getMethod() == kGet || req->getMethod() == kDelete)) // check if the path is valid (for get and delete)
 	{
 		clt->statusCode = k404;
 		return (generateErrorResponse(clt));
+	}
+	else
+	{
+		if (stat(&path, &clt->statBuff) != 0)
+		{
+			clt->statusCode = k500;
+			return (generateErrorResponse(clt));
+		}
 	}
 
 	HeaderValue	*Content-Length = clt->req->returnValueAsPointer("Host");
@@ -103,27 +115,25 @@ void	processGetRequest(clt)
 
 void	processPostRequest(clt)
 {
-	if (is_cgi)
-		return (processGetRequestCGI(clt));
-
-	if (is_filename)
-	{
-		if (is_created)
-		{
-			clt->statusCode = k303;
-			return (generateSuccessResponse(clt));
-		}
-
-		// upload body as a file
-		// create all the directories
-		clt->statusCode = k200;
-		return (generateSuccessResponse(clt));
-	}
-	else // is a directory
+	if (is_directory)
 	{
 		clt->statusCode = k403;
 		return (generateSuccessResponse(clt));
 	}
+
+	if (is_cgi)
+		return (processPostRequestCGI(clt));
+
+	if (is_created)
+	{
+		clt->statusCode = k303;
+		return (generateSuccessResponse(clt));
+	}
+
+	// upload body as a file
+	// create all the directories
+	clt->statusCode = k201;
+	return (generateSuccessResponse(clt));
 }
 
 void	processDeleteRequest(clt)
