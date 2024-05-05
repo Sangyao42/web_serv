@@ -88,7 +88,7 @@ void	processGetRequest(clt)
 			clt->statusCode = k406;
 			return (generateErrorResponse(clt));
 		}
-	
+
 		// process get request
 		// save the content of the file into res using res->setResponseBody()
 		clt->statusCode = k200;
@@ -173,4 +173,7 @@ void	processDeleteRequest(clt)
 	}
 }
 
+void	processGetRequestCGI(clt)
+
+void	processPostRequestCGI(clt)
 ```
