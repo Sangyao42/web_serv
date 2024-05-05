@@ -36,7 +36,8 @@ void	processRequest(struct Client *clt)
 
 	std::string path = getExactPath(clt);
 
-	if (404? && (req->getMethod() == kGet || req->getMethod() == kDelete)) // check if the path is valid (for get and delete)
+	if ((access(&path, F_OK) != 0) \
+	&& (req->getMethod() == kGet || req->getMethod() == kDelete)) // check if the path is valid (for get and delete)
 	{
 		clt->statusCode = k404;
 		return (generateErrorResponse(clt));
@@ -58,7 +59,7 @@ void	processRequest(struct Client *clt)
 		return (generateErrorResponse(clt));
 	}
 
-	if (redirect)
+	if (redirect) //TODO: should we check redirect even earlier?
 		return (generateRedirectResponse(clt)); // 301 or 307
 
 	switch(clt->req->getMethod())
@@ -96,6 +97,7 @@ void	processGetRequest(clt)
 
 	// the server will search for index files first
 	// regardless of the autoindex on/off
+	// ? check this order again
 
 	if (match_with_index?)
 	{
@@ -125,7 +127,7 @@ void	processPostRequest(clt)
 	{
 		clt->statusCode = k406;
 		return (generateErrorResponse(clt));
-	}
+	} // ? check if this status code is right
 
 	if (is_cgi)
 		return (processPostRequestCGI(clt));
@@ -145,13 +147,13 @@ void	processPostRequest(clt)
 		{
 			clt->statusCode = k415;
 			return (generateErrorResponse(clt));
-		}
-		clt->statusCode = k200;
+		} // ? not sure about this part
+		clt->statusCode = k200; // ? what should be sent in the body?
 	}
 	else
 	{
 		// upload
-		clt->statusCode = k201;
+		clt->statusCode = k201; // + location header to notify where it is saved
 	}
 	return (generateSuccessResponse(clt));
 }
