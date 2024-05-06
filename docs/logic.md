@@ -18,7 +18,7 @@ void	processRequest(struct Client *clt)
 	HeaderValue	*Host = clt->req->returnValueAsPointer("Host");
 
 	// query configuration
-	clt->config = query(clt->clientSocket->socket, \
+	clt->config = ServerQuery(clt->clientSocket->socket, \
 		(Host ? host->valueAsString() : "") \
 		clt->req->getRequestTarget());
 
@@ -28,16 +28,29 @@ void	processRequest(struct Client *clt)
 		return (generateErrorResponse(clt));
 	}
 
-	if (!config->query->allowed_methods & req->getMethod())
+	// query Location
+	LocationQuery location;
+	LocationBlock* location_block
+	location->construct(clt->config, location_block); //TODO: how to query location?
+	if (!location)
+	{
+		clt->statusCode = k404;
+		return (generateErrorResponse(clt));
+	}
+
+	if (!location->allowed_methods & req->getMethod())
 	{
 		clt->statusCode = k405;
 		return (generateErrorResponse(clt));
 	}
 
-	std::string path = getExactPath(clt);
+	if (location->redirect)
+		return (generateRedirectResponse(clt)); // 301 or 307
+
+	std::string path = getExactPath(clt); // TODO: use location->root and location->match_path? and URI
 
 	if ((access(&path, F_OK) != 0) \
-	&& (req->getMethod() == kGet || req->getMethod() == kDelete)) // check if the path is valid (for get and delete)
+	&& (req->getMethod() == kGet || req->getMethod() == kDelete)) // check if the path exists (for get and delete)
 	{
 		clt->statusCode = k404;
 		return (generateErrorResponse(clt));
@@ -51,16 +64,19 @@ void	processRequest(struct Client *clt)
 		}
 	}
 
-	HeaderValue	*Content-Length = clt->req->returnValueAsPointer("Host");
+	HeaderValue	*Content-Length = clt->req->returnValueAsPointer("Content-Length");
 
-	if (Content-Length.content() > client_max_body_size)
+	if (Content-Length && Content-Length.content() > Location->client_max_body_size)
 	{
 		clt->statusCode = k413;
 		return (generateErrorResponse(clt));
 	}
 
-	if (redirect) //TODO: should we check redirect even earlier?
-		return (generateRedirectResponse(clt)); // 301 or 307
+	// if (location->cgis) //TODO: does this check the file extension? what if the cgi extension is not supported?
+	// {
+	// 	processRequestCGI(clt);
+	// 	return ;
+	// }
 
 	switch(clt->req->getMethod())
 	{
@@ -97,10 +113,14 @@ void	processGetRequest(clt)
 
 	// the server will search for index files first
 	// regardless of the autoindex on/off
-	// ? check this order again
 
 	if (match_with_index?)
 	{
+		clt->path = get_index_path();
+		//TODO: check file existance here again for the index file and return ErrorResponse here
+		if (is_cgi(index_path))
+			return (processGetRequestCGI(clt));
+		//TODO: check 406 again
 		// process get request
 		clt->statusCode = k200;
 		return (generateSuccessResponse(clt));
@@ -173,8 +193,61 @@ void	processDeleteRequest(clt)
 	}
 }
 
+// void	processRequestCGI(clt)
+// {
+// 	if (!is_supported_cgi)
+
+// 	switch(clt->req->getMethod())
+// 	{
+// 		case kGet:
+// 			return (processGetRequestCGI(clt));
+// 		case kPost:
+// 			return (processPostRequestCGI(clt));;
+// 		default:
+// 			clt->statusCode = k501;
+// 			return (generateErrorResponse(clt));
+// 	}
+// }
+
 void	processGetRequestCGI(clt)
+{
+	int	cgi_input[2], cgi_output[2];
+	setPipes(cgi_input[2], cgi_output[2], clt->req->getMethods()); //For CGI GET request, only cgi_output[2] is needed
+	int pid = fork();
+	if (pid < 0)
+	{
+		close() cgi_output[2] both ends
+		clt->statusCode = k500;
+		return (generateErrorResponse(clt));
+	}
+	if (pid == 0)
+	{
+		//child process
+		close(cgi_output[READ]);
+		dup2(cgi_output[WRITE], STDOUT);
+		CheckCgiFileExtension(); // get which cgi it is
+		char* cgi_path = ConstructCgiExcutable(); // get excutable from location->cgis based on the file extension
+		char** cgi_argv = ConstructCgiArgv();
+		char** cgi_env = ConstructCgiEnv();
+		execve(cgi_path, cgi_argv, cgi_env);
+		// if execve failed, clean cgi_argv and cgi_env, and close the pipe
+		close(cgi_output[WRITE]);
+	}
+	//parent process
+	close(cgi_output[WRITE]);
+	dup2(cgi_output[READ],STDIN);
+	int read = ReadAll(cgi_output[READ], response_tmp);
+	if (read < 0)
+	{
+		clt->statusCode = k500;
+		return (generateErrorResponse(clt));
+	}
+	ParseResponseTmp(); // modify the clt->response
+}
 
 void	processPostRequestCGI(clt)
+{
+
+}
 
 ```
