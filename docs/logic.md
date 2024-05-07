@@ -141,11 +141,11 @@ void	processGetRequest(clt)
 
 void	processPostRequest(clt)
 {
-	//checking if the path has a directory format
+	//checking if the path has a directory format, ? or check it with stats() ?
 	if (is_directoryPath)
 	{
 		clt->statusCode = k403;
-		return (generateSuccessResponse(clt));
+		return (generateErrorResponse(clt));
 	}
 
 	HeaderValue	*Content-Type = clt->req->returnValueAsPointer("Content-Type");
