@@ -27,5 +27,6 @@ status-code    = 3DIGIT
 reason-phrase  = 1*( HTAB / SP / VCHAR / obs-text )
 
 field-line    = field-name ":" OWS field-value OWS
+; A server MUST reject, with a response status code of 400 (Bad Request), any received request message that contains whitespace between a header field name and colon
 
 message-body  = *OCTET
