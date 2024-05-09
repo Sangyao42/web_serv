@@ -10,6 +10,7 @@ HTTPMessage::HTTPMessage(const HTTPMessage &obj)
 	{
 		addNewPair(it->first, it->second->clone());
 	}
+	body_size_chunked_ = obj.body_size_chunked_;
 }
 
 HTTPMessage::~HTTPMessage()
@@ -27,6 +28,7 @@ HTTPMessage &HTTPMessage::operator=(const HTTPMessage &obj)
 	{
 		addNewPair(it->first, it->second->clone());
 	}
+	body_size_chunked_ = obj.body_size_chunked_;
 }
 
 void	HTTPMessage::addNewPair(std::string key, HeaderValue *value)
