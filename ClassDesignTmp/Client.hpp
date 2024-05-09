@@ -23,6 +23,7 @@ struct Client
 	struct ConfigurationQueryResult	*config;
 	struct stat	statBuff;
 	std::string path;
+	bool	keepAlive = true;
 	Request	*req;
 	Response	*res;
 };
