@@ -178,6 +178,11 @@ void	processPostRequest(clt)
 		if(is_cgi)
 			return (processPostRequestCGI(clt));
 		// append is done by cgi, but the body will be the modified version of the existing file, see PUT Method
+		if (!access(file, W_OK))
+		{
+			clt->statusCode = k403;
+			return (generateSuccessResponse(clt));
+		}
 		clt->statusCode = k200; // ? what should be sent in the body? could be, eg., <html>Modification Success!</html>
 	}
 	return (generateSuccessResponse(clt));
