@@ -171,6 +171,7 @@ void	processPostRequest(clt)
 			return (generateSuccessResponse(clt));
 		}
 		// upload
+		// ? check the SEARCH permission for the directory ? //
 		clt->statusCode = k201; // + location header to notify where it is saved
 	}
 	else
