@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-void	resBuilder::helper::buildErrorHeaders(struct Client *clt)
+void	resBuilder::helper::BuildErrorHeaders(struct Client *clt)
 {
 	// clt->res->addNewPair("Server", something);
 	// clt->res->addNewPair("Content-Type", something);
@@ -16,11 +16,11 @@ const std::string &resBuilder::helper::buildErrorPage(const struct Client *clt)
 
 	response = "<html>\r\n";
 	response += "<head><title>";
-	response += statusCodeAsString(clt->statusCode);
+	response += statusCodeAsString(clt->status_code);
 	response += "</title></head>\r\n";
 	response += "<body>\r\n";
 	response += "<center><h1>";
-	response += statusCodeAsString(clt->statusCode);
+	response += statusCodeAsString(clt->status_code);
 	response += "</h1></center>\r\n";
 	response += "<hr><center>Webserv</center>\r\n";
 	response += "</body>\r\n";
@@ -29,7 +29,7 @@ const std::string &resBuilder::helper::buildErrorPage(const struct Client *clt)
 	return (response);
 }
 
-void	resBuilder::generateErrorResponse(struct Client *clt)
+void	resBuilder::GenerateErrorResponse(struct Client *clt)
 {
 	// build the status line
 	std::string response = clt->clientSocket->res_buf;
@@ -52,7 +52,7 @@ void	resBuilder::generateErrorResponse(struct Client *clt)
 
 	for (it = errorPages.begin(); it != errorPages.end(); ++it)
 	{
-		result = (*it)->match(clt->statusCode);
+		result = (*it)->match(clt->status_code);
 		if (result.is_ok())
 			break ;
 	}
@@ -61,21 +61,21 @@ void	resBuilder::generateErrorResponse(struct Client *clt)
 		pathErrorPage = (*it)->file_path;
 		if (readFileToString(pathErrorPage, &response) != kNoError);
 		{
-			clt->statusCode = k500;
+			clt->status_code = k500;
 			delete clt->res;
 			clt->res = new Response();
-			generateErrorResponse(clt);
+			GenerateErrorResponse(clt);
 		}
 	}
 	else
 		response += buildErrorPage(clt);
 }
 
-void	resBuilder::utils::buildStatusLine(const struct Client *clt, std::string &response)
+void	resBuilder::utils::BuildStatusLine(const struct Client *clt, std::string &response)
 {
 	response = "";
 	response += "HTTP/1.1 ";
-	response += statusCodeAsString(clt->statusCode);
+	response += StatusCodeAsString(clt->status_code);
 	response += "\r\n";
 }
 
@@ -95,7 +95,7 @@ enum ResponseBuilder	resBuilder::utils::readFileToString(const std::string &path
 	return (kNoError);
 }
 
-const std::string	&resBuilder::utils::statusCodeAsString(enum StatusCode code)
+const std::string	&resBuilder::utils::StatusCodeAsString(enum StatusCode code)
 {
 	switch (code)
 	{

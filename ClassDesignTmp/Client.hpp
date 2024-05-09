@@ -17,14 +17,14 @@ enum ResponseError
 	kNoError,
 	kFileOpenError,
 	kFilestreamError
-}
+};
 
 struct Client
 {
-	StatusCode	statusCode;
-	struct ClientSocket	*clientSocket;
+	StatusCode	status_code;
+	struct ClientSocket	*client_socket;
 	const struct ConfigurationQueryResult	*config;
-	struct stat	statBuff;
+	struct stat	stat_buff;
 	std::string path;
 	bool	keepAlive = true;
 	Request	*req;
@@ -33,33 +33,39 @@ struct Client
 
 namespace process
 {
-	void	processRequest(struct Client *clt);
-	void	processGetRequest(struct Client *clt);
-	void	processPostRequest(struct Client *clt);
-	void	processDeleteRequest(struct Client *clt);
+	void	ProcessRequest(struct Client *clt);
+	void	ProcessGetRequest(struct Client *clt);
+	void	ProcessPostRequest(struct Client *clt);
+	void	ProcessDeleteRequest(struct Client *clt);
 
-	std::string getExactPath(const std::string root, std::string matchPath, const std::string requestTarget);
+	void	ProcessGetRequestCgi(struct Client *clt);
+
+	//file and path related functions
+	std::string GetExactPath(const std::string root, std::string matchPath, const struct Uri uri);
+	bool	IsCgi(std::string path);
+	bool	IsAccessable(std::string path);
+	std::string	GetIndexPath();
 }
 
 namespace resBuilder
 {
-	void	generateErrorResponse(struct Client *clt);
-	void	generateRedirectResponse(struct Client *clt);
-	void	generateChunkedResponse(struct Client *clt);
-	void	generateAutoindexResponse(struct Client *clt);
-	void	generateSuccessResponse(struct Client *clt);
+	void	GenerateErrorResponse(struct Client *clt);
+	void	GenerateRedirectResponse(struct Client *clt);
+	void	GenerateChunkedResponse(struct Client *clt);
+	void	GenerateAutoindexResponse(struct Client *clt);
+	void	GenerateSuccessResponse(struct Client *clt);
 
 	namespace helper
 	{
-		void	buildErrorHeaders(struct Client *clt);
-		enum ResponseBuilder	buildErrorPage(const struct Client *clt);
+		void	BuildErrorHeaders(struct Client *clt);
+		enum ResponseBuilder	BuildErrorPage(const struct Client *clt);
 	}
 
 	namespace utils
 	{
-		void	buildStatusLine(const struct Client *clt, std::string &response);
-		const std::string &readFileToString(const std::string &path);
-		const std::string	&statusCodeAsString(enum StatusCode code);
+		void	BuildStatusLine(const struct Client *clt, std::string &response);
+		const std::string &ReadFileToString(const std::string &path);
+		const std::string	&StatusCodeAsString(enum StatusCode code);
 	}
 
 }
