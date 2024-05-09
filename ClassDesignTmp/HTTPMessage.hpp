@@ -4,6 +4,8 @@
 #include <iterator>
 #include "Protocol.hpp"
 #include "HeaderValue.hpp"
+#include "HeaderString.hpp"
+#include "HeaderInt.hpp"
 
 typedef std::pair<std::string, HeaderValue *>	HeaderPair;
 typedef std::map<std::string, HeaderValue *>	HeaderMap;
