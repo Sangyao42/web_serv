@@ -4,8 +4,9 @@
 #include <iterator>
 #include "Protocol.hpp"
 #include "HeaderValue.hpp"
-#include "HeaderString.hpp"
-#include "HeaderInt.hpp"
+#include "HeaderValue/HeaderString.hpp"
+#include "HeaderValue/HeaderInt.hpp"
+#include "Uri.hpp"
 
 typedef std::pair<std::string, HeaderValue *>	HeaderPair;
 typedef std::map<std::string, HeaderValue *>	HeaderMap;
@@ -25,6 +26,7 @@ class HTTPMessage
 		HTTPMessage &operator=(const HTTPMessage &obj);
 
 		std::map<std::string, HeaderValue *>	headers_;
+		int	body_size_chunked_ = -1; // TODO: save body size after request parsing or optionally after response parsing
 
 		void	addNewPair(std::string key, HeaderValue *value);
 		void	addNewPair(HeaderPair pair);
