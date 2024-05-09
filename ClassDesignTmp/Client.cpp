@@ -66,7 +66,7 @@ void	resBuilder::generateErrorResponse(struct Client *clt)
 			clt->res = new Response();
 			generateErrorResponse(clt);
 		}
-	}	
+	}
 	else
 		response += buildErrorPage(clt);
 }
@@ -141,5 +141,5 @@ const std::string	&resBuilder::utils::statusCodeAsString(enum StatusCode code)
 			return ("503 Service Unavailable");
 		default:
 		 return (""); // Error
-	}	
+	}
 }
