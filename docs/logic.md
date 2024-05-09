@@ -185,7 +185,7 @@ void	processDeleteRequest(clt)
 {
 	if (is_cgi)
 	{
-		clt->statusCode = k403;
+		clt->statusCode = k405;
 		return (generateErrorResponse(clt));
 	}
 	if (is_filename? || force_delete?)

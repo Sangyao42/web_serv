@@ -45,6 +45,14 @@ namespace process
 	bool	IsCgi(std::string path);
 	bool	IsAccessable(std::string path);
 	std::string	GetIndexPath();
+
+	//cgi related functions
+	enum PipeEnd
+	{
+		kRead,
+		kWrite
+	};
+	int SetPipes(int *cgi_input, int *cgi_output, const std::string &method);
 }
 
 namespace resBuilder
