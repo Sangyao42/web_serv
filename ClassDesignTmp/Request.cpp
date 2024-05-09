@@ -27,7 +27,7 @@ const Method	&Request::getMethod() const
 	return (method_);
 }
 
-const std::string	&Request::getRequestTarget() const
+const struct Uri	&Request::getRequestTarget() const
 {
 	return (requestTarget_)
 }
@@ -47,7 +47,7 @@ void	Request::setMethod(const Method &method)
 	method_ = method;
 }
 
-void	Request::setRequestTarget(const std::string &requestTarget)
+void	Request::setRequestTarget(const struct Uri &requestTarget)
 {
 	requestTarget_ = requestTarget;
 }
