@@ -74,18 +74,42 @@ namespace http_parser
     kParameter,
     kParameters,
 
+    kPathAbempty,
+    kPathAbsolute,
+    kPathNoScheme,
+    kPathRootless,
+    kPathEmpty,
+
+    kIpv6Address,
+    kIpvFutureAddress,
+    kIpv4Address,
+    kRegName,
+
+    kUriScheme,
+    kUriHost,
+    kUriPort,
+    kUriQuery,
+    kUriUserInfo,
+    kUriAuthority,
+    kUriFragment,
+    kUriReferenceNetworkPath,
+    kUri,
+    kUriAbsolute,
+    kUriReferenceRelative,
+    kUriReference,
+
     kHttpVersion,
 
     kRequestLine,
     kRequestTargetOriginForm,
-    kRequestTargetAbsoluteForm,
     kRequestTargetAuthorityForm,
     kRequestAsteriskForm,
 
+    kStatusReasonPhrase,
     kStatusLine,
     kStatusCode,
-    kStatusReasonPhrase,
 
+    kFieldValue,
     kFieldLine,
     kMessageBody,
     kMessage
@@ -112,7 +136,7 @@ namespace http_parser
   struct ParseNodeParameter : public ParseNode
   {
     ParseNodeToken* name;
-    ParseNodeType   value_type;
+    ParseNodeType   type_value;
     union
     {
       ParseNodeToken*         value;
@@ -125,41 +149,196 @@ namespace http_parser
     std::vector<ParseNodeParameter*> children;
   };
 
-  struct ParseNodeHttpVersion : public ParseNode
+  /////////////////////////////////////////
+  ////////////////   path   ///////////////
+  /////////////////////////////////////////
+
+  struct ParseNodePathAbEmpty : public ParseNode
   {
     std::string content;
+  };
+
+  struct ParseNodePathAbsolute : public ParseNode
+  {
+    std::string content;
+  };
+
+  struct ParseNodePathNoScheme : public ParseNode
+  {
+    std::string content;
+  };
+
+  struct ParseNodePathRootless : public ParseNode
+  {
+    std::string content;
+  };
+
+  struct ParseNodePathEmpty : public ParseNode
+  {};
+
+  ////////////////////////////////////////////////
+  ////////////////   ip address   ////////////////
+  ////////////////////////////////////////////////
+
+  struct ParseNodeIpv6Address : public ParseNode
+  {
+    std::string content;
+  };
+
+  struct ParseNodeIpvFutureAddress : public ParseNode
+  {
+    std::string content;
+  };
+
+  struct ParseNodeIpv4Address : public ParseNode
+  {
+    std::string content;
+  };
+
+  struct ParseNodeRegName : public ParseNode
+  {
+    std::string content;
+  };
+
+  /////////////////////////////////////////
+  ////////////////   uri   ////////////////
+  /////////////////////////////////////////
+
+  struct ParseNodeUriScheme : public ParseNode
+  {
+    std::string content;
+  };
+
+  struct ParseNodeUriHost : public ParseNode
+  {
+    ParseNodeType type_address;
+    union
+    {
+      ParseNodeIpv6Address*       ipv6_address;
+      ParseNodeIpvFutureAddress*  ipvfuture_address;
+      ParseNodeIpv4Address*       ipv4_address;
+      ParseNodeRegName*           reg_name;
+    };
+  };
+
+  struct ParseNodeUriPort : public ParseNode
+  {
+    int number;
+  };
+
+  struct ParseNodeUriQuery : public ParseNode
+  {
+    std::string content;
+  };
+
+  struct ParseNodeUriUserInfo : public ParseNode
+  {
+    std::string content;
+  };
+
+  struct ParseNodeUriAuthority : public ParseNode
+  {
+    Maybe<ParseNodeUriUserInfo*>  user_info;
+    ParseNodeUriHost*             host;
+    Maybe<ParseNodeUriQuery*>     query;
+  };
+
+  struct ParseNodeUriFragment : public ParseNode
+  {
+    std::string content;
+  };
+
+  struct ParseNodeUriReferenceNetworkPath : public ParseNode
+  {
+    ParseNodeUriAuthority*   authority;
+    ParseNodePathAbEmpty* path;
+  };
+
+  struct ParseNodeUri : public ParseNode
+  {
+    ParseNodeUriScheme*          scheme;
+    ParseNodeType                type_path;
+    union
+    {
+      ParseNodeUriReferenceNetworkPath* network_path_reference;
+      ParseNodePathAbsolute*            path_absolute;
+      ParseNodePathRootless*            path_rootless;
+      ParseNodePathEmpty*               path_empty;
+    };
+    Maybe<ParseNodeUriQuery*>    query;
+    Maybe<ParseNodeUriFragment*> fragment;
+  };
+
+  struct ParseNodeUriAbsolute : public ParseNode
+  {
+    ParseNodeUriScheme*          scheme;
+    ParseNodeType                type_path;
+    union
+    {
+      ParseNodeUriReferenceNetworkPath* network_path_reference;
+      ParseNodePathAbsolute*            path_absolute;
+      ParseNodePathRootless*            path_rootless;
+      ParseNodePathEmpty*               path_empty;
+    };
+    Maybe<ParseNodeUriQuery*>    query;
+  };
+
+  struct ParseNodeUriReferenceRelative : public ParseNode
+  {
+    ParseNodeType type_path;
+    union
+    {
+      ParseNodeUriReferenceNetworkPath* network_path_reference;
+      ParseNodePathAbsolute*            path_absolute;
+      ParseNodePathNoScheme*            path_noscheme;
+      ParseNodePathEmpty*               path_empty;
+    };
+    Maybe<ParseNodeUriQuery*>    query;
+    Maybe<ParseNodeUriFragment*> fragment;
+  };
+
+  struct ParseNodeUriReference : public ParseNode
+  {
+    ParseNodeType type_reference;
+    union
+    {
+      ParseNodeUri*                   uri;
+      ParseNodeUriReferenceRelative*  relative_reference;
+    };
   };
 
   //////////////////////////////////////////////////
   ////////////////   Request line   ////////////////
   //////////////////////////////////////////////////
 
-  struct ParseNodeRequestTargetOriginForm : public ParseNode 
+  struct ParseNodeHttpVersion : public ParseNode
   {
-    // TODO: need to parse URI stuffs
+    std::string content;
   };
 
-  struct  ParseNodeRequestTargetAbsoluteForm : public ParseNode
+  struct ParseNodeRequestTargetOriginForm : public ParseNode 
   {
-    // TODO: need to parse URI stuffs
+    ParseNodePathAbsolute*    absolute_path;
+    Maybe<ParseNodeUriQuery*> query;
   };
 
   struct ParseNodeRequestTargetAuthorityForm : public ParseNode
   {
-    // TODO: need to parse URI stuffs
+    ParseNodeUriHost* host;
+    ParseNodeUriPort* port;
   };
 
   struct ParseNodeRequestTargetAsteriskForm : public ParseNode
   {};
-  
+
   struct ParseNodeRequestLine : public ParseNode
   {
     ParseNodeToken* method;
-    ParseNodeType   request_target_type;
+    ParseNodeType   type_request_target;
     union
     {
       ParseNodeRequestTargetOriginForm*     request_target_origin_form;
-      ParseNodeRequestTargetAbsoluteForm*   request_target_absolute_form;
+      ParseNodeUriAbsolute*                 request_target_absolute_form; // only used in CONNECT message
       ParseNodeRequestTargetAuthorityForm*  request_target_authority_form;
       ParseNodeRequestTargetAsteriskForm*   request_target_asterisk_form;
     };
@@ -175,10 +354,15 @@ namespace http_parser
     std::string content;
   };
 
+  struct ParseNodeStatusCode : public ParseNode
+  {
+    int number;
+  };
+
   struct ParseNodeStatusLine : public ParseNode
   {
     ParseNodeHttpVersion*         http_version;
-    int                           status_code;
+    ParseNodeStatusCode*          status_code;
     Maybe<ParseNodeReasonPhrase*> reason_phrase;
   };
 
