@@ -137,7 +137,7 @@ void	process::ProcessGetRequest(struct Client *clt)
 
 void	process::ProcessPostRequest(struct Client *clt)
 {
-	if (IsDirFormat(clt->path)) // end with "/" or without extension
+	if (IsDirFormat(clt->path)) // end with "/"
 	{
 		clt->status_code = k403;
 		return (res_builder::GenerateErrorResponse(clt));
