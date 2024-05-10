@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-void	resBuilder::helper::BuildErrorHeaders(struct Client *clt)
+void	res_builder::helper::BuildErrorHeaders(struct Client *clt)
 {
 	// clt->res->addNewPair("Server", something);
 	// clt->res->addNewPair("Content-Type", something);
@@ -10,7 +10,7 @@ void	resBuilder::helper::BuildErrorHeaders(struct Client *clt)
 	// different headers for different status codes
 }
 
-const std::string &resBuilder::helper::buildErrorPage(const struct Client *clt)
+const std::string &res_builder::helper::buildErrorPage(const struct Client *clt)
 {
 	std::string response;
 
@@ -29,7 +29,7 @@ const std::string &resBuilder::helper::buildErrorPage(const struct Client *clt)
 	return (response);
 }
 
-void	resBuilder::GenerateErrorResponse(struct Client *clt)
+void	res_builder::GenerateErrorResponse(struct Client *clt)
 {
 	// build the status line
 	std::string response = clt->clientSocket->res_buf;
@@ -71,7 +71,7 @@ void	resBuilder::GenerateErrorResponse(struct Client *clt)
 		response += buildErrorPage(clt);
 }
 
-void	resBuilder::utils::BuildStatusLine(const struct Client *clt, std::string &response)
+void	res_builder::utils::BuildStatusLine(const struct Client *clt, std::string &response)
 {
 	response = "";
 	response += "HTTP/1.1 ";
@@ -79,7 +79,7 @@ void	resBuilder::utils::BuildStatusLine(const struct Client *clt, std::string &r
 	response += "\r\n";
 }
 
-enum ResponseBuilder	resBuilder::utils::readFileToString(const std::string &path)
+enum ResponseBuilder	res_builder::utils::readFileToString(const std::string &path)
 {
 	std::ifstream	file(path);
 	std::stringstream	ss;
@@ -95,7 +95,7 @@ enum ResponseBuilder	resBuilder::utils::readFileToString(const std::string &path
 	return (kNoError);
 }
 
-const std::string	&resBuilder::utils::StatusCodeAsString(enum StatusCode code)
+const std::string	&res_builder::utils::StatusCodeAsString(enum status_code code)
 {
 	switch (code)
 	{

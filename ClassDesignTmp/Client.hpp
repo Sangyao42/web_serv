@@ -21,7 +21,7 @@ enum ResponseError
 
 struct Client
 {
-	StatusCode	status_code;
+	status_code	status_code;
 	struct ClientSocket	*client_socket;
 	const struct ConfigurationQueryResult	*config;
 	struct stat	stat_buff;
@@ -68,7 +68,7 @@ namespace process
 	int		FreeTwoDimArray(char **argv);
 }
 
-namespace resBuilder
+namespace res_builder
 {
 	void	GenerateErrorResponse(struct Client *clt);
 	void	GenerateRedirectResponse(struct Client *clt);
@@ -86,7 +86,7 @@ namespace resBuilder
 	{
 		void	BuildStatusLine(const struct Client *clt, std::string &response);
 		const std::string &ReadFileToString(const std::string &path);
-		const std::string	&StatusCodeAsString(enum StatusCode code);
+		const std::string	&StatusCodeAsString(enum status_code code);
 	}
 
 }
