@@ -36,7 +36,7 @@ void	process::ProcessRequest(struct Client *clt)
 	if (location->redirect)
 		return (resBuilder::GenerateRedirectResponse(clt));
 
-	std::string path = GetExactPath(location->root, location->match_path, clt->req->getRequestTarget());
+	std::string path = process::GetExactPath(location->root, location->match_path, clt->req->getRequestTarget());
 	clt->path = path;
 	if ((access(path.c_str(), F_OK) != 0) \
 	&& (clt->req->getMethod() == kGet || clt->req->getMethod() == kDelete)) // check if the path exists (for get and delete)
@@ -76,12 +76,12 @@ void	process::ProcessRequest(struct Client *clt)
 	}
 }
 
-void	processGetRequest(struct Client *clt)
+void	process::ProcessGetRequest(struct Client *clt)
 {
 	cache::LocationQuery	*location= clt->config->query;
 	if (S_ISREG(clt->stat_buff.st_mode))
 	{
-		if (process::IsCgi(clt->path))
+		if (process::IsCgi(clt->path)) //check file extension and get the cgi path inside IsCgi
 			return (process::ProcessGetRequestCgi(clt));
 		if (!process::IsAccessable(clt->path))
 		{
@@ -99,8 +99,9 @@ void	processGetRequest(struct Client *clt)
 	else if (S_ISDIR(clt->stat_buff.st_mode))
 	{
 		assert(location->indexes.size() && "Indexes is empty");
-		// ? update the clt->path to the index file ?
 		std::string index_path = process::GetIndexPath(); // TODO: loop through the location->indexes and check if they exist with F_OK
+		// ? update the clt->path to the index file ? which means internal redirect
+		clt->path = index_path;
 		if (index_path == "")
 		{
 			if (location->autoindex == true)
@@ -112,8 +113,9 @@ void	processGetRequest(struct Client *clt)
 			}
 		}
 		if (process::IsCgi(index_path))
-			return (process::ProcessGetRequestCgi(clt));
-		if (!process::IsAccessable(index_path))
+			return (ProcessGetRequestCgi(clt));
+		std::string content_type = process::GetContentType(index_path);
+		if (!process::IsAccessable(content_type))
 		{
 			clt->status_code = k406;
 			return (resBuilder::GenerateErrorResponse(clt));
@@ -128,7 +130,88 @@ void	processGetRequest(struct Client *clt)
 	}
 	else
 	{
-		clt->status_code = k404;
+		clt->status_code = k403;
+		return (resBuilder::GenerateErrorResponse(clt));
+	}
+}
+
+void	process::ProcessPostRequest(struct Client *clt)
+{
+	if (IsDirFormat(clt->path)) // end with "/" or without extension
+	{
+		clt->status_code = k403;
+		return (resBuilder::GenerateErrorResponse(clt));
+	}
+
+	HeaderValue	*content_type = clt->req->returnValueAsPointer("Content-Type");
+	if (content_type && !IsSupportedMediaType()) // MIME type checking
+	{
+		clt->status_code = k415;
+		return (resBuilder::GenerateErrorResponse(clt));
+	}
+
+	//path is in the clt->path
+	if (stat(clt->path.c_str(), &clt->stat_buff) == 0)  //file exists
+	{
+		if (S_ISDIR(clt->stat_buff.st_mode))
+		{
+			clt->status_code = k403;
+			return (resBuilder::GenerateErrorResponse(clt));
+		}
+		else if (S_ISREG(clt->stat_buff.st_mode))
+		{
+
+			if (IsCgi(clt->path))
+				return (ProcessPostRequestCgi(clt));
+			if(access(clt->path.c_str(), W_OK) != 0)
+			{
+				clt->status_code = k403;
+				return (resBuilder::GenerateErrorResponse(clt));
+			}
+			clt->status_code = k200; // ? what should be sent in the body? could be, eg., <html>Modification Success!</html>
+			// TODO: modify the file with the body of the request
+			return (resBuilder::GenerateSuccessResponse(clt));
+		}
+		else
+		{
+			clt->status_code = k403;
+			return (resBuilder::GenerateErrorResponse(clt));
+		}
+	}
+	else //file does not exist
+	{
+		if(IsCgi(clt->path))
+		{
+			clt->status_code = k403;
+			return (resBuilder::GenerateErrorResponse(clt));
+		}
+		// upload
+		// TODO: check the SEARCH permission for the directory and create the file
+		clt->status_code = k201; // + location header to notify where it is saved
+		return (resBuilder::GenerateSuccessResponse(clt));
+	}
+}
+
+void	process::ProcessDeleteRequest(struct Client *clt)
+{
+	if (IsCgi(clt->path))
+	{
+		clt->status_code = k405;
+		return (resBuilder::GenerateErrorResponse(clt));
+	}
+	if (S_ISREG(clt->stat_buff.st_mode))
+	{
+		if (access(clt->path.c_str(), W_OK) != 0)
+		{
+			clt->status_code = k403;
+			return (resBuilder::GenerateErrorResponse(clt));
+		}
+		clt->status_code = k204; //or k200 with a success message
+		return (resBuilder::GenerateSuccessResponse(clt));
+	}
+	else
+	{
+		clt->status_code = k403;
 		return (resBuilder::GenerateErrorResponse(clt));
 	}
 }

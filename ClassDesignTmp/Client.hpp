@@ -39,12 +39,17 @@ namespace process
 	void	ProcessDeleteRequest(struct Client *clt);
 
 	void	ProcessGetRequestCgi(struct Client *clt);
+	void	ProcessPostRequestCgi(struct Client *clt);
 
 	//file and path related functions
 	std::string GetExactPath(const std::string root, std::string matchPath, const struct Uri uri);
-	bool	IsCgi(std::string path);
-	bool	IsAccessable(std::string path);
+	bool		IsCgi(std::string path);
+	std::string	GetContentType(std::string path);
+	bool		IsAccessable(std::string path);
 	std::string	GetIndexPath();
+	bool		IsSupportedMediaType();
+	bool		IsDirFormat(std::string path);
+
 
 	//cgi related functions
 	enum PipeEnd
@@ -52,7 +57,15 @@ namespace process
 		kRead,
 		kWrite
 	};
-	int SetPipes(int *cgi_input, int *cgi_output, const std::string &method);
+	int		SetPipes(int *cgi_input, int *cgi_output, const Method method);
+	char*	ConstructCgiExcutable();
+	char*	ConstructCgiPath();
+	char**	ConstructCgiArgv(char* cgi_path);
+	char**	ConstructCgiEnv();
+	int 	ReadAll(int fd, std::string &response_tmp);
+
+	//helper functions
+	int		FreeTwoDimArray(char **argv);
 }
 
 namespace resBuilder
