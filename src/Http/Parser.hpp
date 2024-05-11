@@ -8,18 +8,6 @@
 
 namespace http_parser
 {
-  /* enum CharType
-  {
-    kAlpha,
-    kCr,
-    kCtl,
-    kDigit,
-    kDquote,
-    kHtab,
-    kLf,
-    kSp,
-  }; */
-
   struct StringSlice
   {
     const char* bytes;
@@ -29,6 +17,11 @@ namespace http_parser
   };
 
   typedef const char* Input;
+
+  //////////////////////////////////////////
+  ////////////////   scan   ////////////////
+  //////////////////////////////////////////
+
   struct ScanOutput
   {
     bool        is_success;
@@ -66,19 +59,8 @@ namespace http_parser
   ScanOutput  ScanEscapedText(Input input); // named as quoted-pair in abnf
 
   ///////////////////////////////////////////
-  ////////////////   token   ////////////////
+  ////////////////   parse   ////////////////
   ///////////////////////////////////////////
-
-  enum ParseOutputError
-  {
-    kParseSuccess
-  };
-
-  struct ParseOutput
-  {
-    ParseOutputError  error;
-    Input             rest;
-  };
 
   enum PTNodeType
   {
@@ -140,11 +122,21 @@ namespace http_parser
     return temporary::arena.allocate<T>(); 
   }
 
-  struct ParseTree
+  enum ParseOutputError
   {
-    PTNode*  root;
-    PTNode*  current;
+    kParseSuccess
   };
+
+  struct ParseOutput
+  {
+    ParseOutputError  error;
+    Input             rest;
+    PTNode*           result;
+  };
+
+  ///////////////////////////////////////////
+  ////////////////   token   ////////////////
+  ///////////////////////////////////////////
 
   struct PTNodeToken : public PTNode
   {
@@ -162,9 +154,9 @@ namespace http_parser
   struct PTNodeParameter : public PTNode
   {
     PTNodeToken* name;
-    PTNodeType   type_value;
     union
     {
+      PTNode*              value_header;
       PTNodeToken*         value;
       PTNodeQuotedString*  value_quoted;
     };
@@ -174,6 +166,12 @@ namespace http_parser
   {
     std::vector<PTNodeParameter*> children;
   };
+
+  ParseOutput  ParseToken(Input input);
+  ParseOutput  ParseQuotedString(Input input);
+  ParseOutput  ParseComment(Input input);
+  ParseOutput  ParseParameter(Input input);
+  ParseOutput  ParseParameters(Input input);
 
   /////////////////////////////////////////
   ////////////////   path   ///////////////
@@ -202,6 +200,12 @@ namespace http_parser
   struct PTNodePathEmpty : public PTNode
   {};
 
+  ParseOutput  ParsePathAbEmpty(Input input);
+  ParseOutput  ParsePathAbsolute(Input input);
+  ParseOutput  ParsePathNoScheme(Input input);
+  ParseOutput  ParsePathRootless(Input input);
+  ParseOutput  ParsePathEmpty(Input input);
+
   ////////////////////////////////////////////////
   ////////////////   ip address   ////////////////
   ////////////////////////////////////////////////
@@ -226,6 +230,11 @@ namespace http_parser
     StringSlice content;
   };
 
+  ParseOutput  ParseIpv6Address(Input input);
+  ParseOutput  ParseIpvFutureAddress(Input input);
+  ParseOutput  ParseIpv4Address(Input input);
+  ParseOutput  ParseRegName(Input input);
+
   /////////////////////////////////////////
   ////////////////   uri   ////////////////
   /////////////////////////////////////////
@@ -237,9 +246,9 @@ namespace http_parser
 
   struct PTNodeUriHost : public PTNode
   {
-    PTNodeType type_address;
     union
     {
+      PTNode*                  address_header;
       PTNodeIpv6Address*       ipv6_address;
       PTNodeIpvFutureAddress*  ipvfuture_address;
       PTNodeIpv4Address*       ipv4_address;
@@ -283,9 +292,9 @@ namespace http_parser
   struct PTNodeUri : public PTNode
   {
     PTNodeUriScheme*          scheme;
-    PTNodeType                type_path;
     union
     {
+      PTNode*                        path_header;
       PTNodeUriReferenceNetworkPath* network_path_reference;
       PTNodePathAbsolute*            path_absolute;
       PTNodePathRootless*            path_rootless;
@@ -298,9 +307,9 @@ namespace http_parser
   struct PTNodeUriAbsolute : public PTNode
   {
     PTNodeUriScheme*          scheme;
-    PTNodeType                type_path;
     union
     {
+      PTNode*                        path_header;
       PTNodeUriReferenceNetworkPath* network_path_reference;
       PTNodePathAbsolute*            path_absolute;
       PTNodePathRootless*            path_rootless;
@@ -311,9 +320,9 @@ namespace http_parser
 
   struct PTNodeUriReferenceRelative : public PTNode
   {
-    PTNodeType type_path;
     union
     {
+      PTNode*                        path_header;
       PTNodeUriReferenceNetworkPath* network_path_reference;
       PTNodePathAbsolute*            path_absolute;
       PTNodePathNoScheme*            path_noscheme;
@@ -325,13 +334,26 @@ namespace http_parser
 
   struct PTNodeUriReference : public PTNode
   {
-    PTNodeType type_reference;
     union
     {
+      PTNode*                      uri_header;
       PTNodeUri*                   uri;
       PTNodeUriReferenceRelative*  relative_reference;
     };
   };
+
+  ParseOutput  ParseUriScheme(Input input);
+  ParseOutput  ParseUriHost(Input input);
+  ParseOutput  ParseUriPort(Input input);
+  ParseOutput  ParseUriQuery(Input input);
+  ParseOutput  ParseUriUserInfo(Input input);
+  ParseOutput  ParseUriAuthority(Input input);
+  ParseOutput  ParseUriFragment(Input input);
+  ParseOutput  ParseUriReferenceNetworkPath(Input input);
+  ParseOutput  ParseUri(Input input);
+  ParseOutput  ParseUriAbsolute(Input input);
+  ParseOutput  ParseUriReferenceRelative(Input input);
+  ParseOutput  ParseUriReference(Input input);
 
   //////////////////////////////////////////////////
   ////////////////   Request line   ////////////////
@@ -360,9 +382,9 @@ namespace http_parser
   struct PTNodeRequestLine : public PTNode
   {
     PTNodeToken* method;
-    PTNodeType   type_request_target;
     union
     {
+      PTNode*                            request_target_header;
       PTNodeRequestTargetOriginForm*     request_target_origin_form;
       PTNodeUriAbsolute*                 request_target_absolute_form; // only used in CONNECT message
       PTNodeRequestTargetAuthorityForm*  request_target_authority_form;
@@ -370,6 +392,12 @@ namespace http_parser
     };
     PTNodeHttpVersion* version;
   };
+
+  ParseOutput  ParseHttpVersion(Input input);
+  ParseOutput  ParseRequestTargetOriginForm(Input input);
+  ParseOutput  ParseRequestTargetAuthorityForm(Input input);
+  ParseOutput  ParseRequestTargetAsteriskForm(Input input);
+  ParseOutput  ParseRequestLine(Input input);
 
   /////////////////////////////////////////////////
   ////////////////   status line   ////////////////
@@ -410,9 +438,9 @@ namespace http_parser
 
   struct PTNodeMessage : public PTNode
   {
-    PTNodeType start_line_type;
     union
     {
+      PTNode*            start_line_header;
       PTNodeRequestLine* request_line;
       PTNodeStatusLine*  status_line;
     };
@@ -420,19 +448,14 @@ namespace http_parser
     Maybe<PTNodeMessageBody*>      body;
   };
 
+  ParseOutput  ParseReasonPhrase(Input input);
+  ParseOutput  ParseStatusCode(Input input);
+  ParseOutput  ParseStatusLine(Input input);
+  ParseOutput  ParseFieldValue(Input input);
+  ParseOutput  ParseFieldLine(Input input);
+  ParseOutput  ParseMessageBody(Input input);
+  ParseOutput  ParseRequestMessage(Input input);
+  ParseOutput  ParseResponseMessage(Input input);
 
-  ScanOutput  ParseToken(Input input);
-  ScanOutput  ScanTokenCharacter(Input input);
-
-  ScanOutput  ParseQuotedString(Input input);
-  ScanOutput  ScanQuotedStringCharacter(Input input);
-
-  ScanOutput  ParseComment(Input input);
-  ScanOutput  ScanCommentCharacter(Input input);
-
-  ScanOutput  ParseParameters(Input input);
-  ScanOutput  ParseParameter(Input input);
-
-  ScanOutput  ParseHttpMessage(Input input, ParseTree* tree);
 } // namespace http_parser
 
