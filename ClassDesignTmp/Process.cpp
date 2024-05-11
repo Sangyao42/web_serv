@@ -100,7 +100,7 @@ void	process::ProcessGetRequest(struct Client *clt)
 	else if (S_ISDIR(clt->stat_buff.st_mode))
 	{
 		assert(location->indexes.size() && "Indexes is empty");
-		std::string index_path = process::GetIndexPath(); // TODO: loop through the location->indexes and check if they exist with F_OK
+		std::string index_path = process::GetIndexPath(clt->path, location); // TODO: loop through the location->indexes and check if they exist with F_OK
 		// ? update the clt->path to the index file ? which means internal redirect
 		clt->path = index_path;
 		if (index_path == "")
@@ -268,7 +268,11 @@ bool	process::IsAccessable(std::string content_type, HeaderValue *accept, cache:
 		return (false);
 }
 
-std::string	process::GetIndexPath()
+std::string	process::GetIndexPath(std::string path, cache::LocationQuery *location)
 {
-	
+	std::string index_path;
+
+
+
+
 }

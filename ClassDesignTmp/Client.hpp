@@ -47,7 +47,7 @@ namespace process
 	bool		IsCgi(std::string &cgi_executable, std::string path, cache::LocationQuery *location);
 	std::string	GetResContentType(std::string path);
 	bool		IsAccessable(std::string content_type, HeaderValue *accept, cache::LocationQuery *location);
-	std::string	GetIndexPath();
+	std::string	GetIndexPath(std::string path, cache::LocationQuery *location);
 	bool		IsSupportedMediaType(std::string res);
 	bool		IsDirFormat(std::string path);
 
