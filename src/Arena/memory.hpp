@@ -4,7 +4,6 @@
 #include <cstddef>
 
 #include <stdint.h>
-#include <new>
 #include <limits>
 
 #ifndef DEFAULT_ALIGNMENT
