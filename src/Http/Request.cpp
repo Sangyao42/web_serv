@@ -1,13 +1,16 @@
 #include "Request.hpp"
+#include "Http/Message.hpp"
 
 Request::Request()
-: method_(kGet),
+: HTTPMessage(),
+  method_(kGet),
 	requestTarget_(),
 	version_(kStandard),
 	requestBody_() {}
 
 Request::Request(const Request &obj)
-: method_(obj.method_),
+: HTTPMessage(obj),
+  method_(obj.method_),
 	requestTarget_(obj.requestTarget_),
 	version_(obj.version_),
 	requestBody_(obj.requestBody_) {}
@@ -16,10 +19,14 @@ Request::~Request() {}
 
 Request &Request::operator=(const Request &obj)
 {
-	method_ = obj.method_;
-	requestTarget_ = obj.requestTarget_;
-	version_ = obj.version_;
-	requestBody_ = obj.requestBody_;
+  if (this != &obj)
+  {
+    HTTPMessage::operator=(obj);
+    method_ = obj.method_;
+    requestTarget_ = obj.requestTarget_;
+    version_ = obj.version_;
+    requestBody_ = obj.requestBody_;
+  }
   return *this;
 }
 

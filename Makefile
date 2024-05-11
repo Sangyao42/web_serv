@@ -36,6 +36,10 @@ MAIN_SRC:= \
 	Config2.cpp \
 	constants.cpp
 
+ARENA_SRC:= \
+	Arena/Arena.cpp \
+	Arena/main.cpp
+
 URI_SRC:= \
 	Uri/Authority.cpp
 
@@ -70,7 +74,7 @@ MISC_SRC:= \
 SOCKETMANAGER_SRC:= \
 	socket_manager/SocketManager.cpp
 
-SRC:= $(MAIN_SRC) $(URI_SRC) $(HTTP_SRC) $(CONFIGURATION_SRC) $(MISC_SRC) $(SOCKETMANAGER_SRC)
+SRC:= $(MAIN_SRC) $(ARENA_SRC) $(URI_SRC) $(HTTP_SRC) $(CONFIGURATION_SRC) $(MISC_SRC) $(SOCKETMANAGER_SRC)
 
 ####################################
 ######     Library files     #######
