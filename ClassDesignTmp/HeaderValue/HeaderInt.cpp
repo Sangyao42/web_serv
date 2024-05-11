@@ -26,3 +26,8 @@ const int	&HeaderInt::content() const
 {
 	return (content_);
 }
+
+const int &HeaderInt::valueAsInt() const
+{
+	return (content_);
+}
