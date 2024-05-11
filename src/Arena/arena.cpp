@@ -2,12 +2,6 @@
 
 #include <cstddef>
 
-namespace arena
-{
-  Arena permanent(1024);
-  Arena temporary(1024);
-} // namespace arena
-
 Arena::Arena(size_t size)
   : memory_(::new unsigned char[size]), size_(size)
 {
