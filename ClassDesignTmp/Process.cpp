@@ -83,7 +83,8 @@ void	process::ProcessGetRequest(struct Client *clt)
 	{
 		if (process::IsCgi(clt->path)) //check file extension and get the cgi path inside IsCgi
 			return (process::ProcessGetRequestCgi(clt));
-		if (!process::IsAccessable(clt->path))
+		std::string content_type = process::GetResContentType(clt->path);
+		if (!process::IsAccessable(clt->path)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
 		{
 			clt->status_code = k406;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -114,8 +115,8 @@ void	process::ProcessGetRequest(struct Client *clt)
 		}
 		if (process::IsCgi(index_path))
 			return (ProcessGetRequestCgi(clt));
-		std::string content_type = process::GetContentType(index_path);
-		if (!process::IsAccessable(content_type))
+		std::string content_type = process::GetResContentType(index_path);
+		if (!process::IsAccessable(content_type)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
 		{
 			clt->status_code = k406;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -143,8 +144,8 @@ void	process::ProcessPostRequest(struct Client *clt)
 		return (res_builder::GenerateErrorResponse(clt));
 	}
 
-	HeaderValue	*content_type = clt->req->returnValueAsPointer("Content-Type");
-	if (content_type && !IsSupportedMediaType()) // MIME type checking
+	HeaderValue	*req_content_type = clt->req->returnValueAsPointer("Content-Type");
+	if (req_content_type && !IsSupportedMediaType(req_content_type->valueAsString())) // checkt content type from request with MIME type
 	{
 		clt->status_code = k415;
 		return (res_builder::GenerateErrorResponse(clt));

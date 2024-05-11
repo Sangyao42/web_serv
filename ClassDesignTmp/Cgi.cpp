@@ -60,7 +60,13 @@ void	process::ProcessGetRequestCgi(struct Client *clt)
 			return (res_builder::GenerateErrorResponse(clt));
 		}
 		ParseResponseTmp(response_tmp); // modify the clt->response by the received message from cgi
-		if (IsAccessable("content-type")) // TODO: get the content type from the string returned by cgi
+		std::string res_content_type = response_tmp.substr(response_tmp.find("Content-Type: "),response_tmp.find("\r\n\r\n")); // TODO: get the content type from the string returned by cgi
+		if (!IsSupportedMediaType(res_content_type)) //check the response content type with the MIME type
+		{
+			clt->status_code = k500;
+			return (res_builder::GenerateErrorResponse(clt));
+		}
+		if (IsAccessable(res_content_type)) // TODO: get the content type from the string returned by cgi, check Accept header and MIME type && check response entity's content type and Accept Header
 		{
 			clt->status_code = k406;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -154,8 +160,13 @@ void	process::ProcessPostRequestCgi(struct Client *clt)
 			return (res_builder::GenerateErrorResponse(clt));
 		}
 		ParseResponseTmp(); // modify the clt->response by the received message from cgi
-		//generate responses based on the status code read from the cgi output
-		if (IsAccessable("content-type")) // TODO: get the content type from the string returned by cgi
+		std::string res_content_type = response_tmp.substr(response_tmp.find("Content-Type: "),response_tmp.find("\r\n\r\n")); // TODO: get the content type from the string returned by cgi
+		if (!IsSupportedMediaType(res_content_type)) //check the response content type with the MIME type
+		{
+			clt->status_code = k500;
+			return (res_builder::GenerateErrorResponse(clt));
+		}
+		if (IsAccessable(res_content_type)) // TODO: get the content type from the string returned by cgi, check Accept header and MIME type && check response entity's content type and Accept Header
 		{
 			clt->status_code = k406;
 			return (res_builder::GenerateErrorResponse(clt));

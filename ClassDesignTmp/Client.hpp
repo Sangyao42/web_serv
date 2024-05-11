@@ -44,10 +44,10 @@ namespace process
 	//file and path related functions
 	std::string GetExactPath(const std::string root, std::string matchPath, const struct Uri uri);
 	bool		IsCgi(std::string path);
-	std::string	GetContentType(std::string path);
+	std::string	GetResContentType(std::string path);
 	bool		IsAccessable(std::string path);
 	std::string	GetIndexPath();
-	bool		IsSupportedMediaType();
+	bool		IsSupportedMediaType(std::string res);
 	bool		IsDirFormat(std::string path);
 
 
