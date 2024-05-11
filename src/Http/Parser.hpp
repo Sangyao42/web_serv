@@ -23,6 +23,8 @@ namespace http_parser
   {
     const char* bytes;
     int         length;
+
+    std::string to_string() const;
   };
 
   typedef const char* Input;
@@ -122,12 +124,12 @@ namespace http_parser
 
   struct ParseNodeToken : public ParseNode
   {
-    std::string content;
+    StringSlice content;
   };
 
   struct ParseNodeQuotedString : public ParseNode
   {
-    std::string content;
+    StringSlice content;
   };
 
   struct ParseNodeComment : public ParseNode
@@ -155,22 +157,22 @@ namespace http_parser
 
   struct ParseNodePathAbEmpty : public ParseNode
   {
-    std::string content;
+    StringSlice content;
   };
 
   struct ParseNodePathAbsolute : public ParseNode
   {
-    std::string content;
+    StringSlice content;
   };
 
   struct ParseNodePathNoScheme : public ParseNode
   {
-    std::string content;
+    StringSlice content;
   };
 
   struct ParseNodePathRootless : public ParseNode
   {
-    std::string content;
+    StringSlice content;
   };
 
   struct ParseNodePathEmpty : public ParseNode
@@ -182,22 +184,22 @@ namespace http_parser
 
   struct ParseNodeIpv6Address : public ParseNode
   {
-    std::string content;
+    StringSlice content;
   };
 
   struct ParseNodeIpvFutureAddress : public ParseNode
   {
-    std::string content;
+    StringSlice content;
   };
 
   struct ParseNodeIpv4Address : public ParseNode
   {
-    std::string content;
+    StringSlice content;
   };
 
   struct ParseNodeRegName : public ParseNode
   {
-    std::string content;
+    StringSlice content;
   };
 
   /////////////////////////////////////////
@@ -206,7 +208,7 @@ namespace http_parser
 
   struct ParseNodeUriScheme : public ParseNode
   {
-    std::string content;
+    StringSlice content;
   };
 
   struct ParseNodeUriHost : public ParseNode
@@ -228,12 +230,12 @@ namespace http_parser
 
   struct ParseNodeUriQuery : public ParseNode
   {
-    std::string content;
+    StringSlice content;
   };
 
   struct ParseNodeUriUserInfo : public ParseNode
   {
-    std::string content;
+    StringSlice content;
   };
 
   struct ParseNodeUriAuthority : public ParseNode
@@ -245,7 +247,7 @@ namespace http_parser
 
   struct ParseNodeUriFragment : public ParseNode
   {
-    std::string content;
+    StringSlice content;
   };
 
   struct ParseNodeUriReferenceNetworkPath : public ParseNode
@@ -313,7 +315,7 @@ namespace http_parser
 
   struct ParseNodeHttpVersion : public ParseNode
   {
-    std::string content;
+    StringSlice content;
   };
 
   struct ParseNodeRequestTargetOriginForm : public ParseNode 
@@ -351,7 +353,7 @@ namespace http_parser
 
   struct ParseNodeReasonPhrase : public ParseNode
   {
-    std::string content;
+    StringSlice content;
   };
 
   struct ParseNodeStatusCode : public ParseNode
@@ -368,7 +370,7 @@ namespace http_parser
 
   struct ParseNodeFieldValue : public ParseNode
   {
-    std::string content;
+    StringSlice content;
   };
 
   struct ParseNodeFieldLine : public ParseNode
@@ -379,7 +381,7 @@ namespace http_parser
 
   struct ParseNodeMessageBody : public ParseNode
   {
-    std::string content;
+    StringSlice content;
   };
 
   struct ParseNodeMessage : public ParseNode
