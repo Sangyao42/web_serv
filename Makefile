@@ -38,6 +38,7 @@ MAIN_SRC:= \
 
 ARENA_SRC:= \
 	Arena/Arena.cpp \
+	Arena/Container.cpp \
 	Arena/main.cpp
 
 URI_SRC:= \
