@@ -35,6 +35,10 @@ MAIN_SRC:= \
 	main.cpp \
 	constants.cpp
 
+ARENA_SRC:= \
+	Arena/Arena.cpp \
+	Arena/main.cpp
+
 URI_SRC:= \
 	Uri/Authority.cpp
 
@@ -66,7 +70,7 @@ CONFIGURATION_SRC:= \
 MISC_SRC:= \
 	misc/Nothing.cpp
 
-SRC:= $(MAIN_SRC) $(URI_SRC) $(HTTP_SRC) $(CONFIGURATION_SRC) $(MISC_SRC)
+SRC:= $(MAIN_SRC) $(ARENA_SRC) $(URI_SRC) $(HTTP_SRC) $(CONFIGURATION_SRC) $(MISC_SRC)
 
 ####################################
 ######     Library files     #######
