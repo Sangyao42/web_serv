@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "Arena.hpp"
+#include "Arena/Arena.hpp"
 
 namespace permanent
 {

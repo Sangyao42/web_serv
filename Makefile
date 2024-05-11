@@ -36,8 +36,8 @@ MAIN_SRC:= \
 	constants.cpp
 
 ARENA_SRC:= \
+	Arenas.cpp \
 	Arena/Arena.cpp \
-	Arena/Container.cpp \
 	Arena/main.cpp
 
 URI_SRC:= \
