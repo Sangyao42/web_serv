@@ -80,7 +80,7 @@ namespace http_parser
     Input             rest;
   };
 
-  enum ParseNodeType
+  enum PTNodeType
   {
     kToken,
     kQuotedString,
@@ -129,99 +129,99 @@ namespace http_parser
     kMessage
   };
 
-  struct ParseNode
+  struct PTNode
   {
-    ParseNodeType type;
+    PTNodeType type;
   };
 
   template <typename T>
-  T*  ParseNodeCreate()
+  T*  PTNodeCreate()
   {
     return temporary::arena.allocate<T>(); 
   }
 
   struct ParseTree
   {
-    ParseNode*  root;
-    ParseNode*  current;
+    PTNode*  root;
+    PTNode*  current;
   };
 
-  struct ParseNodeToken : public ParseNode
+  struct PTNodeToken : public PTNode
   {
     StringSlice content;
   };
 
-  struct ParseNodeQuotedString : public ParseNode
+  struct PTNodeQuotedString : public PTNode
   {
     StringSlice content;
   };
 
-  struct ParseNodeComment : public ParseNode
+  struct PTNodeComment : public PTNode
   {}; // ignore comment content
 
-  struct ParseNodeParameter : public ParseNode
+  struct PTNodeParameter : public PTNode
   {
-    ParseNodeToken* name;
-    ParseNodeType   type_value;
+    PTNodeToken* name;
+    PTNodeType   type_value;
     union
     {
-      ParseNodeToken*         value;
-      ParseNodeQuotedString*  value_quoted;
+      PTNodeToken*         value;
+      PTNodeQuotedString*  value_quoted;
     };
   };
 
-  struct ParseNodeParameters : public ParseNode
+  struct PTNodeParameters : public PTNode
   {
-    std::vector<ParseNodeParameter*> children;
+    std::vector<PTNodeParameter*> children;
   };
 
   /////////////////////////////////////////
   ////////////////   path   ///////////////
   /////////////////////////////////////////
 
-  struct ParseNodePathAbEmpty : public ParseNode
+  struct PTNodePathAbEmpty : public PTNode
   {
     StringSlice content;
   };
 
-  struct ParseNodePathAbsolute : public ParseNode
+  struct PTNodePathAbsolute : public PTNode
   {
     StringSlice content;
   };
 
-  struct ParseNodePathNoScheme : public ParseNode
+  struct PTNodePathNoScheme : public PTNode
   {
     StringSlice content;
   };
 
-  struct ParseNodePathRootless : public ParseNode
+  struct PTNodePathRootless : public PTNode
   {
     StringSlice content;
   };
 
-  struct ParseNodePathEmpty : public ParseNode
+  struct PTNodePathEmpty : public PTNode
   {};
 
   ////////////////////////////////////////////////
   ////////////////   ip address   ////////////////
   ////////////////////////////////////////////////
 
-  struct ParseNodeIpv6Address : public ParseNode
+  struct PTNodeIpv6Address : public PTNode
   {
     StringSlice content;
   };
 
-  struct ParseNodeIpvFutureAddress : public ParseNode
+  struct PTNodeIpvFutureAddress : public PTNode
   {
     StringSlice content;
   };
 
-  struct ParseNodeIpv4Address : public ParseNode
+  struct PTNodeIpv4Address : public PTNode
   {
     StringSlice content;
   };
 
-  struct ParseNodeRegName : public ParseNode
+  struct PTNodeRegName : public PTNode
   {
     StringSlice content;
   };
@@ -230,106 +230,106 @@ namespace http_parser
   ////////////////   uri   ////////////////
   /////////////////////////////////////////
 
-  struct ParseNodeUriScheme : public ParseNode
+  struct PTNodeUriScheme : public PTNode
   {
     StringSlice content;
   };
 
-  struct ParseNodeUriHost : public ParseNode
+  struct PTNodeUriHost : public PTNode
   {
-    ParseNodeType type_address;
+    PTNodeType type_address;
     union
     {
-      ParseNodeIpv6Address*       ipv6_address;
-      ParseNodeIpvFutureAddress*  ipvfuture_address;
-      ParseNodeIpv4Address*       ipv4_address;
-      ParseNodeRegName*           reg_name;
+      PTNodeIpv6Address*       ipv6_address;
+      PTNodeIpvFutureAddress*  ipvfuture_address;
+      PTNodeIpv4Address*       ipv4_address;
+      PTNodeRegName*           reg_name;
     };
   };
 
-  struct ParseNodeUriPort : public ParseNode
+  struct PTNodeUriPort : public PTNode
   {
     int number;
   };
 
-  struct ParseNodeUriQuery : public ParseNode
+  struct PTNodeUriQuery : public PTNode
   {
     StringSlice content;
   };
 
-  struct ParseNodeUriUserInfo : public ParseNode
+  struct PTNodeUriUserInfo : public PTNode
   {
     StringSlice content;
   };
 
-  struct ParseNodeUriAuthority : public ParseNode
+  struct PTNodeUriAuthority : public PTNode
   {
-    Maybe<ParseNodeUriUserInfo*>  user_info;
-    ParseNodeUriHost*             host;
-    Maybe<ParseNodeUriQuery*>     query;
+    Maybe<PTNodeUriUserInfo*>  user_info;
+    PTNodeUriHost*             host;
+    Maybe<PTNodeUriQuery*>     query;
   };
 
-  struct ParseNodeUriFragment : public ParseNode
+  struct PTNodeUriFragment : public PTNode
   {
     StringSlice content;
   };
 
-  struct ParseNodeUriReferenceNetworkPath : public ParseNode
+  struct PTNodeUriReferenceNetworkPath : public PTNode
   {
-    ParseNodeUriAuthority*   authority;
-    ParseNodePathAbEmpty* path;
+    PTNodeUriAuthority*   authority;
+    PTNodePathAbEmpty* path;
   };
 
-  struct ParseNodeUri : public ParseNode
+  struct PTNodeUri : public PTNode
   {
-    ParseNodeUriScheme*          scheme;
-    ParseNodeType                type_path;
+    PTNodeUriScheme*          scheme;
+    PTNodeType                type_path;
     union
     {
-      ParseNodeUriReferenceNetworkPath* network_path_reference;
-      ParseNodePathAbsolute*            path_absolute;
-      ParseNodePathRootless*            path_rootless;
-      ParseNodePathEmpty*               path_empty;
+      PTNodeUriReferenceNetworkPath* network_path_reference;
+      PTNodePathAbsolute*            path_absolute;
+      PTNodePathRootless*            path_rootless;
+      PTNodePathEmpty*               path_empty;
     };
-    Maybe<ParseNodeUriQuery*>    query;
-    Maybe<ParseNodeUriFragment*> fragment;
+    Maybe<PTNodeUriQuery*>    query;
+    Maybe<PTNodeUriFragment*> fragment;
   };
 
-  struct ParseNodeUriAbsolute : public ParseNode
+  struct PTNodeUriAbsolute : public PTNode
   {
-    ParseNodeUriScheme*          scheme;
-    ParseNodeType                type_path;
+    PTNodeUriScheme*          scheme;
+    PTNodeType                type_path;
     union
     {
-      ParseNodeUriReferenceNetworkPath* network_path_reference;
-      ParseNodePathAbsolute*            path_absolute;
-      ParseNodePathRootless*            path_rootless;
-      ParseNodePathEmpty*               path_empty;
+      PTNodeUriReferenceNetworkPath* network_path_reference;
+      PTNodePathAbsolute*            path_absolute;
+      PTNodePathRootless*            path_rootless;
+      PTNodePathEmpty*               path_empty;
     };
-    Maybe<ParseNodeUriQuery*>    query;
+    Maybe<PTNodeUriQuery*>    query;
   };
 
-  struct ParseNodeUriReferenceRelative : public ParseNode
+  struct PTNodeUriReferenceRelative : public PTNode
   {
-    ParseNodeType type_path;
+    PTNodeType type_path;
     union
     {
-      ParseNodeUriReferenceNetworkPath* network_path_reference;
-      ParseNodePathAbsolute*            path_absolute;
-      ParseNodePathNoScheme*            path_noscheme;
-      ParseNodePathEmpty*               path_empty;
+      PTNodeUriReferenceNetworkPath* network_path_reference;
+      PTNodePathAbsolute*            path_absolute;
+      PTNodePathNoScheme*            path_noscheme;
+      PTNodePathEmpty*               path_empty;
     };
-    Maybe<ParseNodeUriQuery*>    query;
-    Maybe<ParseNodeUriFragment*> fragment;
+    Maybe<PTNodeUriQuery*>    query;
+    Maybe<PTNodeUriFragment*> fragment;
   };
 
-  struct ParseNodeUriReference : public ParseNode
+  struct PTNodeUriReference : public PTNode
   {
-    ParseNodeType type_reference;
+    PTNodeType type_reference;
     union
     {
-      ParseNodeUri*                   uri;
-      ParseNodeUriReferenceRelative*  relative_reference;
+      PTNodeUri*                   uri;
+      PTNodeUriReferenceRelative*  relative_reference;
     };
   };
 
@@ -337,87 +337,87 @@ namespace http_parser
   ////////////////   Request line   ////////////////
   //////////////////////////////////////////////////
 
-  struct ParseNodeHttpVersion : public ParseNode
+  struct PTNodeHttpVersion : public PTNode
   {
     StringSlice content;
   };
 
-  struct ParseNodeRequestTargetOriginForm : public ParseNode 
+  struct PTNodeRequestTargetOriginForm : public PTNode 
   {
-    ParseNodePathAbsolute*    absolute_path;
-    Maybe<ParseNodeUriQuery*> query;
+    PTNodePathAbsolute*    absolute_path;
+    Maybe<PTNodeUriQuery*> query;
   };
 
-  struct ParseNodeRequestTargetAuthorityForm : public ParseNode
+  struct PTNodeRequestTargetAuthorityForm : public PTNode
   {
-    ParseNodeUriHost* host;
-    ParseNodeUriPort* port;
+    PTNodeUriHost* host;
+    PTNodeUriPort* port;
   };
 
-  struct ParseNodeRequestTargetAsteriskForm : public ParseNode
+  struct PTNodeRequestTargetAsteriskForm : public PTNode
   {};
 
-  struct ParseNodeRequestLine : public ParseNode
+  struct PTNodeRequestLine : public PTNode
   {
-    ParseNodeToken* method;
-    ParseNodeType   type_request_target;
+    PTNodeToken* method;
+    PTNodeType   type_request_target;
     union
     {
-      ParseNodeRequestTargetOriginForm*     request_target_origin_form;
-      ParseNodeUriAbsolute*                 request_target_absolute_form; // only used in CONNECT message
-      ParseNodeRequestTargetAuthorityForm*  request_target_authority_form;
-      ParseNodeRequestTargetAsteriskForm*   request_target_asterisk_form;
+      PTNodeRequestTargetOriginForm*     request_target_origin_form;
+      PTNodeUriAbsolute*                 request_target_absolute_form; // only used in CONNECT message
+      PTNodeRequestTargetAuthorityForm*  request_target_authority_form;
+      PTNodeRequestTargetAsteriskForm*   request_target_asterisk_form;
     };
-    ParseNodeHttpVersion* version;
+    PTNodeHttpVersion* version;
   };
 
   /////////////////////////////////////////////////
   ////////////////   status line   ////////////////
   /////////////////////////////////////////////////
 
-  struct ParseNodeReasonPhrase : public ParseNode
+  struct PTNodeReasonPhrase : public PTNode
   {
     StringSlice content;
   };
 
-  struct ParseNodeStatusCode : public ParseNode
+  struct PTNodeStatusCode : public PTNode
   {
     int number;
   };
 
-  struct ParseNodeStatusLine : public ParseNode
+  struct PTNodeStatusLine : public PTNode
   {
-    ParseNodeHttpVersion*         http_version;
-    ParseNodeStatusCode*          status_code;
-    Maybe<ParseNodeReasonPhrase*> reason_phrase;
+    PTNodeHttpVersion*         http_version;
+    PTNodeStatusCode*          status_code;
+    Maybe<PTNodeReasonPhrase*> reason_phrase;
   };
 
-  struct ParseNodeFieldValue : public ParseNode
+  struct PTNodeFieldValue : public PTNode
   {
     StringSlice content;
   };
 
-  struct ParseNodeFieldLine : public ParseNode
+  struct PTNodeFieldLine : public PTNode
   {
-    ParseNodeToken*       name;
-    ParseNodeFieldValue*  value;
+    PTNodeToken*       name;
+    PTNodeFieldValue*  value;
   };
 
-  struct ParseNodeMessageBody : public ParseNode
+  struct PTNodeMessageBody : public PTNode
   {
     StringSlice content;
   };
 
-  struct ParseNodeMessage : public ParseNode
+  struct PTNodeMessage : public PTNode
   {
-    ParseNodeType start_line_type;
+    PTNodeType start_line_type;
     union
     {
-      ParseNodeRequestLine* request_line;
-      ParseNodeStatusLine*  status_line;
+      PTNodeRequestLine* request_line;
+      PTNodeStatusLine*  status_line;
     };
-    std::vector<ParseNodeFieldLine*>  fields;
-    Maybe<ParseNodeMessageBody*>      body;
+    std::vector<PTNodeFieldLine*>  fields;
+    Maybe<PTNodeMessageBody*>      body;
   };
 
 
