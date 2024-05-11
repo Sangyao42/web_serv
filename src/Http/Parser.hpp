@@ -4,6 +4,7 @@
 #include <string>
 
 #include "misc/Maybe.hpp"
+#include "Arenas.hpp"
 
 namespace http_parser
 {
@@ -68,6 +69,17 @@ namespace http_parser
   ////////////////   token   ////////////////
   ///////////////////////////////////////////
 
+  enum ParseOutputError
+  {
+    kParseSuccess
+  };
+
+  struct ParseOutput
+  {
+    ParseOutputError  error;
+    Input             rest;
+  };
+
   enum ParseNodeType
   {
     kToken,
@@ -120,6 +132,18 @@ namespace http_parser
   struct ParseNode
   {
     ParseNodeType type;
+  };
+
+  template <typename T>
+  T*  ParseNodeCreate()
+  {
+    return temporary::arena.allocate<T>(); 
+  }
+
+  struct ParseTree
+  {
+    ParseNode*  root;
+    ParseNode*  current;
   };
 
   struct ParseNodeToken : public ParseNode
@@ -396,11 +420,6 @@ namespace http_parser
     Maybe<ParseNodeMessageBody*>      body;
   };
 
-  struct ParseTree
-  {
-    ParseNode*  root;
-    ParseNode*  current;
-  };
 
   ScanOutput  ParseToken(Input input);
   ScanOutput  ScanTokenCharacter(Input input);
