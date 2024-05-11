@@ -26,6 +26,7 @@ struct Client
 	const struct ConfigurationQueryResult	*config;
 	struct stat	stat_buff;
 	std::string path;
+	std::string cgi_executable; //path to cgi executable
 	bool	keepAlive = true;
 	Request	*req;
 	Response	*res;
@@ -42,10 +43,10 @@ namespace process
 	void	ProcessPostRequestCgi(struct Client *clt);
 
 	//file and path related functions
-	std::string GetExactPath(const std::string root, std::string matchPath, const struct Uri uri);
-	bool		IsCgi(std::string path);
+	std::string GetExactPath(const std::string root, std::string match_path, const struct Uri uri);
+	bool		IsCgi(std::string &cgi_executable, std::string path, cache::LocationQuery *location);
 	std::string	GetResContentType(std::string path);
-	bool		IsAccessable(std::string path);
+	bool		IsAccessable(std::string content_type, HeaderValue *accept, cache::LocationQuery *location);
 	std::string	GetIndexPath();
 	bool		IsSupportedMediaType(std::string res);
 	bool		IsDirFormat(std::string path);

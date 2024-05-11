@@ -81,10 +81,10 @@ void	process::ProcessGetRequest(struct Client *clt)
 	cache::LocationQuery	*location= clt->config->query;
 	if (S_ISREG(clt->stat_buff.st_mode))
 	{
-		if (process::IsCgi(clt->path)) //check file extension and get the cgi path inside IsCgi
+		if (process::IsCgi(clt->cgi_executable, clt->path, location)) //check file extension and get the cgi path inside IsCgi
 			return (process::ProcessGetRequestCgi(clt));
 		std::string content_type = process::GetResContentType(clt->path);
-		if (!process::IsAccessable(clt->path)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
+		if (!process::IsAccessable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
 		{
 			clt->status_code = k406;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -113,10 +113,10 @@ void	process::ProcessGetRequest(struct Client *clt)
 				return (res_builder::GenerateErrorResponse(clt));
 			}
 		}
-		if (process::IsCgi(index_path))
+		if (process::IsCgi(clt->cgi_executable, clt->path, location))
 			return (ProcessGetRequestCgi(clt));
 		std::string content_type = process::GetResContentType(index_path);
-		if (!process::IsAccessable(content_type)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
+		if (!process::IsAccessable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
 		{
 			clt->status_code = k406;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -138,6 +138,7 @@ void	process::ProcessGetRequest(struct Client *clt)
 
 void	process::ProcessPostRequest(struct Client *clt)
 {
+	cache::LocationQuery	*location= clt->config->query;
 	if (IsDirFormat(clt->path)) // end with "/"
 	{
 		clt->status_code = k403;
@@ -162,7 +163,7 @@ void	process::ProcessPostRequest(struct Client *clt)
 		else if (S_ISREG(clt->stat_buff.st_mode))
 		{
 
-			if (IsCgi(clt->path))
+			if (IsCgi(clt->cgi_executable, clt->path, location))
 				return (ProcessPostRequestCgi(clt));
 			if(access(clt->path.c_str(), W_OK) != 0)
 			{
@@ -181,7 +182,7 @@ void	process::ProcessPostRequest(struct Client *clt)
 	}
 	else //file does not exist
 	{
-		if(IsCgi(clt->path))
+		if(IsCgi(clt->cgi_executable, clt->path, location))
 		{
 			clt->status_code = k403;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -195,7 +196,8 @@ void	process::ProcessPostRequest(struct Client *clt)
 
 void	process::ProcessDeleteRequest(struct Client *clt)
 {
-	if (IsCgi(clt->path))
+	cache::LocationQuery	*location= clt->config->query;
+	if (IsCgi(clt->cgi_executable, clt->path, location))
 	{
 		clt->status_code = k405;
 		return (res_builder::GenerateErrorResponse(clt));
@@ -215,4 +217,58 @@ void	process::ProcessDeleteRequest(struct Client *clt)
 		clt->status_code = k403;
 		return (res_builder::GenerateErrorResponse(clt));
 	}
+}
+
+std::string process::GetExactPath(const std::string root, std::string match_path, const struct Uri uri)
+{
+	(void) match_path;
+	std::string exact_path = ".." + root;
+	exact_path += uri.path;
+	return (exact_path);
+}
+
+bool		process::IsCgi(std::string &cgi_executable, std::string path, cache::LocationQuery *location)
+{
+	assert((path != "") && "clt->path is empty");
+	std::string extension = path.substr(path.find_last_of('.') + 1);
+	if (extension == path)
+		return (false);
+	// loop through the location->cgis based on the file extension and check permission
+	for (size_t i = 0; i < location->cgis.size(); i++)
+	{
+		if (location->cgis[i]->match(extension).is_ok())
+		{
+			cgi_executable = location->cgis[i]->match(extension).value();
+			return (true);
+		}
+	}
+	return (false);
+}
+
+std::string	process::GetResContentType(std::string path)
+{
+	assert((path != "") && "clt->path is empty");
+	std::string extension = path.substr(path.find_last_of('.') + 1);
+	if (extension == path)
+		return ("text/plain"); // ? default content type ?
+	else
+		return (extension);
+}
+
+bool	process::IsAccessable(std::string content_type, HeaderValue *accept, cache::LocationQuery *location)
+{
+	directive::MimeTypes	mime_types;
+	// find types in both accept header and location->mime_types
+	mime_types = TypeAcceptableAndServable(accept, location->mime_types);
+	if (mime_types.get().size() == 0)
+		return (false);
+	if (mime_types.query(content_type).is_ok())
+		return (true);
+	else
+		return (false);
+}
+
+std::string	process::GetIndexPath()
+{
+	
 }
