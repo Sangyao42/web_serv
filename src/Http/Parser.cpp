@@ -1,5 +1,7 @@
 #include "Parser.hpp"
 
+#include <cstring>
+
 namespace http_parser
 {
   ///////////////////////////////////////////////////////////
@@ -29,7 +31,7 @@ namespace http_parser
 
   bool  IsControls(char character)
   {
-    return ((character >= 0 && character <= 31) || (character == 127));
+    return ((character <= 31) || (character == 127));
   }
 
   bool  IsDigit(char character)
@@ -101,7 +103,7 @@ namespace http_parser
 
   bool  IsOpaqueText(unsigned char character)
   {
-    return (character >= 128 && character <= 255);
+    return (character >= 128);
   }
 
   bool  IsEscapedText(char character)
@@ -314,17 +316,23 @@ namespace http_parser
 
   ParseOutput  ParseComment(Input input)
   {
-
+    ParseOutput output;
+    (void) input;
+    return output;
   }
 
   ParseOutput  ParseParameter(Input input)
   {
-
+    ParseOutput output;
+    (void) input;
+    return output;
   }
 
   ParseOutput  ParseParameters(Input input)
   {
-
+    ParseOutput output;
+    (void) input;
+    return output;
   }
 
 } // namespace http_parser

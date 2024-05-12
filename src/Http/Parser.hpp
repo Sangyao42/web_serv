@@ -124,7 +124,7 @@ namespace http_parser
   enum ParseOutputError
   {
     kParseFailure,
-    kParseSuccess,
+    kParseSuccess
   };
 
   struct ParseOutput
