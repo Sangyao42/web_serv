@@ -232,7 +232,7 @@ namespace http_parser
   ///////////////////////////////////////////
 
   ParseOutput::ParseOutput()
-    : error(kParseFailure), rest(), result(NULL) {}
+    : status(kParseFailure), rest(), result(NULL) {}
 
   ParseOutput  ParseToken(Input input)
   {
@@ -254,7 +254,7 @@ namespace http_parser
         token->type = kToken;
         token->content = content;
 
-        output.error = kParseSuccess;
+        output.status = kParseSuccess;
         output.rest = input;
         output.result = token;
       }
@@ -305,7 +305,7 @@ namespace http_parser
           quoted_string->type = kQuotedString;
           quoted_string->content = content;
 
-          output.error = kParseSuccess;
+          output.status = kParseSuccess;
           output.rest = input;
           output.result = quoted_string;
         }

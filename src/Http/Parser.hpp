@@ -121,7 +121,7 @@ namespace http_parser
     return temporary::arena.allocate<T>(); 
   }
 
-  enum ParseOutputError
+  enum ParseOutputStatus
   {
     kParseFailure,
     kParseSuccess
@@ -129,7 +129,7 @@ namespace http_parser
 
   struct ParseOutput
   {
-    ParseOutputError  error;
+    ParseOutputStatus status;
     Input             rest;
     PTNode*           result;
 
