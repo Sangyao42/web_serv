@@ -166,7 +166,7 @@ namespace http_parser
 
   struct PTNodeParameters : public PTNode
   {
-    std::vector<PTNodeParameter*> children;
+    temporary::vector<PTNodeParameter*> children;
   };
 
   ParseOutput  ParseToken(Input input);
@@ -446,8 +446,8 @@ namespace http_parser
       PTNodeRequestLine* request_line;
       PTNodeStatusLine*  status_line;
     };
-    std::vector<PTNodeFieldLine*>  fields;
-    Maybe<PTNodeMessageBody*>      body;
+    temporary::vector<PTNodeFieldLine*> fields;
+    Maybe<PTNodeMessageBody*>           body;
   };
 
   ParseOutput  ParseReasonPhrase(Input input);
