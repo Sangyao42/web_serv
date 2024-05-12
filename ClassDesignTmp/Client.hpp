@@ -42,13 +42,13 @@ namespace process
 	void	ProcessGetRequestCgi(struct Client *clt);
 	void	ProcessPostRequestCgi(struct Client *clt);
 
-	//file and path related functions
+	//file and path and content-type related functions
 	std::string GetExactPath(const std::string root, std::string match_path, const struct Uri uri);
 	bool		IsCgi(std::string &cgi_executable, std::string path, cache::LocationQuery *location);
 	std::string	GetResContentType(std::string path);
 	bool		IsAccessable(std::string content_type, HeaderValue *accept, cache::LocationQuery *location);
 	std::string	GetIndexPath(std::string path, cache::LocationQuery *location);
-	bool		IsSupportedMediaType(std::string res);
+	bool		IsSupportedMediaType(std::string req_content_type, const directive::MimeTypes* mime_types);
 	bool		IsDirFormat(std::string path);
 
 

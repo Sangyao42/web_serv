@@ -146,7 +146,7 @@ void	process::ProcessPostRequest(struct Client *clt)
 	}
 
 	HeaderValue	*req_content_type = clt->req->returnValueAsPointer("Content-Type");
-	if (req_content_type && !IsSupportedMediaType(req_content_type->valueAsString())) // checkt content type from request with MIME type
+	if (req_content_type && !IsSupportedMediaType(req_content_type->valueAsString(), location->mime_types)) // checkt content type from request with MIME type
 	{
 		clt->status_code = k415;
 		return (res_builder::GenerateErrorResponse(clt));
@@ -271,8 +271,32 @@ bool	process::IsAccessable(std::string content_type, HeaderValue *accept, cache:
 std::string	process::GetIndexPath(std::string path, cache::LocationQuery *location)
 {
 	std::string index_path;
+	for (size_t i = 0; i < location->indexes.size(); i++)
+	{
+		if (path[path.size() - 1] != '/')
+			path += "/";
+		index_path = path + location->indexes[i];
+		if (access(index_path.c_str(), F_OK) == 0)
+			return (index_path);
+	}
+	return ("");
+}
 
+bool		process::IsSupportedMediaType(std::string req_content_type, const directive::MimeTypes* mime_types)
+{
+	const std::map<Extension, MimeType>	types = mime_types->get();
+	std::map<Extension, MimeType>::const_iterator it;
+	for (it = types.begin(); it != types.end(); it++)
+	{
+		if (it->second == req_content_type)
+			return (true);
+	}
+	return (false);
+}
 
-
-
+bool		process::IsDirFormat(std::string path)
+{
+	if (path[path.size() - 1] == '/')
+		return (true);
+	return (false);
 }
