@@ -8,55 +8,54 @@
 
 namespace http_parser
 {
-  struct StringSlice
-  {
-    const char* bytes;
-    int         length;
+  ///////////////////////////////////////////////////////////
+  ////////////////   scan and parse units    ////////////////
+  ///////////////////////////////////////////////////////////
 
-    std::string to_string() const;
-  };
+  bool  IsAlpha(char character);
+  bool  IsBit(char character);
+  bool  IsChar(char character);
+  bool  IsCarriageReturn(char character);
+  bool  IsControls(char character);
+  bool  IsDigit(char character);
+  bool  IsDoubleQuote(char character);
+  bool  IsHexDigit(char character);
+  bool  IsHorizontalTab(char character);
+  bool  IsLinefeed(char character);
+  bool  IsSpace(char character);
+  bool  IsVisibleCharacter(char character);
+  bool  IsWhitespace(char character);
 
-  typedef const char* Input;
+  bool  IsTokenText(char character);
+  bool  IsQuotedStringText(char character);
+  bool  IsCommentText(char character);
+  bool  IsOpaqueText(unsigned char character); // named as obs-text in abnf
+  bool  IsEscapedText(char character); // named as quoted-pair in abnf
 
   //////////////////////////////////////////
   ////////////////   scan   ////////////////
   //////////////////////////////////////////
 
-  struct ScanOutput
+  struct StringSlice
   {
-    bool        is_success;
-    StringSlice string;
-    Input       rest;
+    const char* bytes;
+    int         length;
+
+    StringSlice();
+    StringSlice(const char* bytes, int length);
+    std::string to_string() const;
+    bool  is_valid() const;
+    const char* consume(int amount = 1);
   };
 
-  ScanOutput  ScanAlpha(Input input);
-  ScanOutput  ScanBit(Input input);
-  ScanOutput  ScanChar(Input input);
-  ScanOutput  ScanCarriageReturn(Input input);
-  ScanOutput  ScanControls(Input input);
-  ScanOutput  ScanDigit(Input input);
-  ScanOutput  ScanDoubleQuote(Input input);
-  ScanOutput  ScanHexDigit(Input input);
-  ScanOutput  ScanHorizontalTab(Input input);
-  ScanOutput  ScanLinefeed(Input input);
-  ScanOutput  ScanLinearWhiteSpace(Input input);
-  ScanOutput  ScanOctet(Input input);
-  ScanOutput  ScanSpace(Input input);
-  ScanOutput  ScanVisibleCharacter(Input input);
-  ScanOutput  ScanWhitespace(Input input);
+  typedef StringSlice Input;
+  typedef StringSlice ScanOutput;
 
+  ScanOutput  ScanNewLine(Input input);
+  ScanOutput  ScanLinearWhiteSpace(Input input);
   ScanOutput  ScanOptionalWhitespace(Input input);
   ScanOutput  ScanRequiredWhitespace(Input input);
   ScanOutput  ScanBadWhitespace(Input input);
-
-  ///////////////////////////////////////////
-  ////////////////   text    ////////////////
-  ///////////////////////////////////////////
-
-  ScanOutput  ScanQuotedStringText(Input input);
-  ScanOutput  ScanCommentText(Input input);
-  ScanOutput  ScanOpaqueText(Input input); // named as obs-text in abnf
-  ScanOutput  ScanEscapedText(Input input); // named as quoted-pair in abnf
 
   ///////////////////////////////////////////
   ////////////////   parse   ////////////////
