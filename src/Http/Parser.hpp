@@ -180,6 +180,17 @@ namespace http_parser
   ////////////////   path   ///////////////
   /////////////////////////////////////////
 
+  bool  IsUnreservered(char character);
+  bool  IsReservered(char character);
+  bool  IsGenDelims(char character);
+  bool  IsSubDelims(char character);
+
+  ScanOutput  ScanPathChar(Input input);
+  ScanOutput  ScanPctEncoded(Input input);
+  ScanOutput  ScanSegment(Input input);
+  ScanOutput  ScanSegmentNz(Input input);
+  ScanOutput  ScanSegmentNzNc(Input input);
+
   struct PTNodePathAbEmpty : public PTNode
   {
     StringSlice content;

@@ -494,5 +494,175 @@ namespace http_parser
     return output;
   }
 
+  /////////////////////////////////////////
+  ////////////////   path   ///////////////
+  /////////////////////////////////////////
+
+  bool  IsUnreservered(char character)
+  {
+    return (IsAlpha(character) ||
+            IsDigit(character) ||
+            std::strchr("-._~", character));
+  }
+
+  bool  IsReservered(char character)
+  {
+    return (IsGenDelims(character) ||
+            IsSubDelims(character));
+  }
+
+  bool  IsGenDelims(char character)
+  {
+    return (std::strchr(":/?#[]", character));
+  }
+
+  bool  IsSubDelims(char character)
+  {
+    return (std::strchr("!$&'()*+,;=", character));
+  }
+
+  ScanOutput  ScanPathChar(Input input)
+  {
+    ScanOutput  output;
+    if (input.is_valid())
+    {
+      if (input.length > 0 && 
+          (IsUnreservered(*input.bytes) ||
+          IsSubDelims(*input.bytes) ||
+          *input.bytes == ':' ||
+          *input.bytes == '@'))
+      {
+        output.bytes = input.bytes;
+        output.length = 1;
+      }
+      else
+      {
+        output = ScanPctEncoded(input);
+      }
+    }
+    return output;
+  }
+
+  ScanOutput  ScanPctEncoded(Input input)
+  {
+    ScanOutput  output;
+
+    if (input.is_valid() && input.length >= 3)
+    {
+      output.bytes = input.bytes;
+      if (*input.bytes == '%' &&
+          IsHexDigit(*(input.bytes + 1)) &&
+          IsHexDigit(*(input.bytes + 2)))
+      {
+        output.length = 3;
+      }
+    }
+    return output;
+  }
+
+  ScanOutput  ScanSegment(Input input)
+  {
+    ScanOutput  output;
+
+    if (input.is_valid())
+    {
+      output.bytes = input.bytes;
+      int total_length = 0;
+      int scan_length = ConsumeByScanFunction(&input, &ScanPathChar);
+      while (scan_length > 0)
+      {
+        total_length += scan_length;
+        scan_length = ConsumeByScanFunction(&input, &ScanPathChar);
+      }
+      output.length = total_length;
+    }
+    return output;
+  }
+
+  ScanOutput  ScanSegmentNz(Input input)
+  {
+    ScanOutput  output;
+
+    if (input.is_valid())
+    {
+      output.bytes = input.bytes;
+      int total_length = 0;
+      int scan_length = ConsumeByScanFunction(&input, &ScanPathChar);
+      while (scan_length > 0)
+      {
+        total_length += scan_length;
+        scan_length = ConsumeByScanFunction(&input, &ScanPathChar);
+      }
+      if (total_length > 1)
+        output.length = total_length;
+    }
+    return output;
+  }
+
+  ScanOutput  ScanSegmentNzNc(Input input)
+  {
+    ScanOutput  output;
+
+    if (input.is_valid())
+    {
+      output.bytes = input.bytes;
+      int total_length = 0;
+      int scan_length = 1;
+      while (scan_length > 0)
+      {
+        scan_length = ConsumeByUnitFunction(&input, &IsUnreservered);
+        if (scan_length == 0)
+          scan_length = ConsumeByScanFunction(&input, &ScanPctEncoded);
+        if (scan_length == 0)
+          scan_length = ConsumeByUnitFunction(&input, &IsSubDelims);
+        if (scan_length == 0)
+          scan_length = ConsumeByCharacter(&input, '@');
+        total_length += scan_length;
+      }
+      if (total_length > 1)
+        output.length = total_length;
+    }
+    return output;
+  }
+
+  ParseOutput  ParsePathAbEmpty(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+    return output;
+  }
+
+  ParseOutput  ParsePathAbsolute(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+    return output;
+  }
+
+  ParseOutput  ParsePathNoScheme(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+    return output;
+  }
+
+  ParseOutput  ParsePathRootless(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+    return output;
+  }
+
+  ParseOutput  ParsePathEmpty(Input input)
+  {
+    ParseOutput output;
+    output.status = kParseSuccess;
+    output.rest = input;
+    output.parsed_length = 0;
+    output.result = static_cast<PTNode*>(PTNodeCreate<PTNodePathEmpty>());
+    output.result->type = kPathEmpty;
+    return output;
+  }
+
 } // namespace http_parser
 
