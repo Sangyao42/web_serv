@@ -225,5 +225,107 @@ namespace http_parser
     return ScanOptionalWhitespace(input);
   }
 
+  ///////////////////////////////////////////
+  ////////////////   parse   ////////////////
+  ///////////////////////////////////////////
+
+  ParseOutput::ParseOutput()
+    : error(kParseFailure), rest(), result(NULL) {}
+
+  ParseOutput  ParseToken(Input input)
+  {
+    ParseOutput output;
+    if (input.is_valid())
+    {
+      StringSlice content;
+      content.bytes = input.bytes;
+      while (input.length > 0)
+      {
+        const char* target = input.consume();
+        if (target && !IsTokenText(*target))
+          break;
+        content.length++;
+      }
+      if (content.length >= 1)
+      {
+        PTNodeToken*  token = PTNodeCreate<PTNodeToken>();
+        token->type = kToken;
+        token->content = content;
+
+        output.error = kParseSuccess;
+        output.rest = input;
+        output.result = token;
+      }
+    }
+    return output;
+  }
+
+  ParseOutput  ParseQuotedString(Input input)
+  {
+    ParseOutput output;
+    if (input.is_valid())
+    {
+      StringSlice content;
+      content.bytes = input.bytes;
+      const char* target = input.consume();
+      if (target && IsDoubleQuote(*target))
+      {
+        content.length++;
+        while (input.length > 0)
+        {
+          bool  error = true;
+          target = input.consume();
+          if (!target)
+            break;
+          if (IsQuotedStringText(*target))
+          {
+            content.length++;
+            error = false;
+          }
+          else if (*target == '\\')
+          {
+            target = input.consume();
+            if (target && IsEscapedText(*target))
+            {
+              content.length += 2;
+              error = false;
+            }
+          }
+          if (error)
+            break;
+        }
+        
+        target = input.consume();
+        if (target && IsDoubleQuote(*target))
+        {
+          content.length++;
+          PTNodeQuotedString*  quoted_string = PTNodeCreate<PTNodeQuotedString>();
+          quoted_string->type = kQuotedString;
+          quoted_string->content = content;
+
+          output.error = kParseSuccess;
+          output.rest = input;
+          output.result = quoted_string;
+        }
+      }
+    }
+    return output;
+  }
+
+  ParseOutput  ParseComment(Input input)
+  {
+
+  }
+
+  ParseOutput  ParseParameter(Input input)
+  {
+
+  }
+
+  ParseOutput  ParseParameters(Input input)
+  {
+
+  }
+
 } // namespace http_parser
 

@@ -123,7 +123,8 @@ namespace http_parser
 
   enum ParseOutputError
   {
-    kParseSuccess
+    kParseFailure,
+    kParseSuccess,
   };
 
   struct ParseOutput
@@ -131,6 +132,8 @@ namespace http_parser
     ParseOutputError  error;
     Input             rest;
     PTNode*           result;
+
+    ParseOutput();
   };
 
   ///////////////////////////////////////////
