@@ -131,6 +131,7 @@ namespace http_parser
   {
     ParseOutputStatus status;
     Input             rest;
+    int               parsed_length;
     PTNode*           result;
 
     ParseOutput();

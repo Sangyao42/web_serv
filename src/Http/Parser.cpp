@@ -232,19 +232,71 @@ namespace http_parser
   ///////////////////////////////////////////
 
   ParseOutput::ParseOutput()
-    : status(kParseFailure), rest(), result(NULL) {}
+    : status(kParseFailure), rest(), parsed_length(0), result(NULL) {}
+
+  static int ConsumeByCharacter(Input* input, char character)
+  {
+    int consumed_character = 0;
+    if (input->length > 0)
+    {
+      if (*input->bytes == character)
+      {
+        input->consume();
+        consumed_character = 1;
+      }
+    }
+    return consumed_character;
+  }
+
+  static int ConsumeByUnitFunction(Input* input, bool (*func)(char))
+  {
+    int consumed_character = 0;
+    if (input->length > 0)
+    {
+      if (func(*input->bytes))
+      {
+        input->consume();
+        consumed_character = 1;
+      }
+    }
+    return consumed_character;
+  }
+
+  static int  ConsumeByScanFunction(Input* input, ScanOutput (*func)(Input))
+  {
+    ScanOutput  output = func(*input);
+    if (output.is_valid())
+    {
+      input->consume(output.length);
+    }
+    return output.length;
+  }
+
+  static ParseOutput  ConsumeByParserFunction(Input* input, ParseOutput (*func)(Input))
+  {
+    ParseOutput output = func(*input);
+    if (output.status == kParseSuccess)
+    {
+      input->consume(output.parsed_length);
+    }
+    return output;
+  }
+
+  ///////////////////////////////////////////
+  ////////////////   token   ////////////////
+  ///////////////////////////////////////////
 
   ParseOutput  ParseToken(Input input)
   {
     ParseOutput output;
+    output.rest = input;
     if (input.is_valid())
     {
       StringSlice content;
       content.bytes = input.bytes;
       while (input.length > 0)
       {
-        const char* target = input.consume();
-        if (target && !IsTokenText(*target))
+        if (!ConsumeByUnitFunction(&input, &IsTokenText))
           break;
         content.length++;
       }
@@ -256,6 +308,7 @@ namespace http_parser
 
         output.status = kParseSuccess;
         output.rest = input;
+        output.parsed_length = content.length;
         output.result = token;
       }
     }
@@ -265,48 +318,41 @@ namespace http_parser
   ParseOutput  ParseQuotedString(Input input)
   {
     ParseOutput output;
+    output.rest = input;
     if (input.is_valid())
     {
       StringSlice content;
       content.bytes = input.bytes;
-      const char* target = input.consume();
-      if (target && IsDoubleQuote(*target))
+      content.length = ConsumeByUnitFunction(&input, &IsDoubleQuote);
+      if (content.length > 0)
       {
-        content.length++;
-        while (input.length > 0)
+        int parsed_length = 1;
+        while (input.length > 0 && parsed_length > 0)
         {
-          bool  error = true;
-          target = input.consume();
-          if (!target)
-            break;
-          if (IsQuotedStringText(*target))
+          int   parsed_length = ConsumeByUnitFunction(&input, &IsQuotedStringText);
+          if (parsed_length == 0)
           {
-            content.length++;
-            error = false;
-          }
-          else if (*target == '\\')
-          {
-            target = input.consume();
-            if (target && IsEscapedText(*target))
+            parsed_length = ConsumeByCharacter(&input, '\\');
+            if (parsed_length > 0)
             {
-              content.length += 2;
-              error = false;
+              int parsed_length_2 = ConsumeByUnitFunction(&input, &IsEscapedText);
+              if (parsed_length_2 > 0)
+                parsed_length += parsed_length_2;
             }
           }
-          if (error)
-            break;
+          content.length += parsed_length;
         }
-        
-        target = input.consume();
-        if (target && IsDoubleQuote(*target))
+        parsed_length = ConsumeByUnitFunction(&input, &IsDoubleQuote);
+        if (parsed_length > 0)
         {
-          content.length++;
+          content.length += parsed_length;
           PTNodeQuotedString*  quoted_string = PTNodeCreate<PTNodeQuotedString>();
           quoted_string->type = kQuotedString;
           quoted_string->content = content;
 
           output.status = kParseSuccess;
           output.rest = input;
+          output.parsed_length = content.length;
           output.result = quoted_string;
         }
       }
@@ -317,21 +363,134 @@ namespace http_parser
   ParseOutput  ParseComment(Input input)
   {
     ParseOutput output;
-    (void) input;
+    output.rest = input;
+    if (input.is_valid())
+    {
+      StringSlice content;
+      content.bytes = input.bytes;
+      content.length = ConsumeByCharacter(&input, '(' );
+      if (content.length > 0)
+      {
+        int parsed_length = 1;
+        while (input.length > 0 && parsed_length > 0)
+        {
+          int parsed_length = ConsumeByUnitFunction(&input, &IsCommentText);
+          if (parsed_length == 0)
+          {
+            parsed_length = ConsumeByCharacter(&input, '\\');
+            if (parsed_length > 0)
+            {
+              int parsed_length_2 = ConsumeByUnitFunction(&input, &IsEscapedText);
+              if (parsed_length_2 > 0)
+              {
+                parsed_length += parsed_length_2;
+              }
+            }
+          }
+          if (parsed_length == 0)
+          {
+            ArenaSnapshot snapshot = temporary::arena.snapshot();
+            ParseOutput parse_output = ConsumeByParserFunction(&input, &ParseComment);
+            if (parse_output.status == kParseSuccess)
+            {
+              parsed_length = parse_output.parsed_length;
+              temporary::arena.rollback(snapshot);
+            }
+          }
+          content.length += parsed_length;
+        }
+        parsed_length = ConsumeByCharacter(&input, ')');
+        if (parsed_length > 0)
+        {
+          content.length++;
+          PTNodeComment*  comment = PTNodeCreate<PTNodeComment>();
+          comment->type = kComment;
+
+          output.status = kParseSuccess;
+          output.rest = input;
+          output.parsed_length = content.length;
+          output.result = comment;
+        }
+      }
+    }
     return output;
   }
 
   ParseOutput  ParseParameter(Input input)
   {
     ParseOutput output;
-    (void) input;
+    output.rest = input;
+
+    ArenaSnapshot snapshot = temporary::arena.snapshot();
+    ParseOutput name_parse_output = ConsumeByParserFunction(&input, &ParseToken);
+    if (name_parse_output.status == kParseSuccess)
+    {
+      int parsed_length = ConsumeByCharacter(&input, '=');
+      if (parsed_length > 0)
+      {
+        ParseOutput value_parse_output = ConsumeByParserFunction(&input, &ParseToken);
+        if (value_parse_output.status != kParseSuccess)
+        {
+          value_parse_output = ConsumeByParserFunction(&input, &ParseQuotedString);
+        }
+        if (value_parse_output.parsed_length > 0)
+        {
+          PTNodeParameter*  parameter = PTNodeCreate<PTNodeParameter>();
+          parameter->type = kParameter;
+          parameter->name = static_cast<PTNodeToken*>(name_parse_output.result);
+          parameter->value_header = value_parse_output.result;
+
+          output.status = kParseSuccess;
+          output.rest = input;
+          output.parsed_length = name_parse_output.parsed_length + parsed_length + value_parse_output.parsed_length;
+          output.result = parameter;
+        }
+        else
+        {
+          temporary::arena.rollback(snapshot);
+        }
+      }
+    }
     return output;
   }
 
   ParseOutput  ParseParameters(Input input)
   {
     ParseOutput output;
-    (void) input;
+    output.rest = input;
+    int parsed_length = 0;
+    temporary::vector<PTNodeParameter*> children;
+
+    while (input.length > 0)
+    {
+      int error = true;
+      int parsed_length_1 = ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
+      int parsed_length_2 = ConsumeByCharacter(&input, ';');
+      if (parsed_length_2 > 0)
+      {
+        int parsed_length_3 = ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
+        ParseOutput parameter_parse_output = ConsumeByParserFunction(&input, &ParseParameter);
+        if (parameter_parse_output.status == kParseSuccess)
+        {
+          parsed_length += parsed_length_1 + parsed_length_2 + parsed_length_3 + parameter_parse_output.parsed_length;
+          children.push_back(static_cast<PTNodeParameter*>(parameter_parse_output.result));
+          error = false;
+        }
+      }
+      if (error)
+        break;
+    }
+    if (children.size() > 0)
+    {
+      PTNodeParameters* parameters = PTNodeCreate<PTNodeParameters>();
+      parameters->type = kParameters;
+      parameters->children = children;
+
+      output.status = kParseSuccess;
+      output.rest = input;
+      output.parsed_length = parsed_length;
+      output.result = parameters;
+    }
     return output;
   }
 
