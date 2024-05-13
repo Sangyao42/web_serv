@@ -2,6 +2,7 @@
 
 #include <map>
 #include <iterator>
+#include <sstream>
 #include "Protocol.hpp"
 #include "HeaderValue.hpp"
 #include "HeaderValue/HeaderString.hpp"
@@ -34,7 +35,7 @@ class HTTPMessage
 		HeaderValue	*returnValueAsPointer(std::string key) const; // memory managed by this class
 		HeaderValue	*returnValueAsClonedPointer(std::string key) const; // should be freed elsewhere
 		HeaderPair	returnClonedPair(std::string key) const; // should be freed elsewhere
-		const std::string	&returnMapAsString() const;
+		const std::string	&returnMapAsString();
 
 	protected:
 		void	cleanHeaderMap();

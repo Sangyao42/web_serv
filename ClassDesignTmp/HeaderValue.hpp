@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <sstream>
 
 /*
 	An interface class which serves as a base class
@@ -19,6 +20,11 @@ class HeaderValue
 
 		virtual	const ValueType	&type() const = 0;
 		virtual HeaderValue	*clone() const = 0;
-		virtual const std::string &valueAsString() = 0; // all HeaderValue better has a private string variable to return when this function is called
-		virtual const int &valueAsInt() = 0;
+		virtual void toStringStream(std::ostringstream &oss) = 0;
 };
+
+std::ostringstream	&operator<<(std::ostringstream &oss, HeaderValue *obj)
+{
+	obj->toStringStream(oss);
+	return (oss);
+}
