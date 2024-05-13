@@ -65,19 +65,23 @@ HeaderValue	*HTTPMessage::returnValueAsClonedPointer(std::string key) const
 	return (NULL); // key not found
 }
 
-const std::string	&HTTPMessage::returnMapAsString() const
+const std::string	&HTTPMessage::returnMapAsString()
 {
 	// for generation of headers in response
 
 	HeaderMapIt it;
-	std::string	map;
+	std::ostringstream oss;
 
 	for (it = headers_.begin(); it != headers_.end(); ++it)
 	{
-		map += it->first + ": " + it->second->valueAsString() + "\r\n";
+		oss << it->first << ": " << it->second << "\r\n";
 	}
-	map += "\r\n";
-	return (map);
+	oss << "\r\n";
+
+	if (oss.fail())
+		return (std::string()); // stream error occurred
+
+	return (oss.str());
 }
 
 HeaderPair	HTTPMessage::returnClonedPair(std::string key) const

@@ -16,7 +16,7 @@ class HeaderString : public HeaderValue
 
 		const std::string &content() const;
 		HeaderString	*clone() const;
-		const std::string &valueAsString();
+		void	toStringStream(std::ostringstream& oss);
 
 	private:
 		ValueType	type_;
