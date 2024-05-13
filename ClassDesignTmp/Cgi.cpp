@@ -25,23 +25,27 @@ void	process::ProcessGetRequestCgi(struct Client *clt)
 		//child process
 		close(cgi_output[PipeEnd::kRead]);
 		dup2(cgi_output[PipeEnd::kWrite], STDOUT_FILENO);
-		char* cgi_executable = ConstructCgiExcutable(); // get excutable from looping through location->cgis based on the file extension and check permission
-		char* cgi_path = ConstructCgiPath(); // get excutable from looping through location->cgis based on the file extension and check permission
-		if (access(cgi_executable, X_OK) != 0 || access(cgi_path, R_OK) != 0)
+		assert(!clt->cgi_argv.empty() && "ProcessGetRequestCgi: clt->cgi_executable is NULL")
+		// char* cgi_executable = clt->cgi_executable.c_str(); // get excutable from looping through location->cgis based on the file extension and check permission
+		// char* cgi_path = clt->path.c_str(); // get excutable from looping through location->cgis based on the file extension and check permission
+		if (access(clt->cgi_argv[0].c_str(), F_OK | X_OK) != 0 || \
+		access(clt->cgi_argv[1].c_str(), F_OK | R_OK) != 0)
 		{
 			close(cgi_output[PipeEnd::kWrite]);
 			exit(1);
 		}
-		char** cgi_argv = ConstructCgiArgv(cgi_path);
-		char** cgi_env = ConstructCgiEnv();
-		if (cgi_argv == NULL || cgi_env == NULL)
+		std::vector<char*> cgi_argv = ConstructExecArray(clt->cgi_argv);
+		SetCgiEnv(clt);
+		std::vector<char*> cgi_env = ConstructExecArray(clt->cgi_env);
+		if (cgi_argv.empty() || cgi_env.empty())
 		{
 			close(cgi_output[PipeEnd::kWrite]);
 			exit(1);
 		}
-		execve(cgi_executable, cgi_argv, cgi_env);
-		int checkfree = FreeTwoDimArray(cgi_argv);
-		int checkfree2 = FreeTwoDimArray(cgi_env);
+		execve(cgi_argv.data()[0], cgi_argv.data(), cgi_env.data());
+		// int checkfree = FreeTwoDimArray(cgi_argv);
+		// int checkfree2 = FreeTwoDimArray(cgi_env);
+		std::cerr << "Error: execve" << std::endl;
 		close(cgi_output[PipeEnd::kWrite]);
 		exit(1);
 	}
@@ -110,24 +114,27 @@ void	process::ProcessPostRequestCgi(struct Client *clt)
 		dup2(cgi_output[PipeEnd::kWrite], STDOUT_FILENO);
 		close(cgi_input[PipeEnd::kWrite]);
 		dup2(cgi_input[PipeEnd::kRead], STDIN_FILENO);
-		char* cgi_executable = ConstructCgiExcutable(); // get excutable from looping through location->cgis based on the file extension and check permission
-		char* cgi_path = ConstructCgiPath(); // get excutable from looping through location->cgis based on the file extension and check permission
-		if (access(cgi_executable, X_OK) != 0 || access(cgi_path, R_OK) != 0)
+		if (access(clt->cgi_argv[0].c_str(), F_OK | X_OK) != 0 || \
+		access(clt->cgi_argv[1].c_str(), F_OK | R_OK) != 0)
 		{
+			close(cgi_input[PipeEnd::kRead]);
 			close(cgi_output[PipeEnd::kWrite]);
 			exit(1);
 		}
-		char** cgi_argv = ConstructCgiArgv(cgi_path);
-		char** cgi_env = ConstructCgiEnv();
-		if (cgi_argv == NULL || cgi_env == NULL)
+		std::vector<char*> cgi_argv = ConstructExecArray(clt->cgi_argv);
+		SetCgiEnv(clt);
+		std::vector<char*> cgi_env = ConstructExecArray(clt->cgi_env);
+		if (cgi_argv.empty() || cgi_env.empty())
 		{
+			close(cgi_input[PipeEnd::kRead]);
 			close(cgi_output[PipeEnd::kWrite]);
 			exit(1);
 		}
-		execve(cgi_executable, cgi_argv, cgi_env);
-		int checkfree = FreeTwoDimArray(cgi_argv);
-		int checkfree2 = FreeTwoDimArray(cgi_env);
-		close(cgi_input[]);
+		execve(cgi_argv.data()[0], cgi_argv.data(), cgi_env.data());
+		// int checkfree = FreeTwoDimArray(cgi_argv);
+		// int checkfree2 = FreeTwoDimArray(cgi_env);
+		std::cerr << "Error: execve" << std::endl;
+		close(cgi_input[PipeEnd::kRead]);
 		close(cgi_output[PipeEnd::kWrite]);
 		exit(1);
 	}
@@ -202,24 +209,55 @@ int process::SetPipes(int *cgi_input, int *cgi_output, const Method method)
 	}
 }
 
-char*	process::ConstructCgiPath()
+std::vector<char *>	process::ConstructExecArray(std::vector<std::string> &cgi_params) //{extension, cgi_path, NULL}
 {
+	std::vector<char*> cstrings;
+	int cstrs_size = StringVecToTwoDimArray(cstrings, cgi_argv);
+	if (cstrs_size == 1)
+	{
+		std::cerr << "Error: ConstructCgiArgv" << std::endl;
+		return (std::vector<char*>());
+	}
+	return cstrings;
 }
 
-char*	process::ConstructCgiExcutable()
+void	process::SetCgiEnv(struct Client *clt)
 {
-	// get excutable from looping through location->cgis based on the file extension and check permission
-}
+	//env: method, query_string, content_length, content_type,
+	//request_uri, document_uri, document_root, script_name,
+	//server_addr, server_port, server_protocol, server_name
 
-char**	process::ConstructCgiArgv(char* cgi_path)
-{
 }
+// fastcgi_param  SCRIPT_FILENAME    $document_root$fastcgi_script_name;
+// fastcgi_param  QUERY_STRING       $query_string;
+// fastcgi_param  REQUEST_METHOD     $request_method;
+// fastcgi_param  CONTENT_TYPE       $content_type;
+// fastcgi_param  CONTENT_LENGTH     $content_length;
+// fastcgi_param  SCRIPT_NAME        $fastcgi_script_name;
+// fastcgi_param  REQUEST_URI        $request_uri;
+// fastcgi_param  DOCUMENT_URI       $document_uri;
+// fastcgi_param  DOCUMENT_ROOT      $document_root;
+// fastcgi_param  SERVER_PROTOCOL    $server_protocol;
+// fastcgi_param  GATEWAY_INTERFACE  CGI/1.1;
+// fastcgi_param  SERVER_SOFTWARE    nginx/$nginx_version;
+// fastcgi_param  REMOTE_ADDR        $remote_addr;
+// fastcgi_param  REMOTE_PORT        $remote_port;
+// fastcgi_param  SERVER_ADDR        $server_addr;
+// fastcgi_param  SERVER_PORT        $server_port;
+// fastcgi_param  SERVER_NAME        $server_name;
 
-char**	process::ConstructCgiEnv()
-{
-}
+// fastcgi_index  index.php;
+
+// fastcgi_param  REDIRECT_STATUS    200;
 
 //helper functions
-int	process::FreeTwoDimArray(char **argv)
+int	process::StringVecToTwoDimArray(std::vector<char *> &cstrings,const std::vector<std::string> &strings)
 {
+	size_t vector_size = strings.size();
+	std::cout << vector_size << std::endl;
+	cstrings.reserve(vector_size + 1);
+	for(size_t i = 0; i < vector_size; ++i)
+		cstrings.push_back(const_cast<char*>(strings[i].c_str()));
+	cstrings.push_back(nullptr);
+	return cstrings.size();
 }

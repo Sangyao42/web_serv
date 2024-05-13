@@ -26,7 +26,8 @@ struct Client
 	const struct ConfigurationQueryResult	*config;
 	struct stat	stat_buff;
 	std::string path;
-	std::string cgi_executable; //path to cgi executable
+	std::vector<std::string> cgi_argv; //path to cgi executable and path to cgi script
+	std::vector<std::string> cgi_env;
 	bool	keepAlive = true;
 	Request	*req;
 	Response	*res;
@@ -44,7 +45,7 @@ namespace process
 
 	//file and path and content-type related functions
 	std::string GetExactPath(const std::string root, std::string match_path, const struct Uri uri);
-	bool		IsCgi(std::string &cgi_executable, std::string path, cache::LocationQuery *location);
+	bool		IsCgi(std::vector<std::string> &cgi_executable, std::string path, cache::LocationQuery *location);
 	std::string	GetResContentType(std::string path);
 	bool		IsAccessable(std::string content_type, HeaderValue *accept, cache::LocationQuery *location);
 	std::string	GetIndexPath(std::string path, cache::LocationQuery *location);
@@ -59,14 +60,12 @@ namespace process
 		kWrite
 	};
 	int		SetPipes(int *cgi_input, int *cgi_output, const Method method);
-	char*	ConstructCgiExcutable();
-	char*	ConstructCgiPath();
-	char**	ConstructCgiArgv(char* cgi_path);
-	char**	ConstructCgiEnv();
-	int 	ReadAll(int fd, std::string &response_tmp);
+	std::vector<char *>	ConstructExecArray(std::vector<std::string> &cgi_params);
+	void	SetCgiEnv(struct Client *clt);
+	int	ReadAll(int fd, std::string &response_tmp);
 
 	//helper functions
-	int		FreeTwoDimArray(char **argv);
+	int	StringVecToTwoDimArray(std::vector<char *> &cstring, const std::vector<std::string> &strings);
 }
 
 namespace res_builder
