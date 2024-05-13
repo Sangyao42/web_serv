@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-void	res_builder::helper::BuildErrorHeaders(struct Client *clt)
+void	res_builder::BuildErrorHeaders(struct Client *clt)
 {
 	// clt->res->addNewPair("Server", something);
 	// clt->res->addNewPair("Content-Type", something);
@@ -10,17 +10,17 @@ void	res_builder::helper::BuildErrorHeaders(struct Client *clt)
 	// different headers for different status codes
 }
 
-const std::string &res_builder::helper::buildErrorPage(const struct Client *clt)
+const std::string &res_builder::BuildErrorPage(const struct Client *clt)
 {
 	std::string response;
 
 	response = "<html>\r\n";
 	response += "<head><title>";
-	response += statusCodeAsString(clt->status_code);
+	response += StatusCodeAsString(clt->status_code);
 	response += "</title></head>\r\n";
 	response += "<body>\r\n";
 	response += "<center><h1>";
-	response += statusCodeAsString(clt->status_code);
+	response += StatusCodeAsString(clt->status_code);
 	response += "</h1></center>\r\n";
 	response += "<hr><center>Webserv</center>\r\n";
 	response += "</body>\r\n";
@@ -32,19 +32,29 @@ const std::string &res_builder::helper::buildErrorPage(const struct Client *clt)
 void	res_builder::GenerateErrorResponse(struct Client *clt)
 {
 	// build the status line
-	std::string response = clt->clientSocket->res_buf;
-	buildStatusLine(clt, response);
+	std::string response = clt->client_socket->res_buf;
+	BuildStatusLine(clt, response);
 
 	// build the headers
-	buildErrorHeaders(clt); // add headers according to the error code
-	response += clt->res->returnMapAsString();
+	BuildErrorHeaders(clt); // add additional headers according to the error code
+
+	std::string	headers = clt->res->returnMapAsString();
+	if (headers.empty()) // stream error occurred
+	{
+		clt->status_code = k500;
+		delete clt->res;
+		clt->res = new Response();
+		GenerateErrorResponse(clt);
+		return ;
+	}
+	response += headers;
 
 	// build the body
 
 	// first search for error pages in the configuration
 	// if not found, generate a default error page
 
-	std::vector<const directive::ErrorPage *>	errorPages = clt.config->query->error_pages;
+	std::vector<const directive::ErrorPage *>	errorPages = clt->config->query->error_pages;
 	std::vector<const directive::ErrorPage *>::const_iterator	it;
 
 	Maybe<std::string> result;
@@ -58,20 +68,20 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 	}
 	if (it != errorPages.end())
 	{
-		pathErrorPage = (*it)->file_path;
-		if (readFileToString(pathErrorPage, &response) != kNoError);
+		pathErrorPage = (*it)->file_path();
+		if (ReadFileToString(pathErrorPage, response) != kNoError);
 		{
 			clt->status_code = k500;
 			delete clt->res;
 			clt->res = new Response();
 			GenerateErrorResponse(clt);
+			return ;
 		}
 	}
-	else
-		response += buildErrorPage(clt);
+	response += BuildErrorPage(clt);
 }
 
-void	res_builder::utils::BuildStatusLine(const struct Client *clt, std::string &response)
+void	res_builder::BuildStatusLine(const struct Client *clt, std::string &response)
 {
 	response = "";
 	response += "HTTP/1.1 ";
@@ -79,7 +89,7 @@ void	res_builder::utils::BuildStatusLine(const struct Client *clt, std::string &
 	response += "\r\n";
 }
 
-enum ResponseBuilder	res_builder::utils::readFileToString(const std::string &path)
+enum ResponseError	res_builder::ReadFileToString(const std::string &path, std::string &response)
 {
 	std::ifstream	file(path);
 	std::stringstream	ss;
@@ -95,7 +105,7 @@ enum ResponseBuilder	res_builder::utils::readFileToString(const std::string &pat
 	return (kNoError);
 }
 
-const std::string	&res_builder::utils::StatusCodeAsString(enum status_code code)
+const std::string	&res_builder::StatusCodeAsString(enum status_code code)
 {
 	switch (code)
 	{
@@ -128,13 +138,13 @@ const std::string	&res_builder::utils::StatusCodeAsString(enum status_code code)
 		case k412:
 			return ("412 Precondition Failed");
 		case k413:
-			return ("Request Entity Too Large");
+			return ("413 Request Entity Too Large");
 		case k414:
 			return ("414 URI Too Long");
 		case k415:
-			return ("Unsupported Media Type");
+			return ("415 Unsupported Media Type");
 		case k422:
-			return ("Unprocessable Entity");
+			return ("422 Unprocessable Entity");
 		case k500:
 			return ("500 Internal Server Error");
 		case k503:
@@ -143,3 +153,4 @@ const std::string	&res_builder::utils::StatusCodeAsString(enum status_code code)
 		 return (""); // Error
 	}
 }
+ 

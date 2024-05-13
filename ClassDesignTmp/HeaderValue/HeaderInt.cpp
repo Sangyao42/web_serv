@@ -27,7 +27,12 @@ const int	&HeaderInt::content() const
 	return (content_);
 }
 
-const int &HeaderInt::valueAsInt() const
+HeaderInt	*HeaderInt::clone() const
 {
-	return (content_);
+	return (new HeaderInt(*this));
+}
+
+void	HeaderInt::toStringStream(std::ostringstream &oss)
+{
+	oss << content_;
 }

@@ -76,17 +76,12 @@ namespace res_builder
 	void	GenerateAutoindexResponse(struct Client *clt);
 	void	GenerateSuccessResponse(struct Client *clt);
 
-	namespace helper
-	{
-		void	BuildErrorHeaders(struct Client *clt);
-		enum ResponseBuilder	BuildErrorPage(const struct Client *clt);
-	}
+	// helper functions
+	void	BuildErrorHeaders(struct Client *clt);
+	const std::string &BuildErrorPage(const struct Client *clt);
 
-	namespace utils
-	{
-		void	BuildStatusLine(const struct Client *clt, std::string &response);
-		const std::string &ReadFileToString(const std::string &path);
-		const std::string	&StatusCodeAsString(enum status_code code);
-	}
-
+	// utility functions
+	void	BuildStatusLine(const struct Client *clt, std::string &response);
+	enum ResponseError	ReadFileToString(const std::string &path, std::string &response);
+	const std::string	&StatusCodeAsString(enum status_code code);
 }
