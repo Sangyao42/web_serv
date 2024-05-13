@@ -13,11 +13,11 @@ void	process::ProcessRequest(struct Client *clt)
 	if (clt->status_code != k000)
 		return (res_builder::GenerateErrorResponse(clt)); // there is an existing error
 
-	HeaderValue	*Host = clt->req->returnValueAsPointer("Host");
+	HeaderString	*Host = dynamic_cast<HeaderString *> (clt->req->returnValueAsPointer("Host"));
 
 	// query configuration
 	clt->config = &ws_database.query(clt->client_socket->socket, \
-		(Host ? Host->valueAsString() : ""), \
+		(Host ? Host->content() : ""), \
 		clt->req->getRequestTarget().path);
 
 	if (clt->config->is_empty())
@@ -84,7 +84,7 @@ void	process::ProcessGetRequest(struct Client *clt)
 		if (process::IsCgi(clt->cgi_argv, clt->path, location)) //check file extension and get the cgi path inside IsCgi
 			return (process::ProcessGetRequestCgi(clt));
 		std::string content_type = process::GetResContentType(clt->path);
-		if (!process::IsAccessable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
+		if (!process::IsAcceptable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
 		{
 			clt->status_code = k406;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -116,7 +116,7 @@ void	process::ProcessGetRequest(struct Client *clt)
 		if (process::IsCgi(clt->cgi_argv, clt->path, location))
 			return (ProcessGetRequestCgi(clt));
 		std::string content_type = process::GetResContentType(index_path);
-		if (!process::IsAccessable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
+		if (!process::IsAcceptable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
 		{
 			clt->status_code = k406;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -145,7 +145,7 @@ void	process::ProcessPostRequest(struct Client *clt)
 		return (res_builder::GenerateErrorResponse(clt));
 	}
 
-	HeaderValue	*req_content_type = clt->req->returnValueAsPointer("Content-Type");
+	HeaderValue	*req_content_type = clt->req->returnValueAsPointer("Content-Type"); // TODO: need to down case the content type, probably to HeaderStringVector or HeaderString
 	if (req_content_type && !IsSupportedMediaType(req_content_type->valueAsString(), location->mime_types)) // checkt content type from request with MIME type
 	{
 		clt->status_code = k415;
@@ -257,7 +257,7 @@ std::string	process::GetResContentType(std::string path)
 		return (extension);
 }
 
-bool	process::IsAccessable(std::string content_type, HeaderValue *accept, cache::LocationQuery *location)
+bool	process::IsAcceptable(std::string content_type, HeaderValue *accept, cache::LocationQuery *location)
 {
 	directive::MimeTypes	mime_types;
 	// find types in both accept header and location->mime_types
@@ -277,7 +277,7 @@ std::string	process::GetIndexPath(std::string path, cache::LocationQuery *locati
 	{
 		if (path[path.size() - 1] != '/')
 			path += "/";
-		index_path = path + location->indexes[i];
+		index_path = path + location->indexes[i]->get();
 		if (access(index_path.c_str(), F_OK) == 0)
 			return (index_path);
 	}
@@ -286,8 +286,8 @@ std::string	process::GetIndexPath(std::string path, cache::LocationQuery *locati
 
 bool		process::IsSupportedMediaType(std::string req_content_type, const directive::MimeTypes* mime_types)
 {
-	const std::map<Extension, MimeType>	types = mime_types->get();
-	std::map<Extension, MimeType>::const_iterator it;
+	const std::map<directive::MimeTypes::Extension, directive::MimeTypes::MimeType>	types = mime_types->get();
+	std::map<directive::MimeTypes::Extension, directive::MimeTypes::MimeType>::const_iterator it;
 	for (it = types.begin(); it != types.end(); it++)
 	{
 		if (it->second == req_content_type)

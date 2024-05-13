@@ -25,7 +25,7 @@ void	process::ProcessGetRequestCgi(struct Client *clt)
 		//child process
 		close(cgi_output[PipeEnd::kRead]);
 		dup2(cgi_output[PipeEnd::kWrite], STDOUT_FILENO);
-		assert(!clt->cgi_argv.empty() && "ProcessGetRequestCgi: clt->cgi_executable is NULL")
+		assert(!clt->cgi_argv.empty() && "ProcessGetRequestCgi: clt->cgi_executable is NULL");
 		// char* cgi_executable = clt->cgi_executable.c_str(); // get excutable from looping through location->cgis based on the file extension and check permission
 		// char* cgi_path = clt->path.c_str(); // get excutable from looping through location->cgis based on the file extension and check permission
 		if (access(clt->cgi_argv[0].c_str(), F_OK | X_OK) != 0 || \
@@ -65,12 +65,12 @@ void	process::ProcessGetRequestCgi(struct Client *clt)
 		}
 		ParseResponseTmp(response_tmp); // modify the clt->response by the received message from cgi
 		std::string res_content_type = response_tmp.substr(response_tmp.find("Content-Type: "),response_tmp.find("\r\n\r\n")); // TODO: get the content type from the string returned by cgi
-		if (!IsSupportedMediaType(res_content_type)) //check the response content type with the MIME type
+		if (!IsSupportedMediaType(res_content_type, clt->config->query->mime_types)) //check the response content type with the MIME type
 		{
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
-		if (IsAccessable(res_content_type)) // TODO: get the content type from the string returned by cgi, check Accept header and MIME type && check response entity's content type and Accept Header
+		if (IsAcceptable(res_content_type)) // TODO: get the content type from the string returned by cgi, check Accept header and MIME type && check response entity's content type and Accept Header
 		{
 			clt->status_code = k406;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -168,12 +168,12 @@ void	process::ProcessPostRequestCgi(struct Client *clt)
 		}
 		ParseResponseTmp(); // modify the clt->response by the received message from cgi
 		std::string res_content_type = response_tmp.substr(response_tmp.find("Content-Type: "),response_tmp.find("\r\n\r\n")); // TODO: get the content type from the string returned by cgi
-		if (!IsSupportedMediaType(res_content_type)) //check the response content type with the MIME type
+		if (!IsSupportedMediaType(res_content_type, clt->config->query->mime_types)) //check the response content type with the MIME type
 		{
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
-		if (IsAccessable(res_content_type)) // TODO: get the content type from the string returned by cgi, check Accept header and MIME type && check response entity's content type and Accept Header
+		if (IsAcceptable(res_content_type)) // TODO: get the content type from the string returned by cgi, check Accept header and MIME type && check response entity's content type and Accept Header
 		{
 			clt->status_code = k406;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -212,7 +212,7 @@ int process::SetPipes(int *cgi_input, int *cgi_output, const Method method)
 std::vector<char *>	process::ConstructExecArray(std::vector<std::string> &cgi_params) //{extension, cgi_path, NULL}
 {
 	std::vector<char*> cstrings;
-	int cstrs_size = StringVecToTwoDimArray(cstrings, cgi_argv);
+	int cstrs_size = StringVecToTwoDimArray(cstrings, cgi_params);
 	if (cstrs_size == 1)
 	{
 		std::cerr << "Error: ConstructCgiArgv" << std::endl;
