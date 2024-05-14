@@ -62,10 +62,11 @@ namespace process
 	int		SetPipes(int *cgi_input, int *cgi_output, const Method method);
 	std::vector<char *>	ConstructExecArray(std::vector<std::string> &cgi_params);
 	void	SetCgiEnv(struct Client *clt);
-	int	ReadAll(int fd, std::string &response_tmp);
+	int		ReadAll(int fd, std::string &response_tmp);
+	int 	WriteAll(int fd, char *cstr_buf, int size);
 
 	//helper functions
-	int	StringVecToTwoDimArray(std::vector<char *> &cstring, const std::vector<std::string> &strings);
+	int		StringVecToTwoDimArray(std::vector<char *> &cstring, const std::vector<std::string> &strings);
 }
 
 namespace res_builder

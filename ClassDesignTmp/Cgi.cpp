@@ -56,8 +56,9 @@ void	process::ProcessGetRequestCgi(struct Client *clt)
 	waitpid(pid, &wstats, 0);
 	if (WIFEXITED(wstats) && WEXITSTATUS(wstats) == 0)
 	{
-		int read = process::ReadAll(cgi_output[PipeEnd::kRead], response_tmp);
+		int read_byte = ReadAll(cgi_output[PipeEnd::kRead], response_tmp);
 		close(cgi_output[PipeEnd::kRead]);
+		assert(read_byte != 0 && "ReadAll: read byte is 0");
 		if (read < 0)
 		{
 			clt->status_code = k500;
@@ -77,6 +78,7 @@ void	process::ProcessGetRequestCgi(struct Client *clt)
 		}
 		else
 		{
+			// TODO: generate the response body with content type and content length
 			clt->status_code = k200;
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
@@ -141,8 +143,12 @@ void	process::ProcessPostRequestCgi(struct Client *clt)
 	//parent process
 	//write to child process
 	close(cgi_input[PipeEnd::kRead]);
-	int write_byte = write(cgi_input[PipeEnd::kWrite], clt->req->getRequestBody().c_str(), clt->req->getRequestBody().size());
-	if (write_byte < 0)
+	int content_size = clt->req->getRequestBody().size();
+	std::string content = clt->req->getRequestBody();
+	char *content_str = const_cast<char *>(content.c_str());
+	int write_byte = WriteAll(cgi_input[PipeEnd::kWrite], content_str, content_size);
+	assert (write_byte != 0 && "WriteAll: write byte is 0");
+	if (write_byte < 0 && write_byte != content_size)
 	{
 		close(cgi_input[PipeEnd::kWrite]);
 		close(cgi_output[PipeEnd::kRead]);
@@ -159,8 +165,9 @@ void	process::ProcessPostRequestCgi(struct Client *clt)
 	waitpid(pid, &wstats, 0);
 	if (WIFEXITED(wstats) && WEXITSTATUS(wstats) == 0)
 	{
-		int read = ReadAll(cgi_output[PipeEnd::kRead], response_tmp);
+		int read_byte = ReadAll(cgi_output[PipeEnd::kRead], response_tmp);
 		close(cgi_output[PipeEnd::kRead]);
+		assert(read_byte != 0 && "ReadAll: read byte is 0");
 		if (read < 0)
 		{
 			clt->status_code = k500;
@@ -180,6 +187,7 @@ void	process::ProcessPostRequestCgi(struct Client *clt)
 		}
 		else
 		{
+			// TODO: generate the response body with content type and content length
 			clt->status_code = k200;
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
@@ -297,10 +305,48 @@ std::vector<char *>	process::ConstructExecArray(std::vector<std::string> &cgi_pa
 	int cstrs_size = StringVecToTwoDimArray(cstrings, cgi_params);
 	if (cstrs_size == 1)
 	{
-		std::cerr << "Error: ConstructCgiArgv" << std::endl;
+		std::cerr << "Error: ConstructExecveArrays" << std::endl;
 		return (std::vector<char*>());
 	}
 	return cstrings;
+}
+
+int process::ReadAll(int fd, std::string &response_tmp)
+{
+	char buffer[1024];
+	int read_byte = 0;
+	int total_read = 0;
+	while ((read_byte = read(fd, buffer, 1024)) > 0)
+	{
+		response_tmp.append(buffer, read_byte);
+		total_read += read_byte;
+	}
+	if (read_byte < 0)
+	{
+		std::cerr << "Error: ReadAll from child process" << std::endl;
+		return (-1);
+	}
+	return (total_read);
+}
+
+int process::WriteAll(int fd, char *cstr_buf, int size)
+{
+	int total_write = 0;
+	int byte_left = size;
+	int write_byte = 0;
+	while (total_write < size)
+	{
+		write_byte = write(fd, cstr_buf + total_write, byte_left);
+		if (write_byte < 0)
+		{
+			std::cerr << "Error: WriteAll to child process" << std::endl;
+			return (-1);
+		}
+		total_write += write_byte;
+		byte_left -= write_byte;
+	}
+	return (total_write);
+
 }
 
 //helper functions
