@@ -53,9 +53,9 @@ void	process::ProcessRequest(struct Client *clt)
 		}
 	}
 
-	HeaderInt *ContentLength = dynamic_cast<HeaderInt *> (clt->req->returnValueAsPointer("Content-Length"));
+	HeaderInt *content_length = dynamic_cast<HeaderInt *> (clt->req->returnValueAsPointer("Content-Length"));
 
-	if ((ContentLength && ContentLength->content() > location->client_max_body_size) || \
+	if ((content_length && content_length->content() > location->client_max_body_size) || \
 	(clt->req->body_size_chunked_ != -1 && clt->req->body_size_chunked_ > location->client_max_body_size))
 	{
 		clt->status_code = k413;
@@ -146,7 +146,7 @@ void	process::ProcessPostRequest(struct Client *clt)
 	}
 
 	HeaderValue	*req_content_type = clt->req->returnValueAsPointer("Content-Type"); // TODO: need to down case the content type, probably to HeaderStringVector or HeaderString
-	if (req_content_type && !IsSupportedMediaType(req_content_type->valueAsString(), location->mime_types)) // checkt content type from request with MIME type
+	if (req_content_type && !IsSupportedMediaType(req_content_type->content(), location->mime_types)) // checkt content type from request with MIME type
 	{
 		clt->status_code = k415;
 		return (res_builder::GenerateErrorResponse(clt));
