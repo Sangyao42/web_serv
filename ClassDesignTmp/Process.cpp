@@ -1,5 +1,7 @@
 #include "Client.hpp"
 
+#include <cstdio>
+
 #include <cassert>
 
 void	process::ProcessRequest(struct Client *clt)
@@ -215,7 +217,13 @@ void	process::ProcessDeleteRequest(struct Client *clt)
 			clt->status_code = k403;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
-		// TODO: delete the file
+		// ? delete the file: do I need to check if remove() fails ?
+		int ret_remove = std::remove(clt->path.c_str());
+		if (ret_remove != 0)
+		{
+			clt->status_code = k500;
+			return (res_builder::GenerateErrorResponse(clt));
+		}
 		clt->status_code = k204; //or k200 with a success message
 		return (res_builder::GenerateSuccessResponse(clt));
 	}
