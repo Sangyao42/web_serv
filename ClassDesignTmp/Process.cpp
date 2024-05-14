@@ -170,6 +170,12 @@ void	process::ProcessPostRequest(struct Client *clt)
 				clt->status_code = k403;
 				return (res_builder::GenerateErrorResponse(clt));
 			}
+			std::string path_extension = clt->path.substr(clt->path.find_last_of('.') + 1);
+			if (req_content_type != path_extension) // TODO: need to down case the content type, probably to HeaderStringVector or HeaderString
+			{
+				clt->status_code = k415;
+				return (res_builder::GenerateErrorResponse(clt));
+			}
 			clt->status_code = k200; // ? what should be sent in the body? could be, eg., <html>Modification Success!</html>
 			// TODO: modify the file with the body of the request
 			return (res_builder::GenerateSuccessResponse(clt));
@@ -209,6 +215,7 @@ void	process::ProcessDeleteRequest(struct Client *clt)
 			clt->status_code = k403;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
+		// TODO: delete the file
 		clt->status_code = k204; //or k200 with a success message
 		return (res_builder::GenerateSuccessResponse(clt));
 	}
