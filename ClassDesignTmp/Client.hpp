@@ -3,6 +3,8 @@
 #include <iterator>
 #include <fstream>
 #include <sstream>
+#include <ctime>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -72,15 +74,22 @@ namespace res_builder
 {
 	void	GenerateErrorResponse(struct Client *clt);
 	void	GenerateRedirectResponse(struct Client *clt);
-	void	GenerateChunkedResponse(struct Client *clt);
 	void	GenerateAutoindexResponse(struct Client *clt);
 	void	GenerateSuccessResponse(struct Client *clt);
 
-	// helper functions
+	// error page related helper functions
 	void	BuildErrorHeaders(struct Client *clt);
 	const std::string &BuildErrorPage(const struct Client *clt);
 
-	// utility functions
+	// redirect related helper functions
+
+	// autoindex related helper functions
+
+	// success related helper functions
+
+	// general utility functions
+	std::string	GetTimeGMT();
+	void	BuildBasicHeaders(struct Client *clt);
 	void	BuildStatusLine(const struct Client *clt, std::string &response);
 	enum ResponseError	ReadFileToString(const std::string &path, std::string &response);
 	const std::string	&StatusCodeAsString(enum status_code code);

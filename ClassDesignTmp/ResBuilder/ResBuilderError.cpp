@@ -2,12 +2,25 @@
 
 void	res_builder::BuildErrorHeaders(struct Client *clt)
 {
-	// clt->res->addNewPair("Server", something);
-	// clt->res->addNewPair("Content-Type", something);
-	// clt->res->addNewPair("Connection", something);
-	// etc. etc.
-
 	// different headers for different status codes
+	switch (clt->status_code)
+	{
+		case k405:
+			// clt->config->query->allowed_methods
+			// clt->res->addNewPair("Allow", new HeaderSomething());
+			break ;
+		case k406:
+			// supported media types
+			// clt->res->addNewPair("Accept", new HeaderSomething());
+			break ;
+		case k408:
+			// clt->res->addNewPair("Connection", new HeaderString("close"));
+			break ;
+		case k415:
+			// supported media types
+			// clt->res->addNewPair("Accept", new HeaderSomething());
+			break ;
+	}
 }
 
 const std::string &res_builder::BuildErrorPage(const struct Client *clt)
@@ -36,6 +49,7 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 	BuildStatusLine(clt, response);
 
 	// build the headers
+	BuildBasicHeaders(clt); // add basic headers
 	BuildErrorHeaders(clt); // add additional headers according to the error code
 
 	std::string	headers = clt->res->returnMapAsString();
@@ -80,77 +94,3 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 	}
 	response += BuildErrorPage(clt);
 }
-
-void	res_builder::BuildStatusLine(const struct Client *clt, std::string &response)
-{
-	response = "";
-	response += "HTTP/1.1 ";
-	response += StatusCodeAsString(clt->status_code);
-	response += "\r\n";
-}
-
-enum ResponseError	res_builder::ReadFileToString(const std::string &path, std::string &response)
-{
-	std::ifstream	file(path);
-	std::stringstream	ss;
-
-	if (!file)
-		return (kFileOpenError);
-
-	ss << file.rdbuf();
-
-	if (file.fail())
-	 return (kFilestreamError);
-
-	return (kNoError);
-}
-
-const std::string	&res_builder::StatusCodeAsString(enum status_code code)
-{
-	switch (code)
-	{
-		case k200:
-			return ("200 OK");
-		case k201:
-			return ("201 Created");
-		case k204:
-			return ("204 No Content");
-		case k301:
-			return ("301 Moved Permanently");
-		case k303:
-			return ("303 See Other");
-		case k304:
-			return ("304 Not Modified");
-		case k307:
-			return ("307 Temporary Redirection");
-		case k400:
-			return ("400 Bad Request");
-		case k403:
-			return ("403 Forbidden");
-		case k404:
-			return ("404 Not Found");
-		case k405:
-			return ("405 Method Not Allowed");
-		case k406:
-			return ("406 Not Acceptable");
-		case k408:
-			return ("408 Request Timeout");
-		case k412:
-			return ("412 Precondition Failed");
-		case k413:
-			return ("413 Request Entity Too Large");
-		case k414:
-			return ("414 URI Too Long");
-		case k415:
-			return ("415 Unsupported Media Type");
-		case k422:
-			return ("422 Unprocessable Entity");
-		case k500:
-			return ("500 Internal Server Error");
-		case k503:
-			return ("503 Service Unavailable");
-		default:
-		 return (""); // Error
-	}
-}
- 
