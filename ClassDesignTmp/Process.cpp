@@ -102,7 +102,7 @@ void	process::ProcessGetRequest(struct Client *clt)
 	else if (S_ISDIR(clt->stat_buff.st_mode))
 	{
 		assert(location->indexes.size() && "Indexes is empty");
-		std::string index_path = process::GetIndexPath(clt->path, location); // TODO: loop through the location->indexes and check if they exist with F_OK
+		std::string index_path = process::GetIndexPath(clt->path, location);
 		// ? update the clt->path to the index file ? which means internal redirect
 		clt->path = index_path;
 		if (index_path == "")
@@ -141,11 +141,6 @@ void	process::ProcessGetRequest(struct Client *clt)
 void	process::ProcessPostRequest(struct Client *clt)
 {
 	cache::LocationQuery	*location= clt->config->query;
-	if (IsDirFormat(clt->path)) // end with "/"
-	{
-		clt->status_code = k403;
-		return (res_builder::GenerateErrorResponse(clt));
-	}
 
 	HeaderValue	*req_content_type = clt->req->returnValueAsPointer("Content-Type"); // TODO: need to down case the content type, probably to HeaderStringVector or HeaderString
 	if (req_content_type && !IsSupportedMediaType(req_content_type->content(), location->mime_types)) // checkt content type from request with MIME type
@@ -159,10 +154,20 @@ void	process::ProcessPostRequest(struct Client *clt)
 	{
 		if (S_ISDIR(clt->stat_buff.st_mode))
 		{
-			clt->status_code = k403;
-			return (res_builder::GenerateErrorResponse(clt));
+			if (IsDirFormat(clt->path) == false)
+				clt->path = clt->path + "/";
+			if (file::UploadFile(clt) == false)
+			{
+				clt->status_code = k500;
+				return (res_builder::GenerateErrorResponse(clt));
+			}
+			else
+			{
+				clt->status_code = k201; // + location header to notify where it is saved
+				return (res_builder::GenerateSuccessResponse(clt));
+			}
 		}
-		else if (S_ISREG(clt->stat_buff.st_mode))
+		else if (S_ISREG(clt->stat_buff.st_mode)) //it is a regular file
 		{
 
 			if (IsCgi(clt->cgi_argv, clt->path, location))
@@ -173,13 +178,17 @@ void	process::ProcessPostRequest(struct Client *clt)
 				return (res_builder::GenerateErrorResponse(clt));
 			}
 			std::string path_extension = clt->path.substr(clt->path.find_last_of('.') + 1);
-			if (req_content_type != path_extension) // TODO: need to down case the content type, probably to HeaderStringVector or HeaderString
+			if (path_extension != clt->path && req_content_type != path_extension) // file has extension. TODO: need to down case the content type, probably to HeaderStringVector or HeaderString
 			{
 				clt->status_code = k415;
 				return (res_builder::GenerateErrorResponse(clt));
 			}
+			if (file::ModifyFile(clt) == false)
+			{
+				clt->status_code = k500;
+				return (res_builder::GenerateErrorResponse(clt));
+			}
 			clt->status_code = k200; // ? what should be sent in the body? could be, eg., <html>Modification Success!</html>
-			// TODO: modify the file with the body of the request
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
 		else
@@ -195,9 +204,13 @@ void	process::ProcessPostRequest(struct Client *clt)
 			clt->status_code = k403;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
-		// upload
-		// TODO: check the SEARCH permission for the directory and create the file
-		clt->status_code = k201; // + location header to notify where it is saved
+		//upload
+		if(file::UploadFile(clt) == false)
+		{
+			clt->status_code = k500;
+			return (res_builder::GenerateErrorResponse(clt));
+		}
+		clt->status_code = k201; // + location to notify where it is saved
 		return (res_builder::GenerateSuccessResponse(clt));
 	}
 }
@@ -218,8 +231,7 @@ void	process::ProcessDeleteRequest(struct Client *clt)
 			return (res_builder::GenerateErrorResponse(clt));
 		}
 		// ? delete the file: do I need to check if remove() fails ?
-		int ret_remove = std::remove(clt->path.c_str());
-		if (ret_remove != 0)
+		if (file::DeleteFile(clt) == false)
 		{
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -238,6 +250,8 @@ std::string process::GetExactPath(const std::string root, std::string match_path
 {
 	(void) match_path;
 	std::string exact_path = ".." + root;
+	if (uri.path[0] != '/')
+		exact_path += "/";
 	exact_path += uri.path;
 	return (exact_path);
 }
@@ -313,7 +327,5 @@ bool		process::IsSupportedMediaType(std::string req_content_type, const directiv
 
 bool		process::IsDirFormat(std::string path)
 {
-	if (path[path.size() - 1] == '/')
-		return (true);
-	return (false);
+	return (path[path.size() - 1] == '/');
 }
