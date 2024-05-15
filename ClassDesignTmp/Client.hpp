@@ -52,6 +52,16 @@ namespace process
 	bool		IsSupportedMediaType(std::string req_content_type, const directive::MimeTypes* mime_types);
 	bool		IsDirFormat(std::string path);
 
+	namespace file
+	{
+		bool	ModifyFile(struct Client *clt);
+		bool	UploadFile(struct Client *clt);
+		bool	DeleteFile(struct Client *clt);
+
+		//helper functions
+		std::string	GenerateFileName(std::string path); //base on timestamp
+		std::string GenerateFileExtension(std::string content_type, const directive::MimeTypes* mime_types);
+	}
 
 	//cgi related functions
 	enum PipeEnd
@@ -60,13 +70,13 @@ namespace process
 		kWrite
 	};
 	int		SetPipes(int *cgi_input, int *cgi_output, const Method method);
-	std::vector<char *>	ConstructExecArray(std::vector<std::string> &cgi_params);
+	// std::vector<char *>	ConstructExecArray(std::vector<std::string> &cgi_params);
 	void	SetCgiEnv(struct Client *clt);
 	int		ReadAll(int fd, std::string &response_tmp);
 	int 	WriteAll(int fd, char *cstr_buf, int size);
 
 	//helper functions
-	int		StringVecToTwoDimArray(std::vector<char *> &cstring, const std::vector<std::string> &strings);
+	char**	StringVecToTwoDimArray(const std::vector<std::string> &strings);
 }
 
 namespace res_builder

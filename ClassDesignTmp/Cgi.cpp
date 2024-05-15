@@ -34,15 +34,17 @@ void	process::ProcessGetRequestCgi(struct Client *clt)
 			close(cgi_output[PipeEnd::kWrite]);
 			exit(1);
 		}
-		std::vector<char*> cgi_argv = ConstructExecArray(clt->cgi_argv);
+		// std::vector<char*> cgi_argv = ConstructExecArray(clt->cgi_argv);
+		char** cgi_argv = StringVecToTwoDimArray(clt->cgi_argv);
 		SetCgiEnv(clt);
-		std::vector<char*> cgi_env = ConstructExecArray(clt->cgi_env);
-		if (cgi_argv.empty() || cgi_env.empty())
+		// std::vector<char*> cgi_env = ConstructExecArray(clt->cgi_env);
+		char** cgi_env = StringVecToTwoDimArray(clt->cgi_env);
+		if (cgi_argv == NULL || cgi_env == NULL)
 		{
 			close(cgi_output[PipeEnd::kWrite]);
 			exit(1);
 		}
-		execve(cgi_argv.data()[0], cgi_argv.data(), cgi_env.data());
+		execve(cgi_argv[0], cgi_argv, cgi_env);
 		// int checkfree = FreeTwoDimArray(cgi_argv);
 		// int checkfree2 = FreeTwoDimArray(cgi_env);
 		std::cerr << "Error: execve" << std::endl;
@@ -123,16 +125,18 @@ void	process::ProcessPostRequestCgi(struct Client *clt)
 			close(cgi_output[PipeEnd::kWrite]);
 			exit(1);
 		}
-		std::vector<char*> cgi_argv = ConstructExecArray(clt->cgi_argv);
+		// std::vector<char*> cgi_argv = ConstructExecArray(clt->cgi_argv);
+		char** cgi_argv = StringVecToTwoDimArray(clt->cgi_argv);
 		SetCgiEnv(clt);
-		std::vector<char*> cgi_env = ConstructExecArray(clt->cgi_env);
-		if (cgi_argv.empty() || cgi_env.empty())
+		// std::vector<char*> cgi_env = ConstructExecArray(clt->cgi_env);
+		char** cgi_env = StringVecToTwoDimArray(clt->cgi_env);
+		if (cgi_argv == NULL || cgi_env == NULL)
 		{
 			close(cgi_input[PipeEnd::kRead]);
 			close(cgi_output[PipeEnd::kWrite]);
 			exit(1);
 		}
-		execve(cgi_argv.data()[0], cgi_argv.data(), cgi_env.data());
+		execve(cgi_argv[0], cgi_argv, cgi_env);
 		// int checkfree = FreeTwoDimArray(cgi_argv);
 		// int checkfree2 = FreeTwoDimArray(cgi_env);
 		std::cerr << "Error: execve" << std::endl;
@@ -299,17 +303,17 @@ void	process::SetCgiEnv(struct Client *clt)
 
 // fastcgi_param  REDIRECT_STATUS    200;
 
-std::vector<char *>	process::ConstructExecArray(std::vector<std::string> &cgi_params) //{extension, cgi_path, NULL}
-{
-	std::vector<char*> cstrings;
-	int cstrs_size = StringVecToTwoDimArray(cstrings, cgi_params);
-	if (cstrs_size == 1)
-	{
-		std::cerr << "Error: ConstructExecveArrays" << std::endl;
-		return (std::vector<char*>());
-	}
-	return cstrings;
-}
+// std::vector<char *>	process::ConstructExecArray(std::vector<std::string> &cgi_params) //{extension, cgi_path, NULL}
+// {
+// 	std::vector<char*> cstrings;
+// 	int cstrs_size = StringVecToTwoDimArray(cstrings, cgi_params);
+// 	if (cstrs_size == 1)
+// 	{
+// 		std::cerr << "Error: ConstructExecveArrays" << std::endl;
+// 		return (std::vector<char*>());
+// 	}
+// 	return cstrings;
+// }
 
 int process::ReadAll(int fd, std::string &response_tmp)
 {
@@ -350,13 +354,25 @@ int process::WriteAll(int fd, char *cstr_buf, int size)
 }
 
 //helper functions
-int	process::StringVecToTwoDimArray(std::vector<char *> &cstrings,const std::vector<std::string> &strings)
+// int	process::StringVecToTwoDimArray(std::vector<char *> &cstrings,const std::vector<std::string> &strings)
+// {
+// 	size_t vector_size = strings.size();
+// 	cstrings.reserve(vector_size + 1);
+// 	for(size_t i = 0; i < vector_size; ++i)
+// 		cstrings.push_back(const_cast<char*>(strings[i].c_str()));
+// 	cstrings.push_back(NULL);
+// 	return cstrings.size();
+// }
+
+char**	process::StringVecToTwoDimArray(const std::vector<std::string> &strings)
 {
+	std::vector<char *> cstrings;
 	size_t vector_size = strings.size();
-	std::cout << vector_size << std::endl;
 	cstrings.reserve(vector_size + 1);
 	for(size_t i = 0; i < vector_size; ++i)
 		cstrings.push_back(const_cast<char*>(strings[i].c_str()));
-	cstrings.push_back(nullptr);
-	return cstrings.size();
+	cstrings.push_back(NULL);
+	if (cstrings.size() == 1)
+		return NULL;
+	return &cstrings[0];
 }
