@@ -29,6 +29,7 @@ struct Client
 	std::vector<std::string> cgi_argv; //path to cgi executable and path to cgi script
 	std::vector<std::string> cgi_env;
 	bool	keepAlive = true;
+	std::string location_created;
 	Request	*req;
 	Response	*res;
 };
@@ -61,6 +62,8 @@ namespace process
 		//helper functions
 		std::string	GenerateFileName(std::string path); //base on timestamp
 		std::string GenerateFileExtension(std::string content_type, const directive::MimeTypes* mime_types);
+		bool CreateDir(std::string dir);
+		bool CreateDirRecurs(std::string path);
 	}
 
 	//cgi related functions
