@@ -41,8 +41,7 @@ namespace process
 	void	ProcessPostRequest(struct Client *clt);
 	void	ProcessDeleteRequest(struct Client *clt);
 
-	void	ProcessGetRequestCgi(struct Client *clt);
-	void	ProcessPostRequestCgi(struct Client *clt);
+
 
 	//file and path and content-type related functions
 	std::string GetExactPath(const std::string root, std::string match_path, const struct Uri uri);
@@ -65,8 +64,13 @@ namespace process
 		bool CreateDir(std::string dir);
 		bool CreateDirRecurs(std::string path);
 	}
+}
 
-	//cgi related functions
+namespace cgi
+{
+	void	ProcessGetRequestCgi(struct Client *clt);
+	void	ProcessPostRequestCgi(struct Client *clt);
+
 	enum PipeEnd
 	{
 		kRead,

@@ -3,7 +3,7 @@
 #include <sys/wait.h>
 #include <cassert>
 
-void	process::ProcessGetRequestCgi(struct Client *clt)
+void	cgi::ProcessGetRequestCgi(struct Client *clt)
 {
 	int	cgi_input[2], cgi_output[2];
 	int pipes = SetPipes(cgi_input, cgi_output, clt->req->getMethod()); //For CGI GET request, only cgi_output[2] is needed
@@ -92,7 +92,7 @@ void	process::ProcessGetRequestCgi(struct Client *clt)
 	}
 }
 
-void	process::ProcessPostRequestCgi(struct Client *clt)
+void	cgi::ProcessPostRequestCgi(struct Client *clt)
 {
 	int	cgi_input[2], cgi_output[2];
 	int pipes = SetPipes(cgi_input, cgi_output, clt->req->getMethod()); //For CGI GET request, only cgi_output[2] is needed
@@ -205,7 +205,7 @@ void	process::ProcessPostRequestCgi(struct Client *clt)
 }
 
 //cgi related functions
-int process::SetPipes(int *cgi_input, int *cgi_output, const Method method)
+int cgi::SetPipes(int *cgi_input, int *cgi_output, const Method method)
 {
 	assert((method == kGet || method == kPost) && "SetPipes: method is not GET or POST");
 	if (pipe(cgi_output) < 0)
@@ -223,7 +223,7 @@ int process::SetPipes(int *cgi_input, int *cgi_output, const Method method)
 
 #define stringify(name) #name
 
-void	process::SetCgiEnv(struct Client *clt)
+void	cgi::SetCgiEnv(struct Client *clt)
 {
 	//env: method, query_string, content_length, content_type,
 	//request_uri, document_uri, document_root, script_name,
@@ -315,7 +315,7 @@ void	process::SetCgiEnv(struct Client *clt)
 // 	return cstrings;
 // }
 
-int process::ReadAll(int fd, std::string &response_tmp)
+int cgi::ReadAll(int fd, std::string &response_tmp)
 {
 	char buffer[1024];
 	int read_byte = 0;
@@ -333,7 +333,7 @@ int process::ReadAll(int fd, std::string &response_tmp)
 	return (total_read);
 }
 
-int process::WriteAll(int fd, char *cstr_buf, int size)
+int cgi::WriteAll(int fd, char *cstr_buf, int size)
 {
 	int total_write = 0;
 	int byte_left = size;
@@ -364,7 +364,7 @@ int process::WriteAll(int fd, char *cstr_buf, int size)
 // 	return cstrings.size();
 // }
 
-char**	process::StringVecToTwoDimArray(const std::vector<std::string> &strings)
+char**	cgi::StringVecToTwoDimArray(const std::vector<std::string> &strings)
 {
 	std::vector<char *> cstrings;
 	size_t vector_size = strings.size();
