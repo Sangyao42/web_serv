@@ -79,7 +79,7 @@ namespace res_builder
 
 	// error page related helper functions
 	void	BuildErrorHeaders(struct Client *clt);
-	const std::string &BuildErrorPage(const struct Client *clt);
+	const std::string &BuildErrorPage(enum status_code code);
 
 	// redirect related helper functions
 
@@ -88,9 +88,11 @@ namespace res_builder
 	// success related helper functions
 
 	// general utility functions
+	void	BuildContentHeaders(struct Client *clt);
+	void	ServerError(struct Client *clt);
 	std::string	GetTimeGMT();
-	void	BuildBasicHeaders(struct Client *clt);
-	void	BuildStatusLine(const struct Client *clt, std::string &response);
-	enum ResponseError	ReadFileToString(const std::string &path, std::string &response);
+	void	BuildBasicHeaders(Response *res);
+	void	BuildStatusLine(enum status_code status_code, std::string &response);
+	enum ResponseError	ReadFileToString(const std::string &path, std::string &body);
 	const std::string	&StatusCodeAsString(enum status_code code);
 }

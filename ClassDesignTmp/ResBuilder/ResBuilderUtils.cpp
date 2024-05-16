@@ -1,5 +1,20 @@
 #include "Client.hpp"
 
+void	res_builder::BuildContentHeaders(struct Client *clt)
+{
+	clt->res->addNewPair("Content-Length", new HeaderInt(clt->res->getResponseBody().size()));
+	clt->res->addNewPair("Content-Type", new HeaderString("text/html"));
+}
+
+void	res_builder::ServerError(struct Client *clt)
+{
+	clt->status_code = k500;
+	delete clt->res;
+	clt->res = new Response();
+	GenerateErrorResponse(clt);
+	return ;
+}
+
 std::string	res_builder::GetTimeGMT()
 {
 	time_t	raw_time;
@@ -13,21 +28,21 @@ std::string	res_builder::GetTimeGMT()
 	return (std::string(buffer));
 }
 
-void	res_builder::BuildBasicHeaders(struct Client *clt)
+void	res_builder::BuildBasicHeaders(Response *res)
 {
-	clt->res->addNewPair("Server", new HeaderString("Webserv"));
-	clt->res->addNewPair("Date", new HeaderString(GetTimeGMT()));
+	res->addNewPair("Server", new HeaderString("Webserv"));
+	res->addNewPair("Date", new HeaderString(GetTimeGMT()));
 }
 
-void	res_builder::BuildStatusLine(const struct Client *clt, std::string &response)
+void	res_builder::BuildStatusLine(enum status_code status_code, std::string &response)
 {
 	response = "";
 	response += "HTTP/1.1 ";
-	response += StatusCodeAsString(clt->status_code);
+	response += StatusCodeAsString(status_code);
 	response += "\r\n";
 }
 
-enum ResponseError	res_builder::ReadFileToString(const std::string &path, std::string &response)
+enum ResponseError	res_builder::ReadFileToString(const std::string &path, std::string &body)
 {
 	std::ifstream	file(path);
 	std::stringstream	ss;
@@ -40,6 +55,7 @@ enum ResponseError	res_builder::ReadFileToString(const std::string &path, std::s
 	if (file.fail())
 	 return (kFilestreamError);
 
+	body = ss.str();
 	return (kNoError);
 }
 
@@ -73,6 +89,8 @@ const std::string	&res_builder::StatusCodeAsString(enum status_code code)
 			return ("406 Not Acceptable");
 		case k408:
 			return ("408 Request Timeout");
+		case k411:
+			return ("411 Length Required");
 		case k412:
 			return ("412 Precondition Failed");
 		case k413:
@@ -85,6 +103,8 @@ const std::string	&res_builder::StatusCodeAsString(enum status_code code)
 			return ("422 Unprocessable Entity");
 		case k500:
 			return ("500 Internal Server Error");
+		case k501:
+			return ("501 Not Implemented");
 		case k503:
 			return ("503 Service Unavailable");
 		default:
