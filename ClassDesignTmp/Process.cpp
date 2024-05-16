@@ -1,5 +1,7 @@
 #include "Client.hpp"
 
+#include <cstdio>
+
 #include <cassert>
 
 void	process::ProcessRequest(struct Client *clt)
@@ -13,11 +15,11 @@ void	process::ProcessRequest(struct Client *clt)
 	if (clt->status_code != k000)
 		return (res_builder::GenerateErrorResponse(clt)); // there is an existing error
 
-	HeaderValue	*Host = clt->req->returnValueAsPointer("Host");
+	HeaderString	*Host = dynamic_cast<HeaderString *> (clt->req->returnValueAsPointer("Host"));
 
 	// query configuration
 	clt->config = &ws_database.query(clt->client_socket->socket, \
-		(Host ? Host->valueAsString() : ""), \
+		(Host ? Host->content() : ""), \
 		clt->req->getRequestTarget().path);
 
 	if (clt->config->is_empty())
@@ -53,9 +55,9 @@ void	process::ProcessRequest(struct Client *clt)
 		}
 	}
 
-	HeaderInt *ContentLength = dynamic_cast<HeaderInt *> (clt->req->returnValueAsPointer("Content-Length"));
+	HeaderInt *content_length = dynamic_cast<HeaderInt *> (clt->req->returnValueAsPointer("Content-Length"));
 
-	if ((ContentLength && ContentLength->content() > location->client_max_body_size) || \
+	if ((content_length && content_length->content() > location->client_max_body_size) || \
 	(clt->req->body_size_chunked_ != -1 && clt->req->body_size_chunked_ > location->client_max_body_size))
 	{
 		clt->status_code = k413;
@@ -84,7 +86,7 @@ void	process::ProcessGetRequest(struct Client *clt)
 		if (process::IsCgi(clt->cgi_argv, clt->path, location)) //check file extension and get the cgi path inside IsCgi
 			return (process::ProcessGetRequestCgi(clt));
 		std::string content_type = process::GetResContentType(clt->path);
-		if (!process::IsAccessable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
+		if (!process::IsAcceptable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
 		{
 			clt->status_code = k406;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -100,7 +102,7 @@ void	process::ProcessGetRequest(struct Client *clt)
 	else if (S_ISDIR(clt->stat_buff.st_mode))
 	{
 		assert(location->indexes.size() && "Indexes is empty");
-		std::string index_path = process::GetIndexPath(clt->path, location); // TODO: loop through the location->indexes and check if they exist with F_OK
+		std::string index_path = process::GetIndexPath(clt->path, location);
 		// ? update the clt->path to the index file ? which means internal redirect
 		clt->path = index_path;
 		if (index_path == "")
@@ -116,7 +118,7 @@ void	process::ProcessGetRequest(struct Client *clt)
 		if (process::IsCgi(clt->cgi_argv, clt->path, location))
 			return (ProcessGetRequestCgi(clt));
 		std::string content_type = process::GetResContentType(index_path);
-		if (!process::IsAccessable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
+		if (!process::IsAcceptable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
 		{
 			clt->status_code = k406;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -139,14 +141,9 @@ void	process::ProcessGetRequest(struct Client *clt)
 void	process::ProcessPostRequest(struct Client *clt)
 {
 	cache::LocationQuery	*location= clt->config->query;
-	if (IsDirFormat(clt->path)) // end with "/"
-	{
-		clt->status_code = k403;
-		return (res_builder::GenerateErrorResponse(clt));
-	}
 
-	HeaderValue	*req_content_type = clt->req->returnValueAsPointer("Content-Type");
-	if (req_content_type && !IsSupportedMediaType(req_content_type->valueAsString(), location->mime_types)) // checkt content type from request with MIME type
+	HeaderValue	*req_content_type = clt->req->returnValueAsPointer("Content-Type"); // TODO: need to down case the content type, probably to HeaderStringVector or HeaderString
+	if (req_content_type && !IsSupportedMediaType(req_content_type->content(), location->mime_types)) // checkt content type from request with MIME type
 	{
 		clt->status_code = k415;
 		return (res_builder::GenerateErrorResponse(clt));
@@ -157,10 +154,20 @@ void	process::ProcessPostRequest(struct Client *clt)
 	{
 		if (S_ISDIR(clt->stat_buff.st_mode))
 		{
-			clt->status_code = k403;
-			return (res_builder::GenerateErrorResponse(clt));
+			if (IsDirFormat(clt->path) == false)
+				clt->path = clt->path + "/";
+			if (file::UploadFile(clt) == false)
+			{
+				clt->status_code = k500;
+				return (res_builder::GenerateErrorResponse(clt));
+			}
+			else
+			{
+				clt->status_code = k201; // + location header to notify where it is saved
+				return (res_builder::GenerateSuccessResponse(clt));
+			}
 		}
-		else if (S_ISREG(clt->stat_buff.st_mode))
+		else if (S_ISREG(clt->stat_buff.st_mode)) //it is a regular file
 		{
 
 			if (IsCgi(clt->cgi_argv, clt->path, location))
@@ -170,8 +177,18 @@ void	process::ProcessPostRequest(struct Client *clt)
 				clt->status_code = k403;
 				return (res_builder::GenerateErrorResponse(clt));
 			}
+			std::string path_extension = clt->path.substr(clt->path.find_last_of('.') + 1);
+			if (path_extension != clt->path && req_content_type != path_extension) // file has extension. TODO: need to down case the content type, probably to HeaderStringVector or HeaderString
+			{
+				clt->status_code = k415;
+				return (res_builder::GenerateErrorResponse(clt));
+			}
+			if (file::ModifyFile(clt) == false)
+			{
+				clt->status_code = k500;
+				return (res_builder::GenerateErrorResponse(clt));
+			}
 			clt->status_code = k200; // ? what should be sent in the body? could be, eg., <html>Modification Success!</html>
-			// TODO: modify the file with the body of the request
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
 		else
@@ -187,9 +204,13 @@ void	process::ProcessPostRequest(struct Client *clt)
 			clt->status_code = k403;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
-		// upload
-		// TODO: check the SEARCH permission for the directory and create the file
-		clt->status_code = k201; // + location header to notify where it is saved
+		//upload
+		if(file::UploadFile(clt) == false)
+		{
+			clt->status_code = k500;
+			return (res_builder::GenerateErrorResponse(clt));
+		}
+		clt->status_code = k201; // + location to notify where it is saved
 		return (res_builder::GenerateSuccessResponse(clt));
 	}
 }
@@ -209,6 +230,12 @@ void	process::ProcessDeleteRequest(struct Client *clt)
 			clt->status_code = k403;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
+		// ? delete the file: do I need to check if remove() fails ?
+		if (file::DeleteFile(clt) == false)
+		{
+			clt->status_code = k500;
+			return (res_builder::GenerateErrorResponse(clt));
+		}
 		clt->status_code = k204; //or k200 with a success message
 		return (res_builder::GenerateSuccessResponse(clt));
 	}
@@ -223,6 +250,8 @@ std::string process::GetExactPath(const std::string root, std::string match_path
 {
 	(void) match_path;
 	std::string exact_path = ".." + root;
+	if (uri.path[0] != '/')
+		exact_path += "/";
 	exact_path += uri.path;
 	return (exact_path);
 }
@@ -257,7 +286,7 @@ std::string	process::GetResContentType(std::string path)
 		return (extension);
 }
 
-bool	process::IsAccessable(std::string content_type, HeaderValue *accept, cache::LocationQuery *location)
+bool	process::IsAcceptable(std::string content_type, HeaderValue *accept, cache::LocationQuery *location)
 {
 	directive::MimeTypes	mime_types;
 	// find types in both accept header and location->mime_types
@@ -277,7 +306,7 @@ std::string	process::GetIndexPath(std::string path, cache::LocationQuery *locati
 	{
 		if (path[path.size() - 1] != '/')
 			path += "/";
-		index_path = path + location->indexes[i];
+		index_path = path + location->indexes[i]->get();
 		if (access(index_path.c_str(), F_OK) == 0)
 			return (index_path);
 	}
@@ -286,8 +315,8 @@ std::string	process::GetIndexPath(std::string path, cache::LocationQuery *locati
 
 bool		process::IsSupportedMediaType(std::string req_content_type, const directive::MimeTypes* mime_types)
 {
-	const std::map<Extension, MimeType>	types = mime_types->get();
-	std::map<Extension, MimeType>::const_iterator it;
+	const std::map<directive::MimeTypes::Extension, directive::MimeTypes::MimeType>	types = mime_types->get();
+	std::map<directive::MimeTypes::Extension, directive::MimeTypes::MimeType>::const_iterator it;
 	for (it = types.begin(); it != types.end(); it++)
 	{
 		if (it->second == req_content_type)
@@ -298,7 +327,5 @@ bool		process::IsSupportedMediaType(std::string req_content_type, const directiv
 
 bool		process::IsDirFormat(std::string path)
 {
-	if (path[path.size() - 1] == '/')
-		return (true);
-	return (false);
+	return (path[path.size() - 1] == '/');
 }

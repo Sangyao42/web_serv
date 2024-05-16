@@ -31,6 +31,7 @@ struct Client
 	std::vector<std::string> cgi_argv; //path to cgi executable and path to cgi script
 	std::vector<std::string> cgi_env;
 	bool	keepAlive = true;
+	std::string location_created;
 	Request	*req;
 	Response	*res;
 };
@@ -42,32 +43,49 @@ namespace process
 	void	ProcessPostRequest(struct Client *clt);
 	void	ProcessDeleteRequest(struct Client *clt);
 
-	void	ProcessGetRequestCgi(struct Client *clt);
-	void	ProcessPostRequestCgi(struct Client *clt);
+
 
 	//file and path and content-type related functions
 	std::string GetExactPath(const std::string root, std::string match_path, const struct Uri uri);
 	bool		IsCgi(std::vector<std::string> &cgi_executable, std::string path, cache::LocationQuery *location);
 	std::string	GetResContentType(std::string path);
-	bool		IsAccessable(std::string content_type, HeaderValue *accept, cache::LocationQuery *location);
+	bool		IsAcceptable(std::string content_type, HeaderValue *accept, cache::LocationQuery *location);
 	std::string	GetIndexPath(std::string path, cache::LocationQuery *location);
 	bool		IsSupportedMediaType(std::string req_content_type, const directive::MimeTypes* mime_types);
 	bool		IsDirFormat(std::string path);
 
+	namespace file
+	{
+		bool	ModifyFile(struct Client *clt);
+		bool	UploadFile(struct Client *clt);
+		bool	DeleteFile(struct Client *clt);
 
-	//cgi related functions
+		//helper functions
+		std::string	GenerateFileName(std::string path); //base on timestamp
+		std::string GenerateFileExtension(std::string content_type, const directive::MimeTypes* mime_types);
+		bool CreateDir(std::string dir);
+		bool CreateDirRecurs(std::string path);
+	}
+}
+
+namespace cgi
+{
+	void	ProcessGetRequestCgi(struct Client *clt);
+	void	ProcessPostRequestCgi(struct Client *clt);
+
 	enum PipeEnd
 	{
 		kRead,
 		kWrite
 	};
 	int		SetPipes(int *cgi_input, int *cgi_output, const Method method);
-	std::vector<char *>	ConstructExecArray(std::vector<std::string> &cgi_params);
+	// std::vector<char *>	ConstructExecArray(std::vector<std::string> &cgi_params);
 	void	SetCgiEnv(struct Client *clt);
-	int	ReadAll(int fd, std::string &response_tmp);
+	int		ReadAll(int fd, std::string &response_tmp);
+	int 	WriteAll(int fd, char *cstr_buf, int size);
 
 	//helper functions
-	int	StringVecToTwoDimArray(std::vector<char *> &cstring, const std::vector<std::string> &strings);
+	char**	StringVecToTwoDimArray(const std::vector<std::string> &strings);
 }
 
 namespace res_builder
