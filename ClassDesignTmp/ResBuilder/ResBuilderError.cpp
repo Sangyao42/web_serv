@@ -17,12 +17,15 @@ void	res_builder::BuildErrorHeaders(struct Client *clt)
 			break ;
 		case k413:
 			clt->res->addNewPair("Connection", new HeaderString("close"));
+			break ;
 		case k415:
 			// unsupported media types
 			// clt->res->addNewPair("Accept", new HeaderSomething());
 			// AND/OR unsupported encoding
 			// clt->res->addNewPair("Accept-Encoding", new HeaderSomething());
 			// ? should I simply add both headers or find a way to check them seperately
+			break ;
+		default:
 			break ;
 	}
 }
@@ -54,7 +57,7 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 
 	// build basic and error headers
 	BuildBasicHeaders(clt->res); // add basic headers
-	// BuildErrorHeaders(clt); // add additional headers according to the error code
+	BuildErrorHeaders(clt); // add additional headers according to the error code
 
 	// build the body
 
@@ -64,7 +67,7 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 	std::vector<const directive::ErrorPage *>::const_iterator	it;
 
 	Maybe<std::string> result;
-	std::string	pathErrorPage;
+	std::string	pathErrorPage = "error.html";
 	std::string body;
 
 	for (it = errorPages.begin(); it != errorPages.end(); ++it)
@@ -76,7 +79,7 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 	if (it != errorPages.end())
 	{
 		pathErrorPage = (*it)->file_path();
-		if (ReadFileToString(pathErrorPage, body) != kNoError);
+		if (ReadFileToBody(pathErrorPage, clt->res) != kNoError);
 		{
 			ServerError(clt);
 			return ;
@@ -84,13 +87,11 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 	}
 	else
 	{
-		body = BuildErrorPage(clt->status_code);
+		clt->res->setResponseBody(BuildErrorPage(clt->status_code));
 	}
 
-	// set the body
-	clt->res->setResponseBody(body);
-
 	// build content headers
+	clt->path = pathErrorPage;
 	BuildContentHeaders(clt);
 
 	// add headers to the response

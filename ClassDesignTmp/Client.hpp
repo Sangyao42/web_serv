@@ -109,8 +109,9 @@ namespace res_builder
 	void	BuildContentHeaders(struct Client *clt);
 	void	ServerError(struct Client *clt);
 	std::string	GetTimeGMT();
+	std::string GetTimeGMT(time_t raw_time);
 	void	BuildBasicHeaders(Response *res);
 	void	BuildStatusLine(enum status_code status_code, std::string &response);
-	enum ResponseError	ReadFileToString(const std::string &path, std::string &body);
+	enum ResponseError	ReadFileToBody(const std::string &path, Response *res);
 	const std::string	&StatusCodeAsString(enum status_code code);
 }
