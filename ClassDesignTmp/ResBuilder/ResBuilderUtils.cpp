@@ -2,8 +2,23 @@
 
 void	res_builder::BuildContentHeaders(struct Client *clt)
 {
+	// add content-length header
 	clt->res->addNewPair("Content-Length", new HeaderInt(clt->res->getResponseBody().size()));
-	clt->res->addNewPair("Content-Type", new HeaderString("text/html"));
+
+	// add content-type header
+	std::string extension = process::GetResContentType(clt->path);
+
+	Maybe<directive::MimeTypes::MimeType> type = clt->config->query->mime_types->query(extension);
+	if (type.is_ok())
+		clt->res->addNewPair("Content-Type", new HeaderString(type.value()));
+
+	// add last-modified header
+	struct stat	file_stat;
+	if (stat(clt->path.c_str(), &file_stat) == 0)
+	{
+		std::string last_modified = GetTimeGMT(file_stat.st_mtime);
+		clt->res->addNewPair("Last-Modified", new HeaderString(last_modified));
+	}
 }
 
 void	res_builder::ServerError(struct Client *clt)
@@ -13,6 +28,17 @@ void	res_builder::ServerError(struct Client *clt)
 	clt->res = new Response();
 	GenerateErrorResponse(clt);
 	return ;
+}
+
+std::string	res_builder::GetTimeGMT(time_t raw_time)
+{
+	struct tm	*time_info;
+	char		buffer[80];
+
+	time_info = gmtime(&raw_time); // GMT time
+	strftime(buffer, 80, "%a, %d %b %Y %H:%M:%S GMT", time_info);
+
+	return (std::string(buffer));
 }
 
 std::string	res_builder::GetTimeGMT()
@@ -42,7 +68,7 @@ void	res_builder::BuildStatusLine(enum status_code status_code, std::string &res
 	response += "\r\n";
 }
 
-enum ResponseError	res_builder::ReadFileToString(const std::string &path, std::string &body)
+enum ResponseError	res_builder::ReadFileToBody(const std::string &path, Response *res)
 {
 	std::ifstream	file(path);
 	std::stringstream	ss;
@@ -55,7 +81,7 @@ enum ResponseError	res_builder::ReadFileToString(const std::string &path, std::s
 	if (file.fail())
 	 return (kFilestreamError);
 
-	body = ss.str();
+	res->setResponseBody(ss.str());
 	return (kNoError);
 }
 
