@@ -16,7 +16,7 @@
 	document.getElementById('nameForm').addEventListener('submit', function(event) {
     event.preventDefault(); // Prevent the default form submission
 		var userName = document.getElementById('userName').value;
-		fetch("localhost:8080/save_username.py", {
+		fetch("http://localhost:8080/save_username.py", {
        		method: 'POST',
         	headers: {
             	'Content-Type': 'application/json'

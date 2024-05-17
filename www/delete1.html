@@ -1,1 +1,27 @@
-<html><body><h1>Directory Listing</h1><ul><li><a href='\www/upload\abc.txt' id='abc.txt'>abc.txt</a></li><input type='button' value='delete' id='delete'></ul><ul><li><a href='\www/upload\lobster.jpg' id='lobster.jpg'>lobster.jpg</a></li><input type='button' value='delete' id='delete'></ul></body><script>         function main()        {const fileToDelete = document.getElementById('abc.txt');		const fileLocation = fileToDelete.href;         const deleteBtn = document.querySelector('input[type="button"]');            deleteBtn.addEventListener('click', () => {                 fetch(fileLocation, {                     method: 'DELETE',                 })             .then(response => response.text())             .then(data => {                 console.log(data);             })             .catch(error => {                 console.error(error);             });         });     }     document.addEventListener('DOMContentLoaded', main);     </script><script>         function main()        {const fileToDelete = document.getElementById('lobster.jpg');		const fileLocation = fileToDelete.href;         const deleteBtn = document.querySelector('input[type="button"]');            deleteBtn.addEventListener('click', () => {                 fetch(fileLocation, {                     method: 'DELETE',                 })             .then(response => response.text())             .then(data => {                 console.log(data);             })             .catch(error => {                 console.error(error);             });         });     }     document.addEventListener('DOMContentLoaded', main);     </script></html>
+<html><body><h1>Directory Listing</h1><ul><li><a href='\www/upload\abc.txt' id='filedel'>abc.txt</a></li><input type='button' value='delete' id='delete'></ul><ul><li><a href='\www/upload\lobster.jpg' id='filedel'>lobster.jpg</a></li><input type='button' value='delete' id='delete'></ul></body><script>
+    function main()
+    {
+        const fileToDelete = document.getElementById('filedel');
+        const deleteBtn = document.querySelector('input[type="button"]');
+
+        deleteBtn.addEventListener('click', () => {
+            // const file = fileBtn.files[0];
+            // readFile(file)
+            // .then(fileContent => {
+				fileLocation = fileToDelete.href;
+                fetch(fileLocation, {
+                    method: 'DELETE',
+                })
+            // })
+            .then(response => response.text())
+            .then(data => {
+                console.log(data);
+            })
+            .catch(error => {
+                console.error(error);
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', main);
+</script></html></html>
