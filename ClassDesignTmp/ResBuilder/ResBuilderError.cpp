@@ -65,7 +65,7 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 	std::vector<const directive::ErrorPage *>::const_iterator	it;
 
 	Maybe<std::string> result;
-	std::string	pathErrorPage = "error.html";
+	std::string	pathErrorPage = "";
 	std::string body;
 
 	for (it = errorPages.begin(); it != errorPages.end(); ++it)
@@ -82,14 +82,14 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 			ServerError500(clt);
 			return ;
 		}
+		// build content headers
+		BuildContentHeaders(clt, process::GetResContentType(pathErrorPage), pathErrorPage);
 	}
 	else
 	{
 		clt->res->setResponseBody(BuildErrorPage(clt->status_code));
+		BuildContentHeaders(clt, "html", "");
 	}
-
-	// build content headers
-	BuildContentHeaders(clt, pathErrorPage);
 
 	// add headers to the response
 	std::string	headers = clt->res->returnMapAsString();

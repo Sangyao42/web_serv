@@ -1,12 +1,38 @@
 #include "Client.hpp"
 
-void res_builder::BuildJsonBody(struct Client *clt)
+void	res_build::BuildPostResponseBody(struct Client *clt)
 {
-	std::string response = "{\n";
-	response += "\"status\": " + std::to_string(clt->status_code) + ",\n";
-	response += "\"message\": \"" + StatusCodeAsString(clt->status_code) + "\"\n";
-	response += "}\n";
-	clt->res->setBody(response);
+	std::string body;
+
+	assert((clt->status_code == k201 || clt->status_code == k200) && "Invalid status code");
+	if (clt->status_code == k201)
+	{
+		body = "<html>\r\n";
+		body += "<head><title>Resource Created</title></head>\r\n";
+		body += "<body>\r\n";
+		body += "<h1>Resource Created</h1>\r\n";
+		body += "<p>Your resource has been created successfully.</p>\r\n";
+		body += "<p><a href=\"";
+		body += clt->location_created;
+		body += "\">View Resource</a></p>\r\n";
+		body += "</body>\r\n";
+		body += "</html>\r\n";
+	}
+	else
+	{
+		body = "<html>\r\n";
+		body += "<head><title>Resource Modified</title></head>\r\n";
+		body += "<body>\r\n";
+		body += "<h1>Resource Modified</h1>\r\n";
+		body += "<p>Your resource has been modified successfully.</p>\r\n";
+		body += "<p><a href=\"";
+		body += clt->location_created;
+		body += "\">View Resource</a></p>\r\n";
+		body += "</body>\r\n";
+		body += "</html>\r\n";
+	}
+
+	clt->res->setResponseBody(body);
 }
 
 void	res_builder::GenerateSuccessResponse(struct Client *clt)
@@ -33,17 +59,29 @@ void	res_builder::GenerateSuccessResponse(struct Client *clt)
 				ServerError500(clt);
 				return ;
 			}
-			BuildContentHeaders(clt, clt->path);
+			BuildContentHeaders(clt, process::GetResContentType(clt->path), clt->path);
 		}
-
-		if (clt->req->getMethod() == kPost) // it is not a cgi request
+		else if (clt->req->getMethod() == kPost) // it is not a cgi request
 		{
-
 			AddAllowHeader(clt);
-
-			clt->res->addNewPair("Location", new HeaderString(clt->location_created));
-			// size_t root_pos = file_path.find(clt->config->query->root) + clt->config->query->root.size() - 1;
-			// clt->location_created = file_path.substr(root_pos);
+			AddLocationHeader(clt);
+			BuildPostResponseBody(clt);
+			BuildContentHeaders(clt, "html", "");
 		}
+		else
+			assert(clt->req->getMethod() == kDelete && "Invalid method");
 	}
+
+	// add headers to the response
+	std::string	headers = clt->res->returnMapAsString();
+	if (headers.empty()) // stream error occurred
+	{
+		ServerError500(clt);
+		return ;
+	}
+	response += headers;
+
+	// add body to response
+	if (!clt->res->getResponseBody().empty())
+		response += clt->res->getResponseBody();
 }

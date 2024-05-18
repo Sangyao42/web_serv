@@ -1,5 +1,13 @@
 #include "Client.hpp"
 
+void	res_builder::AddLocationHeader(struct Client *clt)
+{
+	std::string file_path = clt->location_created;
+	size_t root_pos = file_path.find(clt->config->query->root) + clt->config->query->root.size() - 1;
+	std::string location = file_path.substr(root_pos);
+	clt->res->addNewPair("Location", new HeaderString(location));
+}
+
 std::string	res_builder::MethodToString(enum directive::Method method)
 {
 	switch (method)
@@ -37,46 +45,23 @@ void	res_builder::AddAcceptHeader(struct Client *clt)
 	clt->res->addNewPair("Accept-Encoding", new HeaderString("chunked"));
 }
 
-void	res_builder::BuildContentHeadersCGI(struct Client *clt)
-{
-}
-
-// void	res_builder::BuildContentHeadersPost(struct Client *clt, std::string path)
+// void	res_builder::BuildContentHeadersCGI(struct Client *clt)
 // {
-// 	// add content-length header
-// 	clt->res->addNewPair("Content-Length", new HeaderInt(clt->res->getResponseBody().size()));
-
-// 	// add content-type header
-// 	std::string extension = process::GetResContentType(clt->path);
-
-// 	Maybe<directive::MimeTypes::MimeType> type = clt->config->query->mime_types->query(extension);
-// 	if (type.is_ok())
-// 		clt->res->addNewPair("Content-Type", new HeaderString(type.value()));
-
-// 	// add last-modified header
-// 	struct stat	file_stat;
-// 	if (stat(path.c_str(), &file_stat) == 0)
-// 	{
-// 		std::string last_modified = GetTimeGMT((time_t) file_stat.st_mtime);
-// 		clt->res->addNewPair("Last-Modified", new HeaderString(last_modified));
-// 	}
 // }
 
-void	res_builder::BuildContentHeaders(struct Client *clt, std::string path)
+void	res_builder::BuildContentHeaders(struct Client *clt, std::string extension, std::string path)
 {
 	// add content-length header
 	clt->res->addNewPair("Content-Length", new HeaderInt(clt->res->getResponseBody().size()));
 
 	// add content-type header
-	std::string extension = process::GetResContentType(clt->path);
-
 	Maybe<directive::MimeTypes::MimeType> type = clt->config->query->mime_types->query(extension);
 	if (type.is_ok())
 		clt->res->addNewPair("Content-Type", new HeaderString(type.value()));
 
 	// add last-modified header
 	struct stat	file_stat;
-	if (stat(path.c_str(), &file_stat) == 0)
+	if (!path.empty() && stat(path.c_str(), &file_stat) == 0)
 	{
 		std::string last_modified = GetTimeGMT((time_t) file_stat.st_mtime);
 		clt->res->addNewPair("Last-Modified", new HeaderString(last_modified));
