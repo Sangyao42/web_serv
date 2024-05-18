@@ -101,12 +101,12 @@ void	process::ProcessGetRequest(struct Client *clt)
 	}
 	else if (S_ISDIR(clt->stat_buff.st_mode))
 	{
-		assert(location->indexes.size() && "Indexes is empty");
-		std::string index_path = process::GetIndexPath(clt->path, location);
-		// ? update the clt->path to the index file ? which means internal redirect
-		clt->path = index_path;
-		if (index_path == "")
-		{
+		// assert(location->indexes.size() && "Indexes is empty");
+		// std::string index_path = process::GetIndexPath(clt->path, location);
+		// // ? update the clt->path to the index file ? which means internal redirect
+		// clt->path = index_path;
+		// if (index_path == "")
+		// {
 			if (location->autoindex == true)
 				return (res_builder::GenerateAutoindexResponse(clt));
 			else
@@ -114,22 +114,22 @@ void	process::ProcessGetRequest(struct Client *clt)
 				clt->status_code = k403; // I chose 403 over 404
 				return (res_builder::GenerateErrorResponse(clt));
 			}
-		}
-		if (process::IsCgi(clt->cgi_argv, clt->path, location))
-			return (ProcessGetRequestCgi(clt));
-		std::string content_type = process::GetResContentType(index_path);
-		if (!process::IsAcceptable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
-		{
-			clt->status_code = k406;
-			return (res_builder::GenerateErrorResponse(clt));
-		}
-		if (access(index_path.c_str(), R_OK) != 0)
-		{
-			clt->status_code = k403;
-			return (res_builder::GenerateErrorResponse(clt));
-		}
-		clt->status_code = k200;
-		return (res_builder::GenerateSuccessResponse(clt));
+		// }
+		// if (process::IsCgi(clt->cgi_argv, clt->path, location))
+		// 	return (ProcessGetRequestCgi(clt));
+		// std::string content_type = process::GetResContentType(index_path);
+		// if (!process::IsAcceptable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
+		// {
+		// 	clt->status_code = k406;
+		// 	return (res_builder::GenerateErrorResponse(clt));
+		// }
+		// if (access(index_path.c_str(), R_OK) != 0)
+		// {
+		// 	clt->status_code = k403;
+		// 	return (res_builder::GenerateErrorResponse(clt));
+		// }
+		// clt->status_code = k200;
+		// return (res_builder::GenerateSuccessResponse(clt));
 	}
 	else
 	{
