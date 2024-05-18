@@ -118,18 +118,6 @@ void	processGetRequest(clt)
 	// the server will search for index files first
 	// regardless of the autoindex on/off
 
-	if (match_with_index?)
-	{
-		clt->path = get_index_path();
-		//TODO: check file existance here again for the index file and return ErrorResponse here
-		if (is_cgi(index_path))
-			return (processGetRequestCGI(clt));
-		//TODO: check 406 again
-		// process get request
-		clt->statusCode = k200;
-		return (generateSuccessResponse(clt));
-	}
-
 	if (autoindex)
 		return (returnAutoindexResponse(clt));
 	else
