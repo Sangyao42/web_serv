@@ -34,7 +34,7 @@
             const file = fileBtn.files[0];
             readFile(file)
             .then(fileContent => {
-                fetch('http://localhost:8000/upload', {
+                fetch('http://localhost:8080/upload', {
                     method: 'POST',
                     headers: {
                         "Content-Type": file.type,
