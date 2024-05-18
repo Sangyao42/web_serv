@@ -7,6 +7,7 @@
 #include "HeaderValue.hpp"
 #include "HeaderValue/HeaderString.hpp"
 #include "HeaderValue/HeaderInt.hpp"
+#include "HeaderValue/HeaderStringVector.hpp"
 #include "Uri.hpp"
 
 typedef std::pair<std::string, HeaderValue *>	HeaderPair;
