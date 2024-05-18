@@ -1,6 +1,45 @@
 #include "Client.hpp"
 
-void	res_builder::BuildContentHeaders(struct Client *clt)
+std::string	res_builder::MethodToString(enum directive::Method method)
+{
+	switch (method)
+	{
+		case directive::kMethodGet:
+			return ("GET");
+		case directive::kMethodPost:
+			return ("POST");
+		case directive::kMethodDelete:
+			return ("DELETE");
+		default:
+			return ("");
+	}
+}
+
+void	res_builder::AddAllowHeader(struct Client *clt)
+{
+	StringVector	allows;
+	directive::Methods	allowed_methods = clt->config->query->allowed_methods;
+	for (int i = 1; i < 8; i *= 2)
+		if (allowed_methods & i)
+			allows.push_back(MethodToString((enum directive::Method) i));
+	clt->res->addNewPair("Allow", new HeaderStringVector(allows));
+}
+
+void	res_builder::AddAcceptHeader(struct Client *clt)
+{
+	StringVector	accepts;
+	std::map<directive::MimeTypes::Extension, directive::MimeTypes::MimeType>	mime_types = clt->config->query->mime_types->get();
+	std::map<directive::MimeTypes::Extension, directive::MimeTypes::MimeType>::iterator	it;
+	for (it = mime_types.begin(); it != mime_types.end(); ++it)
+		accepts.push_back(it->second);
+	clt->res->addNewPair("Accept", new HeaderStringVector(accepts));
+}
+
+void	res_builder::BuildContentHeadersCGI(struct Client *clt)
+{
+}
+
+void	res_builder::BuildContentHeaders(struct Client *clt, std::string path)
 {
 	// add content-length header
 	clt->res->addNewPair("Content-Length", new HeaderInt(clt->res->getResponseBody().size()));
@@ -14,14 +53,14 @@ void	res_builder::BuildContentHeaders(struct Client *clt)
 
 	// add last-modified header
 	struct stat	file_stat;
-	if (stat(clt->path.c_str(), &file_stat) == 0)
+	if (stat(path.c_str(), &file_stat) == 0)
 	{
-		std::string last_modified = GetTimeGMT(file_stat.st_mtime);
+		std::string last_modified = GetTimeGMT((time_t) file_stat.st_mtime);
 		clt->res->addNewPair("Last-Modified", new HeaderString(last_modified));
 	}
 }
 
-void	res_builder::ServerError(struct Client *clt)
+void	res_builder::ServerError500(struct Client *clt)
 {
 	clt->status_code = k500;
 	delete clt->res;

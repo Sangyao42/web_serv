@@ -110,9 +110,15 @@ namespace res_builder
 
 	// success related helper functions
 
+	// header related helper functions
+	void	AddAllowHeader(struct Client *clt);
+	void	AddAcceptHeader(struct Client *clt);
+	void	BuildContentHeadersCGI(struct Client *clt);
+	void	BuildContentHeaders(struct Client *clt, std::string path);
+
 	// general utility functions
-	void	BuildContentHeaders(struct Client *clt);
-	void	ServerError(struct Client *clt);
+	std::string MethodToString(enum directive::Method method);
+	void	ServerError500(struct Client *clt);
 	std::string	GetTimeGMT();
 	std::string GetTimeGMT(time_t raw_time);
 	void	BuildBasicHeaders(Response *res);
