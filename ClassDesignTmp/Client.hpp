@@ -109,12 +109,14 @@ namespace res_builder
 	// autoindex related helper functions
 
 	// success related helper functions
+	void	BuildPostResponseBody(struct Client *clt);
 
 	// header related helper functions
+	void	AddLocationHeader(struct Client *clt);
 	void	AddAllowHeader(struct Client *clt);
 	void	AddAcceptHeader(struct Client *clt);
-	void	BuildContentHeadersCGI(struct Client *clt);
-	void	BuildContentHeaders(struct Client *clt, std::string path);
+	// void	BuildContentHeadersCGI(struct Client *clt);
+	void	BuildContentHeaders(struct Client *clt, std::string extension, std::string path);
 
 	// general utility functions
 	std::string MethodToString(enum directive::Method method);
