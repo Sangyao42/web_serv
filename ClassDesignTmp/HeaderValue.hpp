@@ -15,7 +15,8 @@ class HeaderValue
 		enum ValueType
 		{
 			kString,
-			kInt
+			kInt,
+			kStringVector
 		};
 
 		virtual	const ValueType	&type() const = 0;

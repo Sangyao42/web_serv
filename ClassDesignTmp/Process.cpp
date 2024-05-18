@@ -15,6 +15,10 @@ void	process::ProcessRequest(struct Client *clt)
 	if (clt->status_code != k000)
 		return (res_builder::GenerateErrorResponse(clt)); // there is an existing error
 
+	HeaderString	*connection = dynamic_cast<HeaderString *> (clt->req->returnValueAsPointer("Connection"));
+	if (connection && connection->content() == "close")
+		clt->keepAlive = false;
+
 	HeaderString	*Host = dynamic_cast<HeaderString *> (clt->req->returnValueAsPointer("Host"));
 
 	// query configuration

@@ -45,8 +45,6 @@ namespace process
 	void	ProcessPostRequest(struct Client *clt);
 	void	ProcessDeleteRequest(struct Client *clt);
 
-
-
 	//file and path and content-type related functions
 	std::string GetExactPath(const std::string root, std::string match_path, const struct Uri uri);
 	bool		IsCgi(std::vector<std::string> &cgi_executable, std::string path, cache::LocationQuery *location);
