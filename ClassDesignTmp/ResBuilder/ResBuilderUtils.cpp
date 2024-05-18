@@ -33,11 +33,34 @@ void	res_builder::AddAcceptHeader(struct Client *clt)
 	for (it = mime_types.begin(); it != mime_types.end(); ++it)
 		accepts.push_back(it->second);
 	clt->res->addNewPair("Accept", new HeaderStringVector(accepts));
+
+	clt->res->addNewPair("Accept-Encoding", new HeaderString("chunked"));
 }
 
 void	res_builder::BuildContentHeadersCGI(struct Client *clt)
 {
 }
+
+// void	res_builder::BuildContentHeadersPost(struct Client *clt, std::string path)
+// {
+// 	// add content-length header
+// 	clt->res->addNewPair("Content-Length", new HeaderInt(clt->res->getResponseBody().size()));
+
+// 	// add content-type header
+// 	std::string extension = process::GetResContentType(clt->path);
+
+// 	Maybe<directive::MimeTypes::MimeType> type = clt->config->query->mime_types->query(extension);
+// 	if (type.is_ok())
+// 		clt->res->addNewPair("Content-Type", new HeaderString(type.value()));
+
+// 	// add last-modified header
+// 	struct stat	file_stat;
+// 	if (stat(path.c_str(), &file_stat) == 0)
+// 	{
+// 		std::string last_modified = GetTimeGMT((time_t) file_stat.st_mtime);
+// 		clt->res->addNewPair("Last-Modified", new HeaderString(last_modified));
+// 	}
+// }
 
 void	res_builder::BuildContentHeaders(struct Client *clt, std::string path)
 {

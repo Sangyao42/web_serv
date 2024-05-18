@@ -19,10 +19,8 @@ void	res_builder::BuildErrorHeaders(struct Client *clt)
 			break ;
 		case k415:
 			AddAcceptHeader(clt);
-			// unsupported media types
-			// clt->res->addNewPair("Accept", new HeaderSomething());
-			// AND/OR unsupported encoding
-			// clt->res->addNewPair("Accept-Encoding", new HeaderSomething());
+			// unsupported media types -> add Accept header
+			// AND/OR unsupported encoding -> add Accept-Encoding header
 			// ? should I simply add both headers or find a way to check them seperately
 			break ;
 		default:

@@ -1,5 +1,14 @@
 #include "Client.hpp"
 
+void res_builder::BuildJsonBody(struct Client *clt)
+{
+	std::string response = "{\n";
+	response += "\"status\": " + std::to_string(clt->status_code) + ",\n";
+	response += "\"message\": \"" + StatusCodeAsString(clt->status_code) + "\"\n";
+	response += "}\n";
+	clt->res->setBody(response);
+}
+
 void	res_builder::GenerateSuccessResponse(struct Client *clt)
 {
 	// build the status line
@@ -9,30 +18,32 @@ void	res_builder::GenerateSuccessResponse(struct Client *clt)
 	// build basic headers
 	BuildBasicHeaders(clt->res);
 
-	// build the body
-	if (clt->req->getMethod() == kGet) // it is not a cgi request
+	// build the body and content headers
+	if (!clt->cgi_argv.empty())
 	{
-		if (ReadFileToBody(clt->path, clt->res) != kNoError)
-		{
-			ServerError500(clt);
-			return ;
-		}
-		BuildContentHeaders(clt, clt->path);
+		// is cgi request
+		// do something
 	}
-
-	if (clt->req->getMethod() == kPost) // it is not a cgi request
+	else
 	{
-		// build content headers
-		//
+		if (clt->req->getMethod() == kGet) // it is not a cgi request
+		{
+			if (ReadFileToBody(clt->path, clt->res) != kNoError)
+			{
+				ServerError500(clt);
+				return ;
+			}
+			BuildContentHeaders(clt, clt->path);
+		}
 
-		// ? if i have to query location again
-		// + Allow header
-		// clt->config->query->allowed_methods;
-		// clt->res->addNewPair("Allow", new HeaderSomething());
+		if (clt->req->getMethod() == kPost) // it is not a cgi request
+		{
 
-		// + Location header
-		clt->res->addNewPair("Location", new HeaderString(clt->location_created));
-		// size_t root_pos = file_path.find(clt->config->query->root) + clt->config->query->root.size() - 1;
-		// clt->location_created = file_path.substr(root_pos);
+			AddAllowHeader(clt);
+
+			clt->res->addNewPair("Location", new HeaderString(clt->location_created));
+			// size_t root_pos = file_path.find(clt->config->query->root) + clt->config->query->root.size() - 1;
+			// clt->location_created = file_path.substr(root_pos);
+		}
 	}
 }
