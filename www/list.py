@@ -5,23 +5,29 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    directory = 'www/upload'  # Change this to your folder path
-    files = os.listdir(directory)
+    dir = os.path.dirname(__file__)
+    folder = os.path.join(dir, 'upload')
+    dir_path = '/upload'  # Change this to your folder path
+    files = os.listdir(folder)
+
+	# load script for list all the files
+    script_file = open( os.path.join(dir, 'del.js'), "r")
+    script = script_file.read()
 
     html = "<html><body><h1>Directory Listing</h1>"
     for file in files:
         if file != '.' and file != '..':
-            file_path = os.path.join(directory, file)
-            html += f"<ul><li><a href='\{file_path}' id='filedel'>{file}</a></li>"
-            html += "<input type='button' value='delete' id='delete'></ul>"
-    script_file = open("del.js", "r")
-    script = script_file.read()
-    html += "</body><script>" + script + "</script></html>"
+            file_path = os.path.join(dir_path, file)
+            html += f"<ul><li><a href='{file_path}' id='{file}'>{file}</a></li>"
+            html += f"<input type='button' value='delete' id='delete' onclick='del_file('{file_path}')'></ul>"
+            # html += f"<p id='{file}'></p>"
+
+
 
     # for file in files:
     #     if file != '.' and file != '..':
     #         script_clean = " \
-    #     function main()\
+    #     function delete()\
     #     {const fileToDelete = " + f"document.getElementById('{file}')" +";\
 	# 	const fileLocation = fileToDelete.href; \
     #     const deleteBtn = document.querySelector('input[type=\"button\"]');\
@@ -38,11 +44,13 @@ def index():
     #         }); \
     #     }); \
     # } \
-    # document.addEventListener('DOMContentLoaded', main); \
+    # document.addEventListener('DOMContentLoaded', del_file); \
     # "
     #         html += "<script>" + script_clean
     #         html +=  "</script>"
-    html += "</html>"
+    # html += "</body></html>"
+    html += "</body>\n"
+    html += "<script>" + script + "</script></html>"
 
     f = open("www/delete1.html", "w")
     f.write(html)
