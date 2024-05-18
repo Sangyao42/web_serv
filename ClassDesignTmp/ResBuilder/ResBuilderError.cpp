@@ -6,11 +6,10 @@ void	res_builder::BuildErrorHeaders(struct Client *clt)
 	switch (clt->status_code)
 	{
 		case k405:
-			// clt->config->query->allowed_methods
-			// clt->res->addNewPair("Allow", new HeaderSomething());
+			AddAllowHeader(clt);
 			break ;
 		case k406:
-			//not sure what to do here
+			// ? not sure what to do here
 			break ;
 		case k408:
 			clt->res->addNewPair("Connection", new HeaderString("close"));
@@ -19,6 +18,7 @@ void	res_builder::BuildErrorHeaders(struct Client *clt)
 			clt->res->addNewPair("Connection", new HeaderString("close"));
 			break ;
 		case k415:
+			AddAcceptHeader(clt);
 			// unsupported media types
 			// clt->res->addNewPair("Accept", new HeaderSomething());
 			// AND/OR unsupported encoding
@@ -81,7 +81,7 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 		pathErrorPage = (*it)->file_path();
 		if (ReadFileToBody(pathErrorPage, clt->res) != kNoError);
 		{
-			ServerError(clt);
+			ServerError500(clt);
 			return ;
 		}
 	}
@@ -91,14 +91,13 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 	}
 
 	// build content headers
-	clt->path = pathErrorPage;
-	BuildContentHeaders(clt);
+	BuildContentHeaders(clt, pathErrorPage);
 
 	// add headers to the response
 	std::string	headers = clt->res->returnMapAsString();
 	if (headers.empty()) // stream error occurred
 	{
-		ServerError(clt);
+		ServerError500(clt);
 		return ;
 	}
 	response += headers;

@@ -14,16 +14,16 @@ void	res_builder::GenerateSuccessResponse(struct Client *clt)
 	{
 		if (ReadFileToBody(clt->path, clt->res) != kNoError)
 		{
-			ServerError(clt);
+			ServerError500(clt);
 			return ;
 		}
-		BuildContentHeaders(clt);
+		BuildContentHeaders(clt, clt->path);
 	}
 
 	if (clt->req->getMethod() == kPost) // it is not a cgi request
 	{
 		// build content headers
-		BuildContentHeaders(clt);
+		//
 
 		// ? if i have to query location again
 		// + Allow header
@@ -32,5 +32,7 @@ void	res_builder::GenerateSuccessResponse(struct Client *clt)
 
 		// + Location header
 		clt->res->addNewPair("Location", new HeaderString(clt->location_created));
+		// size_t root_pos = file_path.find(clt->config->query->root) + clt->config->query->root.size() - 1;
+		// clt->location_created = file_path.substr(root_pos);
 	}
 }
