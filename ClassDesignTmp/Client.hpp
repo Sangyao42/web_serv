@@ -32,6 +32,8 @@ struct Client
 	std::vector<std::string> cgi_env;
 	bool	keepAlive = true;
 	std::string location_created;
+	std::string cgi_content_type;
+	std::string cgi_content_length;
 	Request	*req;
 	Response	*res;
 };
