@@ -1,9 +1,10 @@
 from flask import Flask, render_template_string
 import os
+import sys
 
 app = Flask(__name__)
 
-@app.route('/')
+# @app.route('/')
 def index():
     dir = os.path.dirname(__file__)
     folder = os.path.join(dir, 'upload')
@@ -18,8 +19,8 @@ def index():
     for file in files:
         if file != '.' and file != '..':
             file_path = os.path.join(dir_path, file)
-            html += f"<ul><li><a href='{file_path}' id='{file}'>{file}</a></li>"
-            html += f"<input type='button' value='delete' id='delete' onclick='del_file('{file_path}')'></ul>"
+            html += f"<ul><li><a href='{file_path}'>{file}</a></li>"
+            html += f"<input type='button' value='delete' id='delete' onclick='del_file(\"{file_path}\")'></ul>"
             # html += f"<p id='{file}'></p>"
 
 
@@ -52,12 +53,14 @@ def index():
     html += "</body>\n"
     html += "<script>" + script + "</script></html>"
 
-    f = open("www/delete1.html", "w")
+    f = open( os.path.join(dir, 'delete1.html'), "w")
     f.write(html)
     f.close()
     print(html)
 
 
 if __name__ == '__main__':
-    # app.run(host='0.0.0.0', port=8080)
-	index()
+    try:
+        index()
+    except:
+        sys.exit(1)

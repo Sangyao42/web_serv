@@ -1,7 +1,7 @@
 
  function del_file(file_path)
     {
-		document.getElementById(file_path).innerHTML = file_path;
+		// document.getElementById(file_path).innerHTML = file_path;
         // const fileToDelete = document.getElementById('filedel');
 		const fileToDelete = file_path;
         const deleteBtn = document.querySelector('input[type="button"]');
