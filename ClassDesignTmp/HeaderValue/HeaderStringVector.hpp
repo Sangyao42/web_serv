@@ -25,6 +25,10 @@ class HeaderStringVector : public HeaderValue
 		void	addString(const char *str);
 		void	addString(const char *str, size_t len);
 
+		void	removeString(size_t index);
+		void	removeString(StringVectorIt it);
+		void	removeString(const std::string &str);
+
 		size_t	size() const;
 
 		const std::string &operator[](size_t index) const;

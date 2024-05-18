@@ -61,6 +61,24 @@ void	HeaderStringVector::addString(const char *str, size_t len)
 	content_.push_back(std::string(str, len));
 }
 
+void	HeaderStringVector::removeString(size_t index)
+{
+	assert(index < content_.size() && "Index out of bounds");
+	content_.erase(content_.begin() + index);
+}
+
+void	HeaderStringVector::removeString(StringVectorIt it)
+{
+	content_.erase(it);
+}
+
+void	HeaderStringVector::removeString(const std::string &str)
+{
+	StringVectorIt it = std::find(content_.begin(), content_.end(), str);
+	if (it != content_.end())
+		content_.erase(it);
+}
+
 size_t	HeaderStringVector::size() const
 {
 	return (content_.size());
