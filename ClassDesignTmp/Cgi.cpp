@@ -279,7 +279,7 @@ void	cgi::SetCgiEnv(struct Client *clt)
 
 	//construct document_root
 	std::string document_root = clt->config->query->root;
-	clt->cgi_env.push_back("DOCUMENT_ROOT=" + document_root); //? without the prefix . ?
+	clt->cgi_env.push_back("DOCUMENT_ROOT=." + document_root); //? without the prefix . ?
 
 	//construct script_name
 	size_t pos = clt->path.find(clt->config->query->root) + clt->config->query->root.size();
