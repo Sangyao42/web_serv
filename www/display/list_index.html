@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delete</title>
+    <title>List of Files</title>
 </head>
 <body>
     <input id="getRequestButton" type="button" value="list files">
 </body>
 <script>
 	document.getElementById("getRequestButton").addEventListener("click", function() {
-		fetch("http://localhost:8080/list.py"), {
+		fetch("http://localhost:8080/display/list.py"), {
 			method: 'GET'
 		}
 		.then(response => {
