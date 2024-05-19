@@ -52,8 +52,10 @@ bool process::file::UploadFile(struct Client *clt)
 	file.close();
 
 	//Write to the location_created variable in the client struct
-	size_t root_pos = file_path.find(clt->config->query->root) + clt->config->query->root.size() - 1;
-	clt->location_created = file_path.substr(root_pos);
+	//the full path for gettting info about the file later when generating response
+	// size_t root_pos = file_path.find(clt->config->query->root) + clt->config->query->root.size() - 1;
+	// clt->location_created = file_path.substr(root_pos);
+	clt->location_created = file_path;
 }
 
 bool process::file::DeleteFile(struct Client *clt)
