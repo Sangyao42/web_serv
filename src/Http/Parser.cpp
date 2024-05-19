@@ -579,6 +579,33 @@ namespace http_parser
     return output;
   }
 
+  ScanOutput  ScanSegments(Input input)
+  {
+    ScanOutput  output;
+
+    if (input.is_valid())
+    {
+      output.bytes = input.bytes;
+      int total_length = 0;
+      while (true)
+      {
+        int parsed_length_1 = ConsumeByCharacter(&input, '/');
+        int parsed_length_2 = 0;
+        if (parsed_length_1 > 0)
+        {
+          parsed_length_2 = ConsumeByScanFunction(&input, &ScanSegment).length;
+        }
+        int segment_length = parsed_length_1 + parsed_length_2;
+        if (segment_length > 0)
+          total_length += segment_length;
+        else
+          break;
+      }
+      output.length = total_length;
+    }
+    return output;
+  }
+
   ScanOutput  ScanSegmentNz(Input input)
   {
     ScanOutput  output;
@@ -629,6 +656,19 @@ namespace http_parser
   {
     ParseOutput output;
     output.rest = input;
+    StringSlice content = ConsumeByScanFunction(&input, &ScanSegments);
+    if (output.parsed_length > 0)
+    {
+      PTNodePathAbEmpty*  path_abempty = PTNodeCreate<PTNodePathAbEmpty>();
+
+      path_abempty->type = kPathAbempty;
+      path_abempty->content = content;
+
+      output.status = kParseSuccess;
+      output.rest = input;
+      output.parsed_length = content.length;
+      output.result = path_abempty;
+    }
     return output;
   }
 
@@ -636,6 +676,33 @@ namespace http_parser
   {
     ParseOutput output;
     output.rest = input;
+
+    StringSlice content;
+    content.bytes = input.bytes;
+    content.length = ConsumeByCharacter(&input, '/');
+    if (content.length > 0)
+    {
+      Input scoped_input = input;
+      ScanOutput parsed_result = ConsumeByScanFunction(&scoped_input, &ScanSegmentNz);
+      if (parsed_result.is_valid())
+      {
+        ScanOutput parsed_result_2 = ConsumeByScanFunction(&scoped_input, &ScanSegments);
+        if (parsed_result_2.is_valid())
+        {
+          input = scoped_input;
+          content.length += parsed_result.length + parsed_result_2.length;
+        }
+      }
+      PTNodePathAbsolute* path_absolute = PTNodeCreate<PTNodePathAbsolute>();
+
+      path_absolute->type = kPathAbsolute;
+      path_absolute->content = content;
+
+      output.status = kParseSuccess;
+      output.rest = input;
+      output.parsed_length = content.length;
+      output.result = path_absolute;
+    }
     return output;
   }
 
@@ -643,6 +710,24 @@ namespace http_parser
   {
     ParseOutput output;
     output.rest = input;
+
+    ScanOutput  parsed_result = ConsumeByScanFunction(&input, &ScanSegmentNzNc);
+    if (parsed_result.is_valid())
+    {
+      ScanOutput  parsed_result_2 = ConsumeByScanFunction(&input, &ScanSegments);
+      if (parsed_result_2.is_valid())
+      {
+        PTNodePathNoScheme* path_noscheme = PTNodeCreate<PTNodePathNoScheme>();
+
+        path_noscheme->type = kPathNoScheme;
+        path_noscheme->content = StringSlice(output.rest.bytes, parsed_result.length + parsed_result_2.length);;
+
+        output.status = kParseSuccess;
+        output.rest = input;
+        output.parsed_length = path_noscheme->content.length;
+        output.result = path_noscheme;
+      }
+    }
     return output;
   }
 
@@ -650,6 +735,24 @@ namespace http_parser
   {
     ParseOutput output;
     output.rest = input;
+
+    ScanOutput  parsed_result = ConsumeByScanFunction(&input, &ScanSegmentNz);
+    if (parsed_result.is_valid())
+    {
+      ScanOutput  parsed_result_2 = ConsumeByScanFunction(&input, &ScanSegments);
+      if (parsed_result_2.is_valid())
+      {
+        PTNodePathRootless* path_rootless = PTNodeCreate<PTNodePathRootless>();
+
+        path_rootless->type = kPathRootless;
+        path_rootless->content = StringSlice(output.rest.bytes, parsed_result.length + parsed_result_2.length);;
+
+        output.status = kParseSuccess;
+        output.rest = input;
+        output.parsed_length = path_rootless->content.length;
+        output.result = path_rootless;
+      }
+    }
     return output;
   }
 

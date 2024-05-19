@@ -188,6 +188,7 @@ namespace http_parser
   ScanOutput  ScanPathChar(Input input);
   ScanOutput  ScanPctEncoded(Input input);
   ScanOutput  ScanSegment(Input input);
+  ScanOutput  ScanSegments(Input input);
   ScanOutput  ScanSegmentNz(Input input);
   ScanOutput  ScanSegmentNzNc(Input input);
 
