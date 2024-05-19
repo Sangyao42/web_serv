@@ -369,18 +369,25 @@ int cgi::WriteAll(int fd, char *cstr_buf, int size)
 
 }
 
-bool	cgi::ParseCgiOutput(struct CgiOutput &cgi_output, std::string &response_tmp)
+bool	ParseCgiOutput(struct CgiOutput &cgi_output, std::string &response_tmp)
 {
 	std::string delimiter = "\r\n\r\n";
 	size_t pos_delim = response_tmp.find(delimiter);
-	size_t pos_cont_type = response_tmp.find("Content-Type: ") + sizeof("Content-Type: ");
+	size_t pos_cont_type = response_tmp.find("Content-Type: ");
 	if (pos_delim == std::string::npos || pos_cont_type == std::string::npos)
 	{
 		std::cerr << "Error: ParseCgiOutput" << std::endl;
 		return false;
 	}
-	cgi_output.content_type = response_tmp.substr(pos_cont_type, pos_delim);
-	cgi_output.content_body = response_tmp.substr(pos_delim);
+	size_t pos = pos_cont_type + sizeof("Content-Type: ") - 1;
+ 	cgi_output.content_type = response_tmp.substr(pos, pos_delim - pos);
+	cgi_output.content_body = response_tmp.substr(pos_delim + delimiter.size());
+	if ((cgi_output.content_type.empty() && !cgi_output.content_body.empty()) \
+		|| (!cgi_output.content_type.empty() && cgi_output.content_body.empty()))
+	{
+		std::cerr << "Error: ParseCgiOutput" << std::endl;
+		return false;
+	}
 	return true;
 }
 
