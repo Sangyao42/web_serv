@@ -66,16 +66,23 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
-		ParseResponseTmp(response_tmp); // modify the clt->response by the received message from cgi
-		std::string res_content_type = response_tmp.substr(response_tmp.find("Content-Type: "),response_tmp.find("\r\n\r\n")); // TODO: get the content type from the string returned by cgi, in std::string or a vector of string
-		std::string res_body;
-		std::string res_length = res_body.size();
-		if (!process::IsSupportedMediaType(res_content_type, clt->config->query->mime_types)) //check the response content type with the MIME type
+		struct CgiOutput cgi_output;
+		if(ParseCgiOutput(cgi_output, response_tmp) == false)
 		{
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
-		if (IsAcceptable(res_content_type)) // TODO: get the content type from the string returned by cgi, check Accept header and MIME type && check response entity's content type and Accept Header
+		if (cgi_output.content_type.empty() && cgi_output.content_body.empty())
+		{
+			clt->status_code = k204;
+			return (res_builder::GenerateSuccessResponse(clt));
+		}
+		if (!process:: IsSupportedMediaType(cgi_output.content_type, clt->config->query->mime_types)) //check the response content type with the MIME type
+		{
+			clt->status_code = k500;
+			return (res_builder::GenerateErrorResponse(clt));
+		}
+		if (IsAcceptable(cgi_output.content_type)) // TODO: get the content type from the string returned by cgi, check Accept header and MIME type && check response entity's content type and Accept Header
 		{
 			clt->status_code = k406;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -83,9 +90,9 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 		else
 		{
 			// TODO: generate the response body with content type and content length
-			clt->cgi_content_type = res_content_type;
-			clt->cgi_content_length = res_length;
-			clt->res->setResponseBody(res_body);
+			clt->cgi_content_type = cgi_output.content_type;
+			clt->cgi_content_length = cgi_output.content_body.size();
+			clt->res->setResponseBody(cgi_output.content_body);
 			clt->status_code = k200;
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
@@ -181,16 +188,23 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
-		ParseResponseTmp(); // modify the clt->response by the received message from cgi
-		std::string res_content_type = response_tmp.substr(response_tmp.find("Content-Type: "),response_tmp.find("\r\n\r\n")); // TODO: get the content type from the string returned by cgi
-		std::string res_body;
-		std::string res_length = res_body.size();
-		if (!process::IsSupportedMediaType(res_content_type, clt->config->query->mime_types)) //check the response content type with the MIME type
+		struct CgiOutput cgi_output;
+		if(ParseCgiOutput(cgi_output, response_tmp) == false)
 		{
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
-		if (IsAcceptable(res_content_type)) // TODO: get the content type from the string returned by cgi, check Accept header and MIME type && check response entity's content type and Accept Header
+		if (cgi_output.content_type.empty() && cgi_output.content_body.empty())
+		{
+			clt->status_code = k204;
+			return (res_builder::GenerateSuccessResponse(clt));
+		}
+		if (!process::IsSupportedMediaType(cgi_output.content_type, clt->config->query->mime_types)) //check the response content type with the MIME type
+		{
+			clt->status_code = k500;
+			return (res_builder::GenerateErrorResponse(clt));
+		}
+		if (IsAcceptable(cgi_output.content_type)) // TODO: get the content type from the string returned by cgi, check Accept header and MIME type && check response entity's content type and Accept Header
 		{
 			clt->status_code = k406;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -198,9 +212,9 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 		else
 		{
 			// TODO: generate the response body with content type and content length
-			clt->cgi_content_type = res_content_type;
-			clt->cgi_content_length = res_length;
-			clt->res->setResponseBody(res_body);
+			clt->cgi_content_type = cgi_output.content_type;
+			clt->cgi_content_length = cgi_output.content_body.size();
+			clt->res->setResponseBody(cgi_output.content_body);
 			clt->status_code = k200;
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
@@ -353,6 +367,21 @@ int cgi::WriteAll(int fd, char *cstr_buf, int size)
 	}
 	return (total_write);
 
+}
+
+bool	cgi::ParseCgiOutput(struct CgiOutput &cgi_output, std::string &response_tmp)
+{
+	std::string delimiter = "\r\n\r\n";
+	size_t pos_delim = response_tmp.find(delimiter);
+	size_t pos_cont_type = response_tmp.find("Content-Type: ") + sizeof("Content-Type: ");
+	if (pos_delim == std::string::npos || pos_cont_type == std::string::npos)
+	{
+		std::cerr << "Error: ParseCgiOutput" << std::endl;
+		return false;
+	}
+	cgi_output.content_type = response_tmp.substr(pos_cont_type, pos_delim);
+	cgi_output.content_body = response_tmp.substr(pos_delim);
+	return true;
 }
 
 //helper functions

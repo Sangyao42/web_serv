@@ -80,10 +80,16 @@ namespace cgi
 		kRead,
 		kWrite
 	};
+	struct CgiOutput
+	{
+		std::string content_type;
+		std::string	content_body;
+	};
 	int		SetPipes(int *cgi_input, int *cgi_output, const Method method);
 	void	SetCgiEnv(struct Client *clt);
 	int		ReadAll(int fd, std::string &response_tmp);
-	int 	WriteAll(int fd, char *cstr_buf, int size);
+	int		WriteAll(int fd, char *cstr_buf, int size);
+	bool	ParseCgiOutput(struct CgiOutput &cgi_output, std::string &response_tmp);
 
 	//helper functions
 	// std::vector<char *>	ConstructExecArray(std::vector<std::string> &cgi_params);
