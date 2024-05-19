@@ -142,7 +142,7 @@ void	process::ProcessPostRequest(struct Client *clt)
 {
 	cache::LocationQuery	*location= clt->config->query;
 
-	HeaderString	*req_content_type = dynamic_cast<HeaderString *>(clt->req->returnValueAsPointer("Content-Type")); // TODO: need to down case the content type, probably to HeaderStringVector or HeaderString
+	HeaderString	*req_content_type = dynamic_cast<HeaderString *>(clt->req->returnValueAsPointer("Content-Type"));
 	if (req_content_type && !IsSupportedMediaType(req_content_type->content(), location->mime_types)) // checkt content type from request with MIME type
 	{
 		clt->status_code = k415;
@@ -169,7 +169,6 @@ void	process::ProcessPostRequest(struct Client *clt)
 		}
 		else if (S_ISREG(clt->stat_buff.st_mode)) //it is a regular file
 		{
-
 			if (IsCgi(clt->cgi_argv, clt->path, location))
 				return (cgi::ProcessPostRequestCgi(clt));
 			if(access(clt->path.c_str(), W_OK) != 0)
@@ -178,7 +177,7 @@ void	process::ProcessPostRequest(struct Client *clt)
 				return (res_builder::GenerateErrorResponse(clt));
 			}
 			std::string path_extension = GetReqExtension(clt->path);
-			if (!path_extension.empty() && path_extension != req_content_type->content()) // file has extension. TODO: need to down case the content type, probably to HeaderStringVector or HeaderString
+			if (!path_extension.empty() && path_extension != req_content_type->content())
 			{
 				clt->status_code = k415;
 				return (res_builder::GenerateErrorResponse(clt));
@@ -250,8 +249,8 @@ std::string process::GetExactPath(const std::string root, std::string match_path
 {
 	(void) match_path;
 	std::string exact_path = ".." + root;
-	if (uri.path[0] != '/')
-		exact_path += "/";
+	// if (uri.path[0] != '/')
+	// 	exact_path += "/";
 	exact_path += uri.path;
 	return (exact_path);
 }
