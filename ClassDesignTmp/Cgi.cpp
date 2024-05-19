@@ -70,7 +70,6 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 		std::string res_content_type = response_tmp.substr(response_tmp.find("Content-Type: "),response_tmp.find("\r\n\r\n")); // TODO: get the content type from the string returned by cgi, in std::string or a vector of string
 		std::string res_body;
 		std::string res_length = res_body.size();
-		if (!IsSupportedMediaType(res_content_type, clt->config->query->mime_types)) //check the response content type with the MIME type
 		if (!process::IsSupportedMediaType(res_content_type, clt->config->query->mime_types)) //check the response content type with the MIME type
 		{
 			clt->status_code = k500;
@@ -266,7 +265,7 @@ void	cgi::SetCgiEnv(struct Client *clt)
 	else
 		clt->cgi_env.push_back("CONTENT_LENGTH=");
 
-	//construct content_type //TODO: get content type from the request header as HeaderString or vector of string
+	//construct content_type
 	HeaderString *content_type = dynamic_cast<HeaderString *>(clt->req->returnValueAsPointer("Content-Type"));
 	if (content_type)
 		clt->cgi_env.push_back("CONTENT_TYPE=" + content_type->content());
@@ -291,39 +290,32 @@ void	cgi::SetCgiEnv(struct Client *clt)
 	clt->cgi_env.push_back("SCRIPT_FILENAME=" + document_root + script_name);
 
 }
-// fastcgi_param  SCRIPT_FILENAME    $document_root$fastcgi_script_name;
-// fastcgi_param  QUERY_STRING       $query_string;
-// fastcgi_param  REQUEST_METHOD     $request_method;
-// fastcgi_param  CONTENT_TYPE       $content_type;
-// fastcgi_param  CONTENT_LENGTH     $content_length;d
-// fastcgi_param  SCRIPT_NAME        $fastcgi_script_name;
-// fastcgi_param  REQUEST_URI        $request_uri;
-// fastcgi_param  DOCUMENT_URI       $document_uri;
-// fastcgi_param  DOCUMENT_ROOT      $document_root;
-// fastcgi_param  SERVER_PROTOCOL    $server_protocol;
-// fastcgi_param  GATEWAY_INTERFACE  CGI/1.1;
-// fastcgi_param  SERVER_SOFTWARE    nginx/$nginx_version;
-// fastcgi_param  REMOTE_ADDR        $remote_addr;
-// fastcgi_param  REMOTE_PORT        $remote_port;
-// fastcgi_param  SERVER_ADDR        $server_addr;
-// fastcgi_param  SERVER_PORT        $server_port;
-// fastcgi_param  SERVER_NAME        $server_name;
 
-// fastcgi_index  index.php;
+/**
+ * nginx example for fastcgi_param
+   fastcgi_param  SCRIPT_FILENAME    $document_root$fastcgi_script_name;
+   fastcgi_param  QUERY_STRING       $query_string;
+   fastcgi_param  REQUEST_METHOD     $request_method;
+   fastcgi_param  CONTENT_TYPE       $content_type;
+   fastcgi_param  CONTENT_LENGTH     $content_length;d
+   fastcgi_param  SCRIPT_NAME        $fastcgi_script_name;
+   fastcgi_param  REQUEST_URI        $request_uri;
+   fastcgi_param  DOCUMENT_URI       $document_uri;
+   fastcgi_param  DOCUMENT_ROOT      $document_root;
+   fastcgi_param  SERVER_PROTOCOL    $server_protocol;
+   fastcgi_param  GATEWAY_INTERFACE  CGI/1.1;
+   fastcgi_param  SERVER_SOFTWARE    nginx/$nginx_version;
+   fastcgi_param  REMOTE_ADDR        $remote_addr;
+   fastcgi_param  REMOTE_PORT        $remote_port;
+   fastcgi_param  SERVER_ADDR        $server_addr;
+   fastcgi_param  SERVER_PORT        $server_port;
+   fastcgi_param  SERVER_NAME        $server_name;
 
-// fastcgi_param  REDIRECT_STATUS    200;
+    fastcgi_index  index.php;
+    fastcgi_param  REDIRECT_STATUS    200;
+*/
 
-// std::vector<char *>	process::ConstructExecArray(std::vector<std::string> &cgi_params) //{extension, cgi_path, NULL}
-// {
-// 	std::vector<char*> cstrings;
-// 	int cstrs_size = StringVecToTwoDimArray(cstrings, cgi_params);
-// 	if (cstrs_size == 1)
-// 	{
-// 		std::cerr << "Error: ConstructExecveArrays" << std::endl;
-// 		return (std::vector<char*>());
-// 	}
-// 	return cstrings;
-// }
+
 
 int cgi::ReadAll(int fd, std::string &response_tmp)
 {
@@ -364,6 +356,19 @@ int cgi::WriteAll(int fd, char *cstr_buf, int size)
 }
 
 //helper functions
+
+// std::vector<char *>	process::ConstructExecArray(std::vector<std::string> &cgi_params) //{extension, cgi_path, NULL}
+// {
+// 	std::vector<char*> cstrings;
+// 	int cstrs_size = StringVecToTwoDimArray(cstrings, cgi_params);
+// 	if (cstrs_size == 1)
+// 	{
+// 		std::cerr << "Error: ConstructExecveArrays" << std::endl;
+// 		return (std::vector<char*>());
+// 	}
+// 	return cstrings;
+// }
+
 // int	process::StringVecToTwoDimArray(std::vector<char *> &cstrings,const std::vector<std::string> &strings)
 // {
 // 	size_t vector_size = strings.size();
