@@ -3,6 +3,8 @@
 #include <iterator>
 #include <fstream>
 #include <sstream>
+#include <ctime>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -30,6 +32,8 @@ struct Client
 	std::vector<std::string> cgi_env;
 	bool	keepAlive = true;
 	std::string location_created;
+	std::string cgi_content_type;
+	std::string cgi_content_length;
 	Request	*req;
 	Response	*res;
 };
@@ -90,16 +94,25 @@ namespace res_builder
 {
 	void	GenerateErrorResponse(struct Client *clt);
 	void	GenerateRedirectResponse(struct Client *clt);
-	void	GenerateChunkedResponse(struct Client *clt);
 	void	GenerateAutoindexResponse(struct Client *clt);
 	void	GenerateSuccessResponse(struct Client *clt);
 
-	// helper functions
+	// error page related helper functions
 	void	BuildErrorHeaders(struct Client *clt);
-	const std::string &BuildErrorPage(const struct Client *clt);
+	const std::string &BuildErrorPage(enum status_code code);
 
-	// utility functions
-	void	BuildStatusLine(const struct Client *clt, std::string &response);
-	enum ResponseError	ReadFileToString(const std::string &path, std::string &response);
+	// redirect related helper functions
+
+	// autoindex related helper functions
+
+	// success related helper functions
+
+	// general utility functions
+	void	BuildContentHeaders(struct Client *clt);
+	void	ServerError(struct Client *clt);
+	std::string	GetTimeGMT();
+	void	BuildBasicHeaders(Response *res);
+	void	BuildStatusLine(enum status_code status_code, std::string &response);
+	enum ResponseError	ReadFileToString(const std::string &path, std::string &body);
 	const std::string	&StatusCodeAsString(enum status_code code);
 }
