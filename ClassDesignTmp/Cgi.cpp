@@ -68,7 +68,7 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 		}
 		ParseResponseTmp(response_tmp); // modify the clt->response by the received message from cgi
 		std::string res_content_type = response_tmp.substr(response_tmp.find("Content-Type: "),response_tmp.find("\r\n\r\n")); // TODO: get the content type from the string returned by cgi, in std::string or a vector of string
-		if (!IsSupportedMediaType(res_content_type, clt->config->query->mime_types)) //check the response content type with the MIME type
+		if (!process::IsSupportedMediaType(res_content_type, clt->config->query->mime_types)) //check the response content type with the MIME type
 		{
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -147,9 +147,10 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 	//parent process
 	//write to child process
 	close(cgi_input[PipeEnd::kRead]);
-	int content_size = clt->req->getRequestBody().size();
-	std::string content = clt->req->getRequestBody();
-	char *content_str = const_cast<char *>(content.c_str());
+	HeaderInt *content_length = dynamic_cast<HeaderInt *>(clt->req->returnValueAsPointer("Content-Length"));
+	int content_size = content_length->content();
+	// std::string content = clt->req->getRequestBody();
+	char *content_str = const_cast<char *>(clt->req->getRequestBody().c_str());
 	int write_byte = WriteAll(cgi_input[PipeEnd::kWrite], content_str, content_size);
 	assert (write_byte != 0 && "WriteAll: write byte is 0");
 	if (write_byte < 0 && write_byte != content_size)
@@ -179,7 +180,7 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 		}
 		ParseResponseTmp(); // modify the clt->response by the received message from cgi
 		std::string res_content_type = response_tmp.substr(response_tmp.find("Content-Type: "),response_tmp.find("\r\n\r\n")); // TODO: get the content type from the string returned by cgi
-		if (!IsSupportedMediaType(res_content_type, clt->config->query->mime_types)) //check the response content type with the MIME type
+		if (!process::IsSupportedMediaType(res_content_type, clt->config->query->mime_types)) //check the response content type with the MIME type
 		{
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
