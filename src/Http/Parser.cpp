@@ -622,6 +622,8 @@ namespace http_parser
       }
       if (total_length > 1)
         output.length = total_length;
+      else
+        output.bytes = NULL;
     }
     return output;
   }
@@ -648,6 +650,8 @@ namespace http_parser
       }
       if (total_length > 1)
         output.length = total_length;
+      else
+        output.bytes = NULL;
     }
     return output;
   }
