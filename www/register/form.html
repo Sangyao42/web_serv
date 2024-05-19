@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome Message</title>
+    <title>Register</title>
 </head>
 <body>
     <form id="nameForm" method="post">
         <input type="text" name="userName" id="userName" placeholder="Write your name here...">
-        <button type="submit">Register</button>
+        <button type="register">Register</button>
     </form>
-    <p id="welcomeMessage"></p>
+    <!-- <p id="welcomeMessage"></p> -->
 </body>
 <script>
-	document.getElementById('nameForm').addEventListener('submit', function(event) {
-    event.preventDefault(); // Prevent the default form submission
+	document.getElementById('nameForm').addEventListener('register', function(event) {
+		event.preventDefault(); // Prevent the default form submission
 		var userName = document.getElementById('userName').value;
-		fetch("http://localhost:8080/save_username.py", {
+		fetch("http://localhost:8080/register/save_username.py", {
        		method: 'POST',
         	headers: {
             	'Content-Type': 'application/json'
@@ -35,6 +35,7 @@
 		.catch(error => {
 			console.log("Error:", error);
 		});
+		// document.getElementById("welcomeMessage").innerHTML = userName + ", welcome!";
 	});
 </script>
 </html>
