@@ -84,8 +84,8 @@ void	process::ProcessGetRequest(struct Client *clt)
 	if (S_ISREG(clt->stat_buff.st_mode))
 	{
 		if (process::IsCgi(clt->cgi_argv, clt->path, location)) //check file extension and get the cgi path inside IsCgi
-			return (process::ProcessGetRequestCgi(clt));
-		std::string content_type = process::GetResContentType(clt->path);
+			return (cgi::ProcessGetRequestCgi(clt));
+		std::string content_type = process::GetReqExtension(clt->path);
 		if (!content_type.empty()  && !process::IsAcceptable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
 		{
 			clt->status_code = k406;
@@ -117,7 +117,7 @@ void	process::ProcessGetRequest(struct Client *clt)
 		// }
 		// if (process::IsCgi(clt->cgi_argv, clt->path, location))
 		// 	return (ProcessGetRequestCgi(clt));
-		// std::string content_type = process::GetResContentType(index_path);
+		// std::string content_type = process::GetReqExtension(index_path);
 		// if (!content_type.empty() && !process::IsAcceptable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
 		// {
 		// 	clt->status_code = k406;
@@ -142,7 +142,7 @@ void	process::ProcessPostRequest(struct Client *clt)
 {
 	cache::LocationQuery	*location= clt->config->query;
 
-	HeaderValue	*req_content_type = clt->req->returnValueAsPointer("Content-Type"); // TODO: need to down case the content type, probably to HeaderStringVector or HeaderString
+	HeaderString	*req_content_type = dynamic_cast<HeaderString *>(clt->req->returnValueAsPointer("Content-Type")); // TODO: need to down case the content type, probably to HeaderStringVector or HeaderString
 	if (req_content_type && !IsSupportedMediaType(req_content_type->content(), location->mime_types)) // checkt content type from request with MIME type
 	{
 		clt->status_code = k415;
@@ -171,14 +171,14 @@ void	process::ProcessPostRequest(struct Client *clt)
 		{
 
 			if (IsCgi(clt->cgi_argv, clt->path, location))
-				return (ProcessPostRequestCgi(clt));
+				return (cgi::ProcessPostRequestCgi(clt));
 			if(access(clt->path.c_str(), W_OK) != 0)
 			{
 				clt->status_code = k403;
 				return (res_builder::GenerateErrorResponse(clt));
 			}
-			std::string path_extension = clt->path.substr(clt->path.find_last_of('.') + 1);
-			if (path_extension != clt->path && req_content_type != path_extension) // file has extension. TODO: need to down case the content type, probably to HeaderStringVector or HeaderString
+			std::string path_extension = GetReqExtension(clt->path);
+			if (!path_extension.empty() && path_extension != req_content_type->content()) // file has extension. TODO: need to down case the content type, probably to HeaderStringVector or HeaderString
 			{
 				clt->status_code = k415;
 				return (res_builder::GenerateErrorResponse(clt));
@@ -276,7 +276,7 @@ bool		process::IsCgi(std::vector<std::string> &cgi_argv, std::string path, cache
 	return (false);
 }
 
-std::string	process::GetResContentType(std::string path)
+std::string	process::GetReqExtension(std::string path)
 {
 	assert((path != "") && "clt->path is empty");
 	std::string extension = path.substr(path.find_last_of('.') + 1);
