@@ -262,14 +262,14 @@ namespace http_parser
     return consumed_character;
   }
 
-  static int  ConsumeByScanFunction(Input* input, ScanOutput (*func)(Input))
+  static ScanOutput  ConsumeByScanFunction(Input* input, ScanOutput (*func)(Input))
   {
     ScanOutput  output = func(*input);
     if (output.is_valid())
     {
       input->consume(output.length);
     }
-    return output.length;
+    return output;
   }
 
   static ParseOutput  ConsumeByParserFunction(Input* input, ParseOutput (*func)(Input))
@@ -464,11 +464,11 @@ namespace http_parser
     while (input.length > 0)
     {
       int error = true;
-      int parsed_length_1 = ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
+      int parsed_length_1 = ConsumeByScanFunction(&input, &ScanOptionalWhitespace).length;
       int parsed_length_2 = ConsumeByCharacter(&input, ';');
       if (parsed_length_2 > 0)
       {
-        int parsed_length_3 = ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
+        int parsed_length_3 = ConsumeByScanFunction(&input, &ScanOptionalWhitespace).length;
         ParseOutput parameter_parse_output = ConsumeByParserFunction(&input, &ParseParameter);
         if (parameter_parse_output.status == kParseSuccess)
         {
@@ -568,11 +568,11 @@ namespace http_parser
     {
       output.bytes = input.bytes;
       int total_length = 0;
-      int scan_length = ConsumeByScanFunction(&input, &ScanPathChar);
-      while (scan_length > 0)
+      ScanOutput scan_result = ConsumeByScanFunction(&input, &ScanPathChar);
+      while (scan_result.is_valid())
       {
-        total_length += scan_length;
-        scan_length = ConsumeByScanFunction(&input, &ScanPathChar);
+        total_length += scan_result.length;
+        scan_result = ConsumeByScanFunction(&input, &ScanPathChar);
       }
       output.length = total_length;
     }
@@ -587,11 +587,11 @@ namespace http_parser
     {
       output.bytes = input.bytes;
       int total_length = 0;
-      int scan_length = ConsumeByScanFunction(&input, &ScanPathChar);
-      while (scan_length > 0)
+      ScanOutput scan_result = ConsumeByScanFunction(&input, &ScanPathChar);
+      while (scan_result.is_valid())
       {
-        total_length += scan_length;
-        scan_length = ConsumeByScanFunction(&input, &ScanPathChar);
+        total_length += scan_result.length;
+        scan_result = ConsumeByScanFunction(&input, &ScanPathChar);
       }
       if (total_length > 1)
         output.length = total_length;
@@ -612,7 +612,7 @@ namespace http_parser
       {
         scan_length = ConsumeByUnitFunction(&input, &IsUnreservered);
         if (scan_length == 0)
-          scan_length = ConsumeByScanFunction(&input, &ScanPctEncoded);
+          scan_length = ConsumeByScanFunction(&input, &ScanPctEncoded).length;
         if (scan_length == 0)
           scan_length = ConsumeByUnitFunction(&input, &IsSubDelims);
         if (scan_length == 0)
