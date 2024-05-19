@@ -86,7 +86,7 @@ void	process::ProcessGetRequest(struct Client *clt)
 		if (process::IsCgi(clt->cgi_argv, clt->path, location)) //check file extension and get the cgi path inside IsCgi
 			return (process::ProcessGetRequestCgi(clt));
 		std::string content_type = process::GetResContentType(clt->path);
-		if (!process::IsAcceptable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
+		if (!content_type.empty()  && !process::IsAcceptable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
 		{
 			clt->status_code = k406;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -118,7 +118,7 @@ void	process::ProcessGetRequest(struct Client *clt)
 		if (process::IsCgi(clt->cgi_argv, clt->path, location))
 			return (ProcessGetRequestCgi(clt));
 		std::string content_type = process::GetResContentType(index_path);
-		if (!process::IsAcceptable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
+		if (!content_type.empty() && !process::IsAcceptable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
 		{
 			clt->status_code = k406;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -281,7 +281,7 @@ std::string	process::GetResContentType(std::string path)
 	assert((path != "") && "clt->path is empty");
 	std::string extension = path.substr(path.find_last_of('.') + 1);
 	if (extension == path)
-		return ("text/plain"); // ? default content type ?
+		return ("");
 	else
 		return (extension);
 }
