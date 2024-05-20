@@ -1006,5 +1006,523 @@ namespace http_parser
     return output;
   }
 
+  /////////////////////////////////////////
+  ////////////////   uri   ////////////////
+  /////////////////////////////////////////
+
+  ParseOutput  ParseUriScheme(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+
+    if (ConsumeByUnitFunction(&input, &IsAlpha) == 0)
+      return output;
+    while (input.length > 0)
+    {
+      if (!IsAlpha(*input.bytes) &&
+          !IsDigit(*input.bytes) &&
+          !std::strchr("+=.", *input.bytes))
+        break;
+      else
+        input.consume();
+    }
+    PTNodeUriScheme* scheme = PTNodeCreate<PTNodeUriScheme>(); 
+    scheme->type = kUriScheme;
+    scheme->content = StringSlice(output.rest.bytes, input.bytes - output.rest.bytes);
+
+    output.status = kParseSuccess;
+    output.rest = input;
+    output.parsed_length = scheme->content.length;
+    output.result = scheme;
+    return output;
+  }
+
+  ParseOutput  ParseUriHost(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+    ParseOutput parsed_address;
+
+    {
+      Input input_tmp = input;
+      if (ConsumeByCharacter(&input_tmp, '[') == 1)
+      {
+        parsed_address = ConsumeByParserFunction(&input_tmp, &ParseIpv6Address);
+        if (parsed_address.status != kParseSuccess)
+          parsed_address = ConsumeByParserFunction(&input_tmp, &ParseIpvFutureAddress);
+
+        if (parsed_address.status == kParseSuccess)
+        {
+          if (ConsumeByCharacter(&input_tmp, ']') == 0)
+            parsed_address = ParseOutput();
+          else
+            input = input_tmp;
+        }
+      }
+    }
+    if (parsed_address.status != kParseSuccess)
+      parsed_address = ConsumeByParserFunction(&input, &ParseIpv4Address);
+    if (parsed_address.status != kParseSuccess)
+      parsed_address = ConsumeByParserFunction(&input, &ParseRegName);
+
+    if (parsed_address.status == kParseSuccess)
+    {
+      PTNodeUriHost* host = PTNodeCreate<PTNodeUriHost>(); 
+      host->type = kUriHost;
+      host->address_header = parsed_address.result;
+
+      output.status = kParseSuccess;
+      output.parsed_length = input.bytes - output.rest.bytes;
+      output.rest = input;
+      output.result = host;
+    }
+    return output;
+  }
+
+  ParseOutput  ParseUriPort(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+    int number = 0;
+
+    while ((input.length > 0) && IsDigit(*input.bytes))
+    {
+      number = number * 10 + (*input.bytes - '0');
+      input.consume();
+    }
+
+    PTNodeUriPort* port = PTNodeCreate<PTNodeUriPort>(); 
+    port->type = kUriPort;
+    port->number = number;
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - output.rest.bytes;
+    output.rest = input;
+    output.result = port;
+    return output;
+  }
+
+  ParseOutput  ParseUriQuery(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+
+    while (ConsumeByScanFunction(&input, &ScanPathChar).is_valid() ||
+           ConsumeByCharacter(&input, '/') ||
+           ConsumeByCharacter(&input, '?'))
+      ;
+
+    PTNodeUriQuery* query = PTNodeCreate<PTNodeUriQuery>(); 
+    query->type = kUriQuery;
+    query->content = StringSlice(output.rest.bytes, input.bytes - output.rest.bytes);
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - output.rest.bytes;
+    output.rest = input;
+    output.result = query;
+    return output;
+  }
+
+  ParseOutput  ParseUriUserInfo(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+
+    while (ConsumeByUnitFunction(&input, &IsUnreservered) ||
+           ConsumeByScanFunction(&input, &ScanPctEncoded).is_valid() ||
+           ConsumeByUnitFunction(&input, &IsSubDelims) ||
+           ConsumeByCharacter(&input, ';'))
+      ;
+
+    PTNodeUriUserInfo* user_info = PTNodeCreate<PTNodeUriUserInfo>(); 
+    user_info->type = kUriUserInfo;
+    user_info->content = StringSlice(output.rest.bytes, input.bytes - output.rest.bytes);
+
+    output.status = kParseSuccess;
+    output.rest = input;
+    output.parsed_length = user_info->content.length;
+    output.result = user_info;
+    return output;
+  }
+
+  ParseOutput  ParseUriAuthority(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+    PTNodeUriUserInfo*  user_info = NULL;
+    PTNodeUriHost*      host = NULL;
+    PTNodeUriQuery*     query = NULL;
+
+    ArenaSnapshot snapshot = temporary::arena.snapshot();
+    {
+      Input input_tmp = input;
+      ParseOutput parsed_user_info = ConsumeByParserFunction(&input_tmp, &ParseUriUserInfo);
+      if (parsed_user_info.status == kParseSuccess)
+      {
+        if (ConsumeByCharacter(&input_tmp, '@'))
+        {
+          user_info = static_cast<PTNodeUriUserInfo*>(parsed_user_info.result);
+          input = input_tmp;
+        }
+        else
+          temporary::arena.rollback(snapshot);
+      }
+    }
+    ParseOutput parsed_host = ConsumeByParserFunction(&input, &ParseUriHost);
+    if (parsed_host.status == kParseSuccess)
+      host = static_cast<PTNodeUriHost*>(parsed_host.result);
+    else
+    {
+      temporary::arena.rollback(snapshot);
+      return output;
+    }
+    {
+      Input input_tmp = input;
+      if (ConsumeByCharacter(&input_tmp, ':'))
+      {
+        ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriQuery);
+        if (parsed_query.status == kParseSuccess)
+        {
+          query = static_cast<PTNodeUriQuery*>(parsed_query.result);
+          input = input_tmp;
+        }
+      }
+    }
+    PTNodeUriAuthority* authority = PTNodeCreate<PTNodeUriAuthority>(); 
+    authority->type = kUriAuthority;
+    authority->user_info = user_info;
+    authority->host = host;
+    authority->query = query;
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - output.rest.bytes;
+    output.rest = input;
+    output.result = authority;
+    return output;
+  }
+
+  ParseOutput  ParseUriFragment(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+
+    while (ConsumeByScanFunction(&input, &ScanPathChar).is_valid() ||
+           ConsumeByCharacter(&input, '/') ||
+           ConsumeByCharacter(&input, '?'))
+      ;
+
+    PTNodeUriFragment* fragment = PTNodeCreate<PTNodeUriFragment>(); 
+    fragment->type = kUriFragment;
+    fragment->content = StringSlice(output.rest.bytes, input.bytes - output.rest.bytes);
+
+    output.status = kParseSuccess;
+    output.rest = input;
+    output.parsed_length = fragment->content.length;
+    output.result = fragment;
+    return output;
+  }
+
+  ParseOutput  ParseUriReferenceNetworkPath(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+    PTNodeUriAuthority* authority = NULL;
+    PTNodePathAbEmpty*  path = NULL;
+
+    if (ConsumeByCharacter(&input, '/') == 0)
+      return output;
+    if (ConsumeByCharacter(&input, '/') == 0)
+      return output;
+    ArenaSnapshot snapshot = temporary::arena.snapshot();
+    {
+      ParseOutput parsed_authority = ConsumeByParserFunction(&input, &ParseUriAuthority);
+      if (parsed_authority.status != kParseSuccess)
+        return output;
+      authority = static_cast<PTNodeUriAuthority*>(parsed_authority.result);
+    }
+    {
+      ParseOutput parsed_path_abempty = ConsumeByParserFunction(&input, &ParsePathAbEmpty);
+      if (parsed_path_abempty.status != kParseSuccess)
+      {
+        temporary::arena.rollback(snapshot);
+        return output;
+      }
+      path = static_cast<PTNodePathAbEmpty*>(parsed_path_abempty.result);
+    }
+
+    PTNodeUriReferenceNetworkPath* reference_network_path = PTNodeCreate<PTNodeUriReferenceNetworkPath>(); 
+    reference_network_path->type = kUriReferenceNetworkPath;
+    reference_network_path->authority = authority;
+    reference_network_path->path = path;
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - output.rest.bytes;
+    output.rest = input;
+    output.result = reference_network_path;
+    return output;
+  }
+
+  ParseOutput  ParseUri(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+    PTNodeUriScheme*   scheme = NULL;
+    PTNode*            path_header = NULL;
+    PTNodeUriQuery*    query = NULL;
+    PTNodeUriFragment* fragment = NULL;
+
+    ArenaSnapshot snapshot = temporary::arena.snapshot();
+    {
+      ParseOutput parsed_scheme = ConsumeByParserFunction(&input, &ParseUriScheme);
+      if (parsed_scheme.status == kParseSuccess)
+        scheme = static_cast<PTNodeUriScheme*>(parsed_scheme.result);
+      else
+        return output;
+    }
+    if (ConsumeByCharacter(&input, ':') == 0)
+    {
+      temporary::arena.rollback(snapshot);
+      return output;
+    }
+    {
+      ParseOutput parsed_path_header = ConsumeByParserFunction(&input, &ParseUriReferenceNetworkPath);
+      if (parsed_path_header.status == kParseSuccess)
+        path_header = parsed_path_header.result;
+      else
+      {
+        parsed_path_header = ConsumeByParserFunction(&input, &ParsePathAbsolute);
+        if (parsed_path_header.status == kParseSuccess)
+          path_header = parsed_path_header.result;
+        else
+        {
+          parsed_path_header = ConsumeByParserFunction(&input, &ParsePathRootless);
+          if (parsed_path_header.status == kParseSuccess)
+            path_header = parsed_path_header.result;
+          else
+          {
+            parsed_path_header = ConsumeByParserFunction(&input, &ParsePathEmpty);
+            if (parsed_path_header.status == kParseSuccess)
+              path_header = parsed_path_header.result;
+            else
+            {
+              temporary::arena.rollback(snapshot);
+              return output;
+            }
+          }
+        }
+      }
+    }
+    {
+      Input input_tmp = input;
+      if (ConsumeByCharacter(&input_tmp, '?') == 1)
+      {
+        ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriQuery);
+        if (parsed_query.status == kParseSuccess)
+        {
+          query = static_cast<PTNodeUriQuery*>(parsed_query.result);
+          input = input_tmp;
+        }
+      }
+    }
+    {
+      Input input_tmp = input;
+      if (ConsumeByCharacter(&input_tmp, '#') == 1)
+      {
+        ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriFragment);
+        if (parsed_query.status == kParseSuccess)
+        {
+          fragment = static_cast<PTNodeUriFragment*>(parsed_query.result);
+          input = input_tmp;
+        }
+      }
+    }
+
+    PTNodeUri* uri = PTNodeCreate<PTNodeUri>(); 
+    uri->type = kUri;
+    uri->scheme = scheme;
+    uri->path_header = path_header;
+    uri->query = query;
+    uri->fragment = fragment;
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - output.rest.bytes;
+    output.rest = input;
+    output.result = uri;
+    return output;
+  }
+
+  ParseOutput  ParseUriAbsolute(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+    PTNodeUriScheme*   scheme = NULL;
+    PTNode*            path_header = NULL;
+    PTNodeUriQuery*    query = NULL;
+
+    ArenaSnapshot snapshot = temporary::arena.snapshot();
+    {
+      ParseOutput parsed_scheme = ConsumeByParserFunction(&input, &ParseUriScheme);
+      if (parsed_scheme.status == kParseSuccess)
+        scheme = static_cast<PTNodeUriScheme*>(parsed_scheme.result);
+      else
+        return output;
+    }
+    if (ConsumeByCharacter(&input, ':') == 0)
+    {
+      temporary::arena.rollback(snapshot);
+      return output;
+    }
+    {
+      ParseOutput parsed_path_header = ConsumeByParserFunction(&input, &ParseUriReferenceNetworkPath);
+      if (parsed_path_header.status == kParseSuccess)
+        path_header = parsed_path_header.result;
+      else
+      {
+        parsed_path_header = ConsumeByParserFunction(&input, &ParsePathAbsolute);
+        if (parsed_path_header.status == kParseSuccess)
+          path_header = parsed_path_header.result;
+        else
+        {
+          parsed_path_header = ConsumeByParserFunction(&input, &ParsePathRootless);
+          if (parsed_path_header.status == kParseSuccess)
+            path_header = parsed_path_header.result;
+          else
+          {
+            parsed_path_header = ConsumeByParserFunction(&input, &ParsePathEmpty);
+            if (parsed_path_header.status == kParseSuccess)
+              path_header = parsed_path_header.result;
+            else
+            {
+              temporary::arena.rollback(snapshot);
+              return output;
+            }
+          }
+        }
+      }
+    }
+    {
+      Input input_tmp = input;
+      if (ConsumeByCharacter(&input_tmp, '?') == 1)
+      {
+        ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriQuery);
+        if (parsed_query.status == kParseSuccess)
+        {
+          query = static_cast<PTNodeUriQuery*>(parsed_query.result);
+          input = input_tmp;
+        }
+      }
+    }
+    PTNodeUriAbsolute* url_absolute = PTNodeCreate<PTNodeUriAbsolute>(); 
+    url_absolute->type = kUriAbsolute;
+    url_absolute->scheme = scheme;
+    url_absolute->path_header = path_header;
+    url_absolute->query = query;
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - output.rest.bytes;
+    output.rest = input;
+    output.result = url_absolute;
+    return output;
+  }
+
+  ParseOutput  ParseUriReferenceRelative(Input input)
+  {
+    ParseOutput output;
+    PTNode*            path_header = NULL;
+    PTNodeUriQuery*    query = NULL;
+    PTNodeUriFragment* fragment = NULL;
+
+    {
+      ParseOutput parsed_path_header = ConsumeByParserFunction(&input, &ParseUriReferenceNetworkPath);
+      if (parsed_path_header.status == kParseSuccess)
+        path_header = parsed_path_header.result;
+      else
+      {
+        parsed_path_header = ConsumeByParserFunction(&input, &ParsePathAbsolute);
+        if (parsed_path_header.status == kParseSuccess)
+          path_header = parsed_path_header.result;
+        else
+        {
+          parsed_path_header = ConsumeByParserFunction(&input, &ParsePathNoScheme);
+          if (parsed_path_header.status == kParseSuccess)
+            path_header = parsed_path_header.result;
+          else
+          {
+            parsed_path_header = ConsumeByParserFunction(&input, &ParsePathEmpty);
+            if (parsed_path_header.status == kParseSuccess)
+              path_header = parsed_path_header.result;
+            else
+              return output;
+          }
+        }
+      }
+    }
+    {
+      Input input_tmp = input;
+      if (ConsumeByCharacter(&input_tmp, '?') == 1)
+      {
+        ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriQuery);
+        if (parsed_query.status == kParseSuccess)
+        {
+          query = static_cast<PTNodeUriQuery*>(parsed_query.result);
+          input = input_tmp;
+        }
+      }
+    }
+    {
+      Input input_tmp = input;
+      if (ConsumeByCharacter(&input_tmp, '#') == 1)
+      {
+        ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriFragment);
+        if (parsed_query.status == kParseSuccess)
+        {
+          fragment = static_cast<PTNodeUriFragment*>(parsed_query.result);
+          input = input_tmp;
+        }
+      }
+    }
+
+    PTNodeUriReferenceRelative* uri_reference_relative = PTNodeCreate<PTNodeUriReferenceRelative>(); 
+    uri_reference_relative->type = kUriReferenceRelative;
+    uri_reference_relative->path_header = path_header;
+    uri_reference_relative->query = query;
+    uri_reference_relative->fragment = fragment;
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - output.rest.bytes;
+    output.rest = input;
+    output.result = uri_reference_relative;
+    return output;
+  }
+
+  ParseOutput  ParseUriReference(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+    PTNode* uri_header = NULL;
+
+    ParseOutput parsed_uri_header = ConsumeByParserFunction(&input, &ParseUri);
+    if (parsed_uri_header.status == kParseSuccess)
+      uri_header = parsed_uri_header.result;
+    else
+    {
+      parsed_uri_header = ConsumeByParserFunction(&input, &ParseUriReferenceRelative);
+      if (parsed_uri_header.status == kParseSuccess)
+        uri_header = parsed_uri_header.result;
+      else
+        return output;
+    }
+
+    PTNodeUriReference* uri_reference = PTNodeCreate<PTNodeUriReference>(); 
+    uri_reference->type = kUriReference;
+    uri_reference->uri_header = uri_header;
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - output.rest.bytes;
+    output.rest = input;
+    output.result = uri_reference;
+    return output;
+  }
+
 } // namespace http_parser
 
