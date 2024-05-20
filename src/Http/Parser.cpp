@@ -1504,5 +1504,255 @@ namespace http_parser
     return output;
   }
 
+  //////////////////////////////////////////////////
+  ////////////////   Request line   ////////////////
+  //////////////////////////////////////////////////
+
+  // Although the status-line grammar rule requires that each of the component elements be separated by a single SP octet, recipients MAY instead parse on whitespace-delimited word boundaries and, aside from the line terminator, treat any form of whitespace as the SP separator while ignoring preceding or trailing whitespace; such whitespace includes one or more of the following octets: SP, HTAB, VT (%x0B), FF (%x0C), or bare CR. However, lenient parsing can result in response splitting security vulnerabilities if there are multiple recipients of the message and each has its own unique interpretation of robustness.
+  ScanOutput  ScanStartLineSpaces(Input input)
+  {
+    ScanOutput output;
+    if (input.is_valid())
+    {
+      int scan_length = 0;
+      while ((input.length > 0) &&
+            (IsSpace(*input.bytes) ||
+             IsHorizontalTab(*input.bytes) ||
+             (*input.bytes == 11) || // vertical tab
+             (*input.bytes == 12) || // NP form feed, new page
+             IsCarriageReturn(*input.bytes)))
+      {
+        scan_length++;
+      }
+      if (scan_length > 0)
+      {
+        output.bytes = input.bytes;
+        output.length = scan_length;
+      }
+    }
+    return output;
+  }
+
+  ParseOutput  ParseHttpVersion(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+
+    if ((ConsumeByCString(&input, "HTTP") == 4) &&
+        (ConsumeByCharacter(&input, '/') == 1) &&
+        (ConsumeByUnitFunction(&input, &IsDigit) == 1) &&
+        (ConsumeByCharacter(&input, '.') == 1) &&
+        (ConsumeByUnitFunction(&input, &IsDigit) == 1))
+    {
+      PTNodeHttpVersion*  http_version = PTNodeCreate<PTNodeHttpVersion>();
+      http_version->type = kHttpVersion;
+      http_version->content = StringSlice(input_start, input.bytes - input_start);
+
+      output.status = kParseSuccess;
+      output.parsed_length = input.bytes - input_start;
+      output.result = http_version;
+    }
+    return output;
+  }
+
+  ParseOutput  ParseMethod(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+
+    if ((ConsumeByCString(&input, "GET") == 3) ||
+        (ConsumeByCString(&input, "HEAD") == 4) ||
+        (ConsumeByCString(&input, "POST") == 4) ||
+        (ConsumeByCString(&input, "PUT") == 3) ||
+        (ConsumeByCString(&input, "DELETE") == 6) ||
+        (ConsumeByCString(&input, "CONNECT") == 7) ||
+        (ConsumeByCString(&input, "OPTIONS") == 7) ||
+        (ConsumeByCString(&input, "TRACE") == 5))
+    {
+      PTNodeMethod*  method = PTNodeCreate<PTNodeMethod>();
+      method->type = kMethod;
+      method->content = StringSlice(input_start, input.bytes - input_start);
+
+      output.status = kParseSuccess;
+      output.parsed_length = input.bytes - input_start;
+      output.result = method;
+    }
+    return output;
+  }
+
+  ParseOutput  ParseRequestTargetOriginForm(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+    PTNodePathAbsolute* absolute_path = NULL;
+    PTNodeUriQuery*     query = NULL;
+
+    {
+      ParseOutput parsed_absolute_path = ConsumeByParserFunction(&input, &ParsePathAbsolute);
+      if (parsed_absolute_path.status == kParseSuccess)
+        absolute_path = static_cast<PTNodePathAbsolute*>(parsed_absolute_path.result);
+      else
+        return output;
+    }
+    {
+      Input input_tmp = input;
+      if (ConsumeByCharacter(&input_tmp, '?') == 1)
+      {
+        ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriQuery);
+        if (parsed_query.status == kParseSuccess)
+        {
+          query = static_cast<PTNodeUriQuery*>(parsed_query.result);
+          input = input_tmp;
+        }
+      }
+    }
+
+    PTNodeRequestTargetOriginForm*  request_target_origin_form = PTNodeCreate<PTNodeRequestTargetOriginForm>();
+    request_target_origin_form->type = kRequestTargetOriginForm;
+    request_target_origin_form->absolute_path = absolute_path;
+    request_target_origin_form->query = query;
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - input_start;
+    output.result = request_target_origin_form;
+    return output;
+  }
+
+  ParseOutput  ParseRequestTargetAuthorityForm(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+    PTNodeUriHost* host = NULL;
+    PTNodeUriPort* port = NULL;
+
+    ArenaSnapshot snapshot = temporary::arena.snapshot();
+    {
+      ParseOutput parsed_host = ConsumeByParserFunction(&input, &ParseUriHost);
+      if (parsed_host.status == kParseSuccess)
+        host = static_cast<PTNodeUriHost*>(parsed_host.result);
+      else
+        return output;
+    }
+    if (ConsumeByCharacter(&input, ':') == 0)
+    {
+      temporary::arena.rollback(snapshot);
+      return output;
+    }
+    {
+      ParseOutput parsed_host = ConsumeByParserFunction(&input, &ParseUriPort);
+      if (parsed_host.status == kParseSuccess)
+        port = static_cast<PTNodeUriPort*>(parsed_host.result);
+      else
+      {
+        temporary::arena.rollback(snapshot);
+        return output;
+      }
+    }
+
+    PTNodeRequestTargetAuthorityForm*  request_target_authority_form = PTNodeCreate<PTNodeRequestTargetAuthorityForm>();
+    request_target_authority_form->type = kRequestTargetAuthorityForm;
+    request_target_authority_form->host = host;
+    request_target_authority_form->port = port;
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - input_start;
+    output.result = request_target_authority_form;
+    return output;
+  }
+
+  ParseOutput  ParseRequestTargetAsteriskForm(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+
+    if (ConsumeByCharacter(&input, '*') == 1)
+    {
+      PTNodeRequestTargetAsteriskForm*  request_target_asterisk_form = PTNodeCreate<PTNodeRequestTargetAsteriskForm>();
+      request_target_asterisk_form->type = kRequestAsteriskForm;
+
+      output.status = kParseSuccess;
+      output.parsed_length = input.bytes - input_start;
+      output.result = request_target_asterisk_form;
+    }
+    return output;
+  }
+
+  ParseOutput  ParseRequestLine(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+    PTNodeMethod*       method = NULL;
+    PTNode*             request_target_header = NULL;
+    PTNodeHttpVersion*  version = NULL;
+
+    ArenaSnapshot snapshot = temporary::arena.snapshot();
+    {
+      ParseOutput parsed_method = ConsumeByParserFunction(&input, &ParseMethod);
+      if (parsed_method.status == kParseSuccess)
+        method = static_cast<PTNodeMethod*>(parsed_method.result);
+      else
+        return output;
+    }
+    if (!ConsumeByScanFunction(&input, &ScanStartLineSpaces).is_valid())
+    {
+      temporary::arena.rollback(snapshot);
+      return output;
+    }
+    {
+      ParseOutput parsed_request_target = ConsumeByParserFunction(&input, &ParseRequestTargetOriginForm);
+      if (parsed_request_target.status == kParseSuccess)
+        request_target_header = parsed_request_target.result;
+      else
+      {
+        parsed_request_target = ConsumeByParserFunction(&input, &ParseUriAbsolute);
+        if (parsed_request_target.status == kParseSuccess)
+          request_target_header = parsed_request_target.result;
+        else
+        {
+          parsed_request_target = ConsumeByParserFunction(&input, &ParseRequestTargetAuthorityForm);
+          if (parsed_request_target.status == kParseSuccess)
+            request_target_header = parsed_request_target.result;
+          else
+          {
+            parsed_request_target = ConsumeByParserFunction(&input, &ParseRequestTargetAsteriskForm);
+            if (parsed_request_target.status == kParseSuccess)
+              request_target_header = parsed_request_target.result;
+            else
+            {
+              temporary::arena.rollback(snapshot);
+              return output;
+            }
+          }
+        }
+      }
+    }
+    if (!ConsumeByScanFunction(&input, &ScanStartLineSpaces).is_valid())
+    {
+      temporary::arena.rollback(snapshot);
+      return output;
+    }
+    {
+      ParseOutput parsed_http_version = ConsumeByParserFunction(&input, &ParseHttpVersion);
+      if (parsed_http_version.status == kParseSuccess)
+        version = static_cast<PTNodeHttpVersion*>(parsed_http_version.result);
+      else
+      {
+        temporary::arena.rollback(snapshot);
+        return output;
+      }
+    }
+
+    PTNodeRequestLine*  request_line = PTNodeCreate<PTNodeRequestLine>();
+    request_line->type = kRequestLine;
+    request_line->method = method;
+    request_line->request_target_header = request_target_header;
+    request_line->version = version;
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - input_start;
+    output.result = request_line;
+    return output;
+  }
+
 } // namespace http_parser
 

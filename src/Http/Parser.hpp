@@ -92,6 +92,7 @@ namespace http_parser
     kUriReference,
 
     kHttpVersion,
+    kMethod,
 
     kRequestLine,
     kRequestTargetOriginForm,
@@ -374,7 +375,14 @@ namespace http_parser
   ////////////////   Request line   ////////////////
   //////////////////////////////////////////////////
 
+  ScanOutput  ScanStartLineSpaces(Input input);
+
   struct PTNodeHttpVersion : public PTNode
+  {
+    StringSlice content;
+  };
+
+  struct PTNodeMethod : public PTNode
   {
     StringSlice content;
   };
@@ -396,7 +404,7 @@ namespace http_parser
 
   struct PTNodeRequestLine : public PTNode
   {
-    PTNodeToken*        method;
+    PTNodeMethod*        method;
     union
     {
       PTNode*                            request_target_header;
@@ -409,6 +417,7 @@ namespace http_parser
   };
 
   ParseOutput  ParseHttpVersion(Input input);
+  ParseOutput  ParseMethod(Input input);
   ParseOutput  ParseRequestTargetOriginForm(Input input);
   ParseOutput  ParseRequestTargetAuthorityForm(Input input);
   ParseOutput  ParseRequestTargetAsteriskForm(Input input);
