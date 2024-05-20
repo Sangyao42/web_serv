@@ -248,6 +248,21 @@ namespace http_parser
     return consumed_character;
   }
 
+  static int ConsumeByCString(Input* input, const char* cstring)
+  {
+    int consumed_character = 0;
+    for (int i = 0; i < input->length; i++)
+    {
+      if (*cstring && (*cstring == input->bytes[i]))
+        consumed_character++;
+    }
+    if (*cstring)
+      consumed_character = 0;
+    else
+      input->consume(consumed_character);
+    return consumed_character;
+  }
+
   static int ConsumeByUnitFunction(Input* input, bool (*func)(char))
   {
     int consumed_character = 0;
@@ -848,8 +863,7 @@ namespace http_parser
          (amount_of_optional_h16 != 8))
     {
       temporary::arena.rollback(snapshot);
-      if ((ConsumeByCharacter(&input, ':') == 0) ||
-          (ConsumeByCharacter(&input, ':') == 0))
+      if (ConsumeByCString(&input, "::") == 0)
         return output;
       int max_amount_of_h16 = 7 - amount_of_optional_h16;
       int amount_of_h16 = 0;
@@ -1201,9 +1215,7 @@ namespace http_parser
     PTNodeUriAuthority* authority = NULL;
     PTNodePathAbEmpty*  path = NULL;
 
-    if (ConsumeByCharacter(&input, '/') == 0)
-      return output;
-    if (ConsumeByCharacter(&input, '/') == 0)
+    if (ConsumeByCString(&input, "//") == 0)
       return output;
     ArenaSnapshot snapshot = temporary::arena.snapshot();
     {
