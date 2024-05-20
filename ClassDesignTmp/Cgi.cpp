@@ -369,7 +369,7 @@ int cgi::WriteAll(int fd, char *cstr_buf, int size)
 
 }
 
-bool	ParseCgiOutput(struct CgiOutput &cgi_output, std::string &response_tmp)
+bool	cgi::ParseCgiOutput(struct CgiOutput &cgi_output, std::string &response_tmp)
 {
 	std::string delimiter = "\r\n\r\n";
 	size_t pos_delim = response_tmp.find(delimiter);
