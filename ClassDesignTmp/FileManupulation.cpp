@@ -30,8 +30,9 @@ bool process::file::UploadFile(struct Client *clt)
 
 	//if no file extension, add one based on content-type
 	size_t pos = file_path.find_last_of(".");
-	if (pos != std::string::npos && file_path[pos + 1] && (file_path[pos + 1] == '/' ||  file_path[pos + 1] == '.'))
+	if (pos != std::string::npos && file_path[pos + 1] == '/')
 	{
+		file_path += ".";
 		HeaderString *content_type = dynamic_cast<HeaderString *>(clt->req->returnValueAsPointer("Content-Type"));
 		file_path += GenerateFileExtension(content_type->content(), clt->config->query->mime_types);
 	}
