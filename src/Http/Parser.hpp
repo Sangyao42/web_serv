@@ -1,9 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <string>
 
-#include "misc/Maybe.hpp"
 #include "Arenas.hpp"
 
 namespace http_parser
@@ -291,9 +289,9 @@ namespace http_parser
 
   struct PTNodeUriAuthority : public PTNode
   {
-    Maybe<PTNodeUriUserInfo*>  user_info;
-    PTNodeUriHost*             host;
-    Maybe<PTNodeUriQuery*>     query;
+    PTNodeUriUserInfo*  user_info;
+    PTNodeUriHost*      host;
+    PTNodeUriQuery*     query;
   };
 
   struct PTNodeUriFragment : public PTNode
@@ -303,13 +301,13 @@ namespace http_parser
 
   struct PTNodeUriReferenceNetworkPath : public PTNode
   {
-    PTNodeUriAuthority*   authority;
-    PTNodePathAbEmpty* path;
+    PTNodeUriAuthority* authority;
+    PTNodePathAbEmpty*  path;
   };
 
   struct PTNodeUri : public PTNode
   {
-    PTNodeUriScheme*          scheme;
+    PTNodeUriScheme*  scheme;
     union
     {
       PTNode*                        path_header;
@@ -318,13 +316,13 @@ namespace http_parser
       PTNodePathRootless*            path_rootless;
       PTNodePathEmpty*               path_empty;
     };
-    Maybe<PTNodeUriQuery*>    query;
-    Maybe<PTNodeUriFragment*> fragment;
+    PTNodeUriQuery*    query;
+    PTNodeUriFragment* fragment;
   };
 
   struct PTNodeUriAbsolute : public PTNode
   {
-    PTNodeUriScheme*          scheme;
+    PTNodeUriScheme*  scheme;
     union
     {
       PTNode*                        path_header;
@@ -333,7 +331,7 @@ namespace http_parser
       PTNodePathRootless*            path_rootless;
       PTNodePathEmpty*               path_empty;
     };
-    Maybe<PTNodeUriQuery*>    query;
+    PTNodeUriQuery*   query;
   };
 
   struct PTNodeUriReferenceRelative : public PTNode
@@ -346,8 +344,8 @@ namespace http_parser
       PTNodePathNoScheme*            path_noscheme;
       PTNodePathEmpty*               path_empty;
     };
-    Maybe<PTNodeUriQuery*>    query;
-    Maybe<PTNodeUriFragment*> fragment;
+    PTNodeUriQuery*    query;
+    PTNodeUriFragment* fragment;
   };
 
   struct PTNodeUriReference : public PTNode
@@ -384,8 +382,8 @@ namespace http_parser
 
   struct PTNodeRequestTargetOriginForm : public PTNode 
   {
-    PTNodePathAbsolute*    absolute_path;
-    Maybe<PTNodeUriQuery*> query;
+    PTNodePathAbsolute* absolute_path;
+    PTNodeUriQuery*     query;
   };
 
   struct PTNodeRequestTargetAuthorityForm : public PTNode
@@ -399,7 +397,7 @@ namespace http_parser
 
   struct PTNodeRequestLine : public PTNode
   {
-    PTNodeToken* method;
+    PTNodeToken*        method;
     union
     {
       PTNode*                            request_target_header;
@@ -408,7 +406,7 @@ namespace http_parser
       PTNodeRequestTargetAuthorityForm*  request_target_authority_form;
       PTNodeRequestTargetAsteriskForm*   request_target_asterisk_form;
     };
-    PTNodeHttpVersion* version;
+    PTNodeHttpVersion*  version;
   };
 
   ParseOutput  ParseHttpVersion(Input input);
@@ -433,9 +431,9 @@ namespace http_parser
 
   struct PTNodeStatusLine : public PTNode
   {
-    PTNodeHttpVersion*         http_version;
-    PTNodeStatusCode*          status_code;
-    Maybe<PTNodeReasonPhrase*> reason_phrase;
+    PTNodeHttpVersion*  http_version;
+    PTNodeStatusCode*   status_code;
+    PTNodeReasonPhrase* reason_phrase;
   };
 
   struct PTNodeFieldValue : public PTNode
@@ -463,7 +461,7 @@ namespace http_parser
       PTNodeStatusLine*  status_line;
     };
     temporary::vector<PTNodeFieldLine*> fields;
-    Maybe<PTNodeMessageBody*>           body;
+    PTNodeMessageBody*                  body;
   };
 
   ParseOutput  ParseReasonPhrase(Input input);
