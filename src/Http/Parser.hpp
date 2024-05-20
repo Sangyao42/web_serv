@@ -225,6 +225,9 @@ namespace http_parser
   ////////////////   ip address   ////////////////
   ////////////////////////////////////////////////
 
+  ScanOutput   ScanDecOctet(Input input);
+  ScanOutput   ScanH16(Input input);
+
   struct PTNodeIpv6Address : public PTNode
   {
     StringSlice content;

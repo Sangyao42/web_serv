@@ -771,5 +771,240 @@ namespace http_parser
     return output;
   }
 
+  ////////////////////////////////////////////////
+  ////////////////   ip address   ////////////////
+  ////////////////////////////////////////////////
+
+  ScanOutput   ScanDecOctet(Input input)
+  {
+    ScanOutput  output;
+
+    if (input.is_valid() &&
+       (input.length > 0))
+    {
+      output.bytes = input.bytes;
+      int scan_length = 0;
+      if (input.bytes[0] == '0')
+        scan_length = 1;
+      else
+      {
+        int num = 0;
+        const char* start = input.bytes;
+        const char* last = input.length > 3 ? input.bytes + 3 : input.bytes + input.length;
+        for (; start < last; start++)
+        {
+          if (IsDigit(*start))
+          {
+           num = num * 10 + (*start - '0');
+          }
+          else
+            break;
+        }
+        if ((start != input.bytes) && (num >= 0) && (num <= 255))
+        {
+          scan_length = start - input.bytes;
+        }
+      }
+      if (scan_length > 0)
+      {
+        output.bytes = input.bytes;
+        output.length = scan_length;
+      }
+    }
+    return output;
+  }
+
+  ScanOutput  ScanH16(Input input)
+  {
+    ScanOutput  output;
+
+    if (input.is_valid() &&
+       (input.length > 0))
+    {
+      int scan_length = 0;
+      for (int i = 0; i < 4; i++)
+      {
+        if (IsHexDigit(input.bytes[i]))
+          scan_length++;
+        else
+          break;
+      }
+      if (scan_length > 0)
+      {
+        output.bytes = input.bytes;
+        output.length = scan_length;
+      }
+    }
+    return output;
+  }
+
+  ParseOutput  ParseIpv6Address(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+
+    int amount_of_optional_h16 = 0;
+    {
+      while (input.length > 0)
+      {
+        Input input_tmp = input;
+        ScanOutput parsed_h16 = ConsumeByScanFunction(&input_tmp, &ScanH16);
+        if (!parsed_h16.is_valid() ||
+            (ConsumeByCharacter(&input_tmp, ':') == 0) ||
+            (input_tmp.length > 0 && (*input_tmp.bytes == ':'))) // cannot be a ::
+          break;
+        amount_of_optional_h16++;
+        input = input_tmp;
+      }
+      if (ConsumeByScanFunction(&input, &ScanH16).is_valid())
+        amount_of_optional_h16++;
+    }
+    ArenaSnapshot snapshot = temporary::arena.snapshot();
+    if (!(amount_of_optional_h16 == 6 &&
+            (ConsumeByParserFunction(&input, &ParseIpv4Address).status == kParseSuccess)) &&
+         (amount_of_optional_h16 != 8))
+    {
+      temporary::arena.rollback(snapshot);
+      if ((ConsumeByCharacter(&input, ':') == 0) ||
+          (ConsumeByCharacter(&input, ':') == 0))
+        return output;
+      int max_amount_of_h16 = 7 - amount_of_optional_h16;
+      int amount_of_h16 = 0;
+      while (input.length > 0 && (amount_of_h16 <= max_amount_of_h16))
+      {
+        Input input_tmp = input;
+        ScanOutput parsed_h16 = ConsumeByScanFunction(&input_tmp, &ScanH16);
+        if (!parsed_h16.is_valid() ||
+            (ConsumeByCharacter(&input_tmp, ':') == 0))
+          break;
+        amount_of_h16++;
+        input = input_tmp;
+      }
+      bool  should_scan_h16 = true;
+      if ((max_amount_of_h16 - amount_of_h16) >= 2)
+      {
+        if(ConsumeByParserFunction(&input, &ParseIpv4Address).status == kParseSuccess)
+          should_scan_h16 = false;
+        temporary::arena.rollback(snapshot);
+      }
+      if (should_scan_h16)
+      {
+        if (!ConsumeByScanFunction(&input, &ScanH16).is_valid())
+          return output;
+      }
+    }
+    PTNodeIpv6Address* ipv6_address = PTNodeCreate<PTNodeIpv6Address>(); 
+    ipv6_address->type = kIpv6Address;
+    ipv6_address->content = StringSlice(output.rest.bytes, input.bytes - output.rest.bytes);
+
+    output.status = kParseSuccess;
+    output.rest = input;
+    output.parsed_length = ipv6_address->content.length;
+    output.result = ipv6_address;
+    return output;
+  }
+
+  ParseOutput  ParseIpvFutureAddress(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+
+    if (ConsumeByCharacter(&input, 'v') != 1)
+      return output;
+    int amount = 0;
+    while (input.length > 0)
+    {
+      if (ConsumeByUnitFunction(&input, &IsHexDigit) == 1)
+        amount++;
+      else
+        break;
+    }
+    if (amount < 1)
+      return output;
+    if (ConsumeByCharacter(&input, '.') != 1)
+      return output;
+    int amount_2 = 0;
+    while (input.length > 0)
+    {
+      if ((ConsumeByUnitFunction(&input, &IsUnreservered) == 0) &&
+          (ConsumeByUnitFunction(&input, &IsSubDelims) == 0) &&
+          (ConsumeByCharacter(&input, ':') == 0))
+        break;
+      else
+        amount_2++;
+    }
+    if (amount_2 < 1)
+      return output;
+
+    PTNodeIpvFutureAddress* ipv_future_address = PTNodeCreate<PTNodeIpvFutureAddress>(); 
+    ipv_future_address->type = kIpvFutureAddress;
+    ipv_future_address->content = StringSlice(output.rest.bytes, input.bytes - output.rest.bytes);
+
+    output.status = kParseSuccess;
+    output.rest = input;
+    output.parsed_length = ipv_future_address->content.length;
+    output.result = ipv_future_address;
+    return output;
+  }
+
+  ParseOutput  ParseIpv4Address(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+
+    ScanOutput  parsed_octet_1 = ConsumeByScanFunction(&input, &ScanDecOctet);
+    if (!parsed_octet_1.is_valid())
+      return output;
+    if (ConsumeByCharacter(&input, '.') != 1)
+      return output;
+    ScanOutput parsed_octet_2 = ConsumeByScanFunction(&input, &ScanDecOctet);
+    if (!parsed_octet_2.is_valid())
+      return output;
+    if (ConsumeByCharacter(&input, '.') != 1)
+      return output;
+    ScanOutput parsed_octet_3 = ConsumeByScanFunction(&input, &ScanDecOctet);
+    if (!parsed_octet_3.is_valid())
+      return output;
+    if (ConsumeByCharacter(&input, '.') != 1)
+      return output;
+    ScanOutput parsed_octet_4 = ConsumeByScanFunction(&input, &ScanDecOctet);
+    if (!parsed_octet_4.is_valid())
+      return output;
+
+    PTNodeIpv4Address* ipv4_address = PTNodeCreate<PTNodeIpv4Address>(); 
+    ipv4_address->type = kIpv4Address;
+    ipv4_address->content = StringSlice(output.rest.bytes, parsed_octet_1.length + parsed_octet_2.length + parsed_octet_3.length + parsed_octet_4.length + 3); // 3 is the length of the 3 dots.
+
+    output.status = kParseSuccess;
+    output.rest = input;
+    output.parsed_length = ipv4_address->content.length;
+    output.result = ipv4_address;
+    return output;
+  }
+
+  ParseOutput  ParseRegName(Input input)
+  {
+    ParseOutput output;
+    output.rest = input;
+
+    for (int i = 0; i < output.rest.length; i++)
+    {
+      if ((ConsumeByUnitFunction(&input, &IsUnreservered) != 1) &&
+          !ConsumeByScanFunction(&input, &ScanPctEncoded).is_valid() &&
+          (ConsumeByUnitFunction(&input, &IsSubDelims) != 1))
+        break;
+    }
+    PTNodeRegName* reg_name = PTNodeCreate<PTNodeRegName>(); 
+    reg_name->type = kRegName;
+    reg_name->content = StringSlice(output.rest.bytes, input.bytes - output.rest.bytes);
+
+    output.status = kParseSuccess;
+    output.rest = input;
+    output.parsed_length = reg_name->content.length;
+    output.result = reg_name;
+
+    return output;
+  }
+
 } // namespace http_parser
 
