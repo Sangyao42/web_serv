@@ -128,7 +128,6 @@ namespace http_parser
   struct ParseOutput
   {
     ParseOutputStatus status;
-    Input             rest;
     int               parsed_length;
     PTNode*           result;
 

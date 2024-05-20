@@ -232,7 +232,7 @@ namespace http_parser
   ///////////////////////////////////////////
 
   ParseOutput::ParseOutput()
-    : status(kParseFailure), rest(), parsed_length(0), result(NULL) {}
+    : status(kParseFailure), parsed_length(0), result(NULL) {}
 
   static int ConsumeByCharacter(Input* input, char character)
   {
@@ -289,7 +289,6 @@ namespace http_parser
   ParseOutput  ParseToken(Input input)
   {
     ParseOutput output;
-    output.rest = input;
     if (input.is_valid())
     {
       StringSlice content;
@@ -307,7 +306,6 @@ namespace http_parser
         token->content = content;
 
         output.status = kParseSuccess;
-        output.rest = input;
         output.parsed_length = content.length;
         output.result = token;
       }
@@ -318,7 +316,6 @@ namespace http_parser
   ParseOutput  ParseQuotedString(Input input)
   {
     ParseOutput output;
-    output.rest = input;
     if (input.is_valid())
     {
       StringSlice content;
@@ -351,7 +348,6 @@ namespace http_parser
           quoted_string->content = content;
 
           output.status = kParseSuccess;
-          output.rest = input;
           output.parsed_length = content.length;
           output.result = quoted_string;
         }
@@ -363,7 +359,6 @@ namespace http_parser
   ParseOutput  ParseComment(Input input)
   {
     ParseOutput output;
-    output.rest = input;
     if (input.is_valid())
     {
       StringSlice content;
@@ -407,7 +402,6 @@ namespace http_parser
           comment->type = kComment;
 
           output.status = kParseSuccess;
-          output.rest = input;
           output.parsed_length = content.length;
           output.result = comment;
         }
@@ -419,7 +413,6 @@ namespace http_parser
   ParseOutput  ParseParameter(Input input)
   {
     ParseOutput output;
-    output.rest = input;
 
     ArenaSnapshot snapshot = temporary::arena.snapshot();
     ParseOutput name_parse_output = ConsumeByParserFunction(&input, &ParseToken);
@@ -441,7 +434,6 @@ namespace http_parser
           parameter->value_header = value_parse_output.result;
 
           output.status = kParseSuccess;
-          output.rest = input;
           output.parsed_length = name_parse_output.parsed_length + parsed_length + value_parse_output.parsed_length;
           output.result = parameter;
         }
@@ -457,7 +449,6 @@ namespace http_parser
   ParseOutput  ParseParameters(Input input)
   {
     ParseOutput output;
-    output.rest = input;
     int parsed_length = 0;
     temporary::vector<PTNodeParameter*> children;
 
@@ -487,7 +478,6 @@ namespace http_parser
       parameters->children = children;
 
       output.status = kParseSuccess;
-      output.rest = input;
       output.parsed_length = parsed_length;
       output.result = parameters;
     }
@@ -659,7 +649,6 @@ namespace http_parser
   ParseOutput  ParsePathAbEmpty(Input input)
   {
     ParseOutput output;
-    output.rest = input;
     StringSlice content = ConsumeByScanFunction(&input, &ScanSegments);
     if (output.parsed_length > 0)
     {
@@ -669,7 +658,6 @@ namespace http_parser
       path_abempty->content = content;
 
       output.status = kParseSuccess;
-      output.rest = input;
       output.parsed_length = content.length;
       output.result = path_abempty;
     }
@@ -679,7 +667,6 @@ namespace http_parser
   ParseOutput  ParsePathAbsolute(Input input)
   {
     ParseOutput output;
-    output.rest = input;
 
     StringSlice content;
     content.bytes = input.bytes;
@@ -703,7 +690,6 @@ namespace http_parser
       path_absolute->content = content;
 
       output.status = kParseSuccess;
-      output.rest = input;
       output.parsed_length = content.length;
       output.result = path_absolute;
     }
@@ -713,7 +699,7 @@ namespace http_parser
   ParseOutput  ParsePathNoScheme(Input input)
   {
     ParseOutput output;
-    output.rest = input;
+    const char* input_start = input.bytes;
 
     ScanOutput  parsed_result = ConsumeByScanFunction(&input, &ScanSegmentNzNc);
     if (parsed_result.is_valid())
@@ -724,10 +710,9 @@ namespace http_parser
         PTNodePathNoScheme* path_noscheme = PTNodeCreate<PTNodePathNoScheme>();
 
         path_noscheme->type = kPathNoScheme;
-        path_noscheme->content = StringSlice(output.rest.bytes, parsed_result.length + parsed_result_2.length);;
+        path_noscheme->content = StringSlice(input_start, parsed_result.length + parsed_result_2.length);;
 
         output.status = kParseSuccess;
-        output.rest = input;
         output.parsed_length = path_noscheme->content.length;
         output.result = path_noscheme;
       }
@@ -738,7 +723,7 @@ namespace http_parser
   ParseOutput  ParsePathRootless(Input input)
   {
     ParseOutput output;
-    output.rest = input;
+    const char* input_start = input.bytes;
 
     ScanOutput  parsed_result = ConsumeByScanFunction(&input, &ScanSegmentNz);
     if (parsed_result.is_valid())
@@ -749,10 +734,9 @@ namespace http_parser
         PTNodePathRootless* path_rootless = PTNodeCreate<PTNodePathRootless>();
 
         path_rootless->type = kPathRootless;
-        path_rootless->content = StringSlice(output.rest.bytes, parsed_result.length + parsed_result_2.length);;
+        path_rootless->content = StringSlice(input_start, parsed_result.length + parsed_result_2.length);;
 
         output.status = kParseSuccess;
-        output.rest = input;
         output.parsed_length = path_rootless->content.length;
         output.result = path_rootless;
       }
@@ -760,11 +744,10 @@ namespace http_parser
     return output;
   }
 
-  ParseOutput  ParsePathEmpty(Input input)
+  ParseOutput  ParsePathEmpty(Input)
   {
     ParseOutput output;
     output.status = kParseSuccess;
-    output.rest = input;
     output.parsed_length = 0;
     output.result = static_cast<PTNode*>(PTNodeCreate<PTNodePathEmpty>());
     output.result->type = kPathEmpty;
@@ -841,7 +824,7 @@ namespace http_parser
   ParseOutput  ParseIpv6Address(Input input)
   {
     ParseOutput output;
-    output.rest = input;
+    const char* input_start = input.bytes;
 
     int amount_of_optional_h16 = 0;
     {
@@ -895,10 +878,9 @@ namespace http_parser
     }
     PTNodeIpv6Address* ipv6_address = PTNodeCreate<PTNodeIpv6Address>(); 
     ipv6_address->type = kIpv6Address;
-    ipv6_address->content = StringSlice(output.rest.bytes, input.bytes - output.rest.bytes);
+    ipv6_address->content = StringSlice(input_start, input.bytes - input_start);
 
     output.status = kParseSuccess;
-    output.rest = input;
     output.parsed_length = ipv6_address->content.length;
     output.result = ipv6_address;
     return output;
@@ -907,7 +889,7 @@ namespace http_parser
   ParseOutput  ParseIpvFutureAddress(Input input)
   {
     ParseOutput output;
-    output.rest = input;
+    const char* input_start = input.bytes;
 
     if (ConsumeByCharacter(&input, 'v') != 1)
       return output;
@@ -938,10 +920,9 @@ namespace http_parser
 
     PTNodeIpvFutureAddress* ipv_future_address = PTNodeCreate<PTNodeIpvFutureAddress>(); 
     ipv_future_address->type = kIpvFutureAddress;
-    ipv_future_address->content = StringSlice(output.rest.bytes, input.bytes - output.rest.bytes);
+    ipv_future_address->content = StringSlice(input_start, input.bytes - input_start);
 
     output.status = kParseSuccess;
-    output.rest = input;
     output.parsed_length = ipv_future_address->content.length;
     output.result = ipv_future_address;
     return output;
@@ -950,7 +931,7 @@ namespace http_parser
   ParseOutput  ParseIpv4Address(Input input)
   {
     ParseOutput output;
-    output.rest = input;
+    const char* input_start = input.bytes;
 
     ScanOutput  parsed_octet_1 = ConsumeByScanFunction(&input, &ScanDecOctet);
     if (!parsed_octet_1.is_valid())
@@ -973,10 +954,9 @@ namespace http_parser
 
     PTNodeIpv4Address* ipv4_address = PTNodeCreate<PTNodeIpv4Address>(); 
     ipv4_address->type = kIpv4Address;
-    ipv4_address->content = StringSlice(output.rest.bytes, parsed_octet_1.length + parsed_octet_2.length + parsed_octet_3.length + parsed_octet_4.length + 3); // 3 is the length of the 3 dots.
+    ipv4_address->content = StringSlice(input_start, parsed_octet_1.length + parsed_octet_2.length + parsed_octet_3.length + parsed_octet_4.length + 3); // 3 is the length of the 3 dots.
 
     output.status = kParseSuccess;
-    output.rest = input;
     output.parsed_length = ipv4_address->content.length;
     output.result = ipv4_address;
     return output;
@@ -985,9 +965,9 @@ namespace http_parser
   ParseOutput  ParseRegName(Input input)
   {
     ParseOutput output;
-    output.rest = input;
+    const char* input_start = input.bytes;
 
-    for (int i = 0; i < output.rest.length; i++)
+    while (input.length > 0)
     {
       if ((ConsumeByUnitFunction(&input, &IsUnreservered) != 1) &&
           !ConsumeByScanFunction(&input, &ScanPctEncoded).is_valid() &&
@@ -996,10 +976,9 @@ namespace http_parser
     }
     PTNodeRegName* reg_name = PTNodeCreate<PTNodeRegName>(); 
     reg_name->type = kRegName;
-    reg_name->content = StringSlice(output.rest.bytes, input.bytes - output.rest.bytes);
+    reg_name->content = StringSlice(input_start, input.bytes - input_start);
 
     output.status = kParseSuccess;
-    output.rest = input;
     output.parsed_length = reg_name->content.length;
     output.result = reg_name;
 
@@ -1013,7 +992,7 @@ namespace http_parser
   ParseOutput  ParseUriScheme(Input input)
   {
     ParseOutput output;
-    output.rest = input;
+    const char* input_start = input.bytes;
 
     if (ConsumeByUnitFunction(&input, &IsAlpha) == 0)
       return output;
@@ -1028,10 +1007,9 @@ namespace http_parser
     }
     PTNodeUriScheme* scheme = PTNodeCreate<PTNodeUriScheme>(); 
     scheme->type = kUriScheme;
-    scheme->content = StringSlice(output.rest.bytes, input.bytes - output.rest.bytes);
+    scheme->content = StringSlice(input_start, input.bytes - input_start);
 
     output.status = kParseSuccess;
-    output.rest = input;
     output.parsed_length = scheme->content.length;
     output.result = scheme;
     return output;
@@ -1040,7 +1018,7 @@ namespace http_parser
   ParseOutput  ParseUriHost(Input input)
   {
     ParseOutput output;
-    output.rest = input;
+    const char* input_start = input.bytes;
     ParseOutput parsed_address;
 
     {
@@ -1072,8 +1050,7 @@ namespace http_parser
       host->address_header = parsed_address.result;
 
       output.status = kParseSuccess;
-      output.parsed_length = input.bytes - output.rest.bytes;
-      output.rest = input;
+      output.parsed_length = input.bytes - input_start;
       output.result = host;
     }
     return output;
@@ -1082,7 +1059,7 @@ namespace http_parser
   ParseOutput  ParseUriPort(Input input)
   {
     ParseOutput output;
-    output.rest = input;
+    const char* input_start = input.bytes;
     int number = 0;
 
     while ((input.length > 0) && IsDigit(*input.bytes))
@@ -1096,8 +1073,7 @@ namespace http_parser
     port->number = number;
 
     output.status = kParseSuccess;
-    output.parsed_length = input.bytes - output.rest.bytes;
-    output.rest = input;
+    output.parsed_length = input.bytes - input_start;
     output.result = port;
     return output;
   }
@@ -1105,7 +1081,7 @@ namespace http_parser
   ParseOutput  ParseUriQuery(Input input)
   {
     ParseOutput output;
-    output.rest = input;
+    const char* input_start = input.bytes;
 
     while (ConsumeByScanFunction(&input, &ScanPathChar).is_valid() ||
            ConsumeByCharacter(&input, '/') ||
@@ -1114,11 +1090,10 @@ namespace http_parser
 
     PTNodeUriQuery* query = PTNodeCreate<PTNodeUriQuery>(); 
     query->type = kUriQuery;
-    query->content = StringSlice(output.rest.bytes, input.bytes - output.rest.bytes);
+    query->content = StringSlice(input_start, input.bytes - input_start);
 
     output.status = kParseSuccess;
-    output.parsed_length = input.bytes - output.rest.bytes;
-    output.rest = input;
+    output.parsed_length = query->content.length;
     output.result = query;
     return output;
   }
@@ -1126,7 +1101,7 @@ namespace http_parser
   ParseOutput  ParseUriUserInfo(Input input)
   {
     ParseOutput output;
-    output.rest = input;
+    const char* input_start = input.bytes;
 
     while (ConsumeByUnitFunction(&input, &IsUnreservered) ||
            ConsumeByScanFunction(&input, &ScanPctEncoded).is_valid() ||
@@ -1136,10 +1111,9 @@ namespace http_parser
 
     PTNodeUriUserInfo* user_info = PTNodeCreate<PTNodeUriUserInfo>(); 
     user_info->type = kUriUserInfo;
-    user_info->content = StringSlice(output.rest.bytes, input.bytes - output.rest.bytes);
+    user_info->content = StringSlice(input_start, input.bytes - input_start);
 
     output.status = kParseSuccess;
-    output.rest = input;
     output.parsed_length = user_info->content.length;
     output.result = user_info;
     return output;
@@ -1148,7 +1122,7 @@ namespace http_parser
   ParseOutput  ParseUriAuthority(Input input)
   {
     ParseOutput output;
-    output.rest = input;
+    const char* input_start = input.bytes;
     PTNodeUriUserInfo*  user_info = NULL;
     PTNodeUriHost*      host = NULL;
     PTNodeUriQuery*     query = NULL;
@@ -1195,8 +1169,7 @@ namespace http_parser
     authority->query = query;
 
     output.status = kParseSuccess;
-    output.parsed_length = input.bytes - output.rest.bytes;
-    output.rest = input;
+    output.parsed_length = input.bytes - input_start;
     output.result = authority;
     return output;
   }
@@ -1204,7 +1177,7 @@ namespace http_parser
   ParseOutput  ParseUriFragment(Input input)
   {
     ParseOutput output;
-    output.rest = input;
+    const char* input_start = input.bytes;
 
     while (ConsumeByScanFunction(&input, &ScanPathChar).is_valid() ||
            ConsumeByCharacter(&input, '/') ||
@@ -1213,10 +1186,9 @@ namespace http_parser
 
     PTNodeUriFragment* fragment = PTNodeCreate<PTNodeUriFragment>(); 
     fragment->type = kUriFragment;
-    fragment->content = StringSlice(output.rest.bytes, input.bytes - output.rest.bytes);
+    fragment->content = StringSlice(input_start, input.bytes - input_start);
 
     output.status = kParseSuccess;
-    output.rest = input;
     output.parsed_length = fragment->content.length;
     output.result = fragment;
     return output;
@@ -1225,7 +1197,7 @@ namespace http_parser
   ParseOutput  ParseUriReferenceNetworkPath(Input input)
   {
     ParseOutput output;
-    output.rest = input;
+    const char* input_start = input.bytes;
     PTNodeUriAuthority* authority = NULL;
     PTNodePathAbEmpty*  path = NULL;
 
@@ -1256,8 +1228,7 @@ namespace http_parser
     reference_network_path->path = path;
 
     output.status = kParseSuccess;
-    output.parsed_length = input.bytes - output.rest.bytes;
-    output.rest = input;
+    output.parsed_length = input.bytes - input_start;
     output.result = reference_network_path;
     return output;
   }
@@ -1265,7 +1236,7 @@ namespace http_parser
   ParseOutput  ParseUri(Input input)
   {
     ParseOutput output;
-    output.rest = input;
+    const char* input_start = input.bytes;
     PTNodeUriScheme*   scheme = NULL;
     PTNode*            path_header = NULL;
     PTNodeUriQuery*    query = NULL;
@@ -1345,8 +1316,7 @@ namespace http_parser
     uri->fragment = fragment;
 
     output.status = kParseSuccess;
-    output.parsed_length = input.bytes - output.rest.bytes;
-    output.rest = input;
+    output.parsed_length = input.bytes - input_start;
     output.result = uri;
     return output;
   }
@@ -1354,7 +1324,7 @@ namespace http_parser
   ParseOutput  ParseUriAbsolute(Input input)
   {
     ParseOutput output;
-    output.rest = input;
+    const char* input_start = input.bytes;
     PTNodeUriScheme*   scheme = NULL;
     PTNode*            path_header = NULL;
     PTNodeUriQuery*    query = NULL;
@@ -1419,8 +1389,7 @@ namespace http_parser
     url_absolute->query = query;
 
     output.status = kParseSuccess;
-    output.parsed_length = input.bytes - output.rest.bytes;
-    output.rest = input;
+    output.parsed_length = input.bytes - input_start;
     output.result = url_absolute;
     return output;
   }
@@ -1428,6 +1397,7 @@ namespace http_parser
   ParseOutput  ParseUriReferenceRelative(Input input)
   {
     ParseOutput output;
+    const char* input_start = input.bytes;
     PTNode*            path_header = NULL;
     PTNodeUriQuery*    query = NULL;
     PTNodeUriFragment* fragment = NULL;
@@ -1489,8 +1459,7 @@ namespace http_parser
     uri_reference_relative->fragment = fragment;
 
     output.status = kParseSuccess;
-    output.parsed_length = input.bytes - output.rest.bytes;
-    output.rest = input;
+    output.parsed_length = input.bytes - input_start;
     output.result = uri_reference_relative;
     return output;
   }
@@ -1498,7 +1467,7 @@ namespace http_parser
   ParseOutput  ParseUriReference(Input input)
   {
     ParseOutput output;
-    output.rest = input;
+    const char* input_start = input.bytes;
     PTNode* uri_header = NULL;
 
     ParseOutput parsed_uri_header = ConsumeByParserFunction(&input, &ParseUri);
@@ -1518,8 +1487,7 @@ namespace http_parser
     uri_reference->uri_header = uri_header;
 
     output.status = kParseSuccess;
-    output.parsed_length = input.bytes - output.rest.bytes;
-    output.rest = input;
+    output.parsed_length = input.bytes - input_start;
     output.result = uri_reference;
     return output;
   }
