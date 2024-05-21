@@ -1754,5 +1754,116 @@ namespace http_parser
     return output;
   }
 
+  /////////////////////////////////////////////////
+  ////////////////   status line   ////////////////
+  /////////////////////////////////////////////////
+
+  ParseOutput  ParseReasonPhrase(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+
+    while (input.length > 0)
+    {
+      if (IsHorizontalTab(*input.bytes) ||
+          IsSpace(*input.bytes) ||
+          IsVisibleCharacter(*input.bytes) ||
+          IsOpaqueText(*input.bytes))
+        input.consume();
+      else
+        break;
+    }
+    if ((input.bytes - input_start) > 0)
+    {
+      PTNodeReasonPhrase*  reason_phrase = PTNodeCreate<PTNodeReasonPhrase>();
+      reason_phrase->type = kStatusReasonPhrase;
+      reason_phrase->content = StringSlice(input_start, input.bytes - input_start);
+
+      output.status = kParseSuccess;
+      output.parsed_length = input.bytes - input_start;
+      output.result = reason_phrase;
+    }
+    return output;
+  }
+
+  ParseOutput  ParseStatusCode(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+
+    int amount = 0;
+    int number = 0;
+    while ((amount < 3) && IsDigit(*input.bytes))
+    {
+      number = number * 10 + (*input.bytes - '0');
+      input.consume();
+      amount++;
+    }
+    if (amount == 3)
+    {
+      PTNodeStatusCode*  status_code = PTNodeCreate<PTNodeStatusCode>();
+      status_code->type = kStatusCode;
+      status_code->number  = number;
+
+      output.status = kParseSuccess;
+      output.parsed_length = input.bytes - input_start;
+      output.result = status_code;
+    }
+    return output;
+  }
+
+  ParseOutput  ParseStatusLine(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+    PTNodeHttpVersion*  http_version = NULL;
+    PTNodeStatusCode*   status_code = NULL;
+    PTNodeReasonPhrase* reason_phrase = NULL;
+
+    ArenaSnapshot snapshot = temporary::arena.snapshot();
+    {
+      ParseOutput parsed_http_version = ConsumeByParserFunction(&input, &ParseHttpVersion);
+      if (parsed_http_version.status == kParseSuccess)
+        http_version = static_cast<PTNodeHttpVersion*>(parsed_http_version.result);
+      else
+        return output;
+    }
+    if (ConsumeByUnitFunction(&input, &IsSpace) == 0)
+    {
+      temporary::arena.rollback(snapshot);
+      return output;
+    }
+    {
+      ParseOutput parsed_status_code = ConsumeByParserFunction(&input, &ParseStatusCode);
+      if (parsed_status_code.status == kParseSuccess)
+        status_code = static_cast<PTNodeStatusCode*>(parsed_status_code.result);
+      else
+      {
+        temporary::arena.rollback(snapshot);
+        return output;
+      }
+    }
+    if (ConsumeByUnitFunction(&input, &IsSpace) == 0)
+    {
+      temporary::arena.rollback(snapshot);
+      return output;
+    }
+    {
+      ParseOutput parsed_reason_phrase = ConsumeByParserFunction(&input, &ParseReasonPhrase);
+      if (parsed_reason_phrase.status == kParseSuccess)
+        reason_phrase = static_cast<PTNodeReasonPhrase*>(parsed_reason_phrase.result);
+    }
+    PTNodeStatusLine*  status_line = PTNodeCreate<PTNodeStatusLine>();
+    status_line->type = kStatusLine;
+    status_line->http_version = http_version;
+    status_line->status_code = status_code;
+    status_line->reason_phrase = reason_phrase;
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - input_start;
+    output.result = status_line;
+    return output;
+  }
+
 } // namespace http_parser
 
