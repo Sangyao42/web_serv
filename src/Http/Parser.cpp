@@ -1828,7 +1828,7 @@ namespace http_parser
       else
         return output;
     }
-    if (ConsumeByUnitFunction(&input, &IsSpace) == 0)
+    if (!ConsumeByScanFunction(&input, &ScanStartLineSpaces).is_valid())
     {
       temporary::arena.rollback(snapshot);
       return output;
@@ -1843,7 +1843,7 @@ namespace http_parser
         return output;
       }
     }
-    if (ConsumeByUnitFunction(&input, &IsSpace) == 0)
+    if (!ConsumeByScanFunction(&input, &ScanStartLineSpaces).is_valid())
     {
       temporary::arena.rollback(snapshot);
       return output;
