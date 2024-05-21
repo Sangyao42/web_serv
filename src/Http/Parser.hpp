@@ -105,8 +105,7 @@ namespace http_parser
 
     kFieldValue,
     kFieldLine,
-    kMessageBody,
-    kMessage
+    kFields
   };
 
   struct PTNode
@@ -444,6 +443,14 @@ namespace http_parser
     PTNodeReasonPhrase* reason_phrase;
   };
 
+  ParseOutput  ParseReasonPhrase(Input input);
+  ParseOutput  ParseStatusCode(Input input);
+  ParseOutput  ParseStatusLine(Input input);
+
+  ////////////////////////////////////////////
+  ////////////////   fields   ////////////////
+  ////////////////////////////////////////////
+
   struct PTNodeFieldValue : public PTNode
   {
     StringSlice content;
@@ -455,31 +462,14 @@ namespace http_parser
     PTNodeFieldValue*  value;
   };
 
-  struct PTNodeMessageBody : public PTNode
+  struct PTNodeFields : public PTNode
   {
-    StringSlice content;
-  };
-
-  struct PTNodeMessage : public PTNode
-  {
-    union
-    {
-      PTNode*            start_line_header;
-      PTNodeRequestLine* request_line;
-      PTNodeStatusLine*  status_line;
-    };
     temporary::vector<PTNodeFieldLine*> fields;
-    PTNodeMessageBody*                  body;
   };
 
-  ParseOutput  ParseReasonPhrase(Input input);
-  ParseOutput  ParseStatusCode(Input input);
-  ParseOutput  ParseStatusLine(Input input);
   ParseOutput  ParseFieldValue(Input input);
   ParseOutput  ParseFieldLine(Input input);
-  ParseOutput  ParseMessageBody(Input input);
-  ParseOutput  ParseRequestMessage(Input input);
-  ParseOutput  ParseResponseMessage(Input input);
+  ParseOutput  ParseFields(Input input);
 
 } // namespace http_parser
 
