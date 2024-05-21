@@ -1865,5 +1865,143 @@ namespace http_parser
     return output;
   }
 
+  ////////////////////////////////////////////
+  ////////////////   fields   ////////////////
+  ////////////////////////////////////////////
+
+  ParseOutput  ParseFieldValue(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+
+    while (ConsumeByUnitFunction(&input, &IsWhitespace) == 1)
+      ;
+    const char* value_start = input.bytes;
+    while (input.length > 0)
+    {
+      if (IsVisibleCharacter(*input.bytes) ||
+          IsOpaqueText(*input.bytes))
+      {
+        input.consume();
+        Input input_tmp = input;
+        int amount = 0;
+        while (input_tmp.length > 0)
+        {
+          if (IsSpace(*input_tmp.bytes) ||
+              IsHorizontalTab(*input_tmp.bytes) ||
+              IsVisibleCharacter(*input_tmp.bytes) ||
+              IsOpaqueText(*input_tmp.bytes))
+          {
+             input_tmp.consume(); 
+             amount++;
+          }
+          else
+            break;
+        }
+        if ((amount > 0) && (input_tmp.length > 0) &&
+            (IsVisibleCharacter(*input_tmp.bytes) ||
+             IsOpaqueText(*input_tmp.bytes)))
+          input = input_tmp;
+      }
+      else
+        break;
+    }
+    const char* value_end = input.bytes;
+    // remove trailing white space
+    if ((value_end - value_start) > 0)
+    {
+      while ((value_end > value_start) && IsWhitespace(*(value_end - 1)))
+      {
+        value_end--;
+      }
+    }
+    PTNodeFieldValue*  field_value = PTNodeCreate<PTNodeFieldValue>();
+    field_value->type = kFieldValue;
+    field_value->content = StringSlice(value_start, value_end - value_start);
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - input_start;
+    output.result = field_value;
+    return output;
+  }
+
+  ParseOutput  ParseFieldLine(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+    PTNodeToken*       name = NULL;
+    PTNodeFieldValue*  value = NULL;
+
+    ArenaSnapshot snapshot = temporary::arena.snapshot();
+    {
+      ParseOutput parsed_field_name = ConsumeByParserFunction(&input, &ParseToken);
+      if (parsed_field_name.status == kParseSuccess)
+        name = static_cast<PTNodeToken*>(parsed_field_name.result);
+      else
+        return output;
+    }
+    if (!ConsumeByCharacter(&input, ':'))
+    {
+      temporary::arena.rollback(snapshot);
+      return output;
+    }
+    ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
+    {
+      ParseOutput parsed_field_value = ConsumeByParserFunction(&input, &ParseFieldValue);
+      if (parsed_field_value.status == kParseSuccess)
+        value = static_cast<PTNodeFieldValue*>(parsed_field_value.result);
+      else
+      {
+        temporary::arena.rollback(snapshot);
+        return output;
+      }
+    }
+    ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
+
+    PTNodeFieldLine*  field_line = PTNodeCreate<PTNodeFieldLine>();
+    field_line->type = kFieldLine;
+    field_line->name = name;
+    field_line->value = value;
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - input_start;
+    output.result = field_line;
+    return output;
+  }
+
+  ParseOutput  ParseFields(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+    temporary::vector<PTNodeFieldLine*> fields;
+
+    while (input.length > 0)
+    {
+      ArenaSnapshot snapshot = temporary::arena.snapshot();
+      ParseOutput parsed_field = ConsumeByParserFunction(&input, &ParseFieldLine);
+      if (parsed_field.status == kParseSuccess)
+      {
+        if (ConsumeByScanFunction(&input, &ScanNewLine).is_valid())
+          fields.push_back(static_cast<PTNodeFieldLine*>(parsed_field.result));
+        else
+        {
+          temporary::arena.rollback(snapshot);
+          break;
+        }
+      }
+      else
+        break;
+    }
+
+    PTNodeFields*  node_fields = PTNodeCreate<PTNodeFields>();
+    node_fields->type = kFields;
+    node_fields->fields = fields;
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - input_start;
+    output.result = node_fields;
+    return output;
+  }
+
 } // namespace http_parser
 
