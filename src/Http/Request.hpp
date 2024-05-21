@@ -1,32 +1,27 @@
 #pragma once
 
-#include "Message.hpp"
+#include <string>
+#include <map>
 #include "Protocol.hpp"
+#include "Http/HeaderValue/HeaderValue.hpp"
 
-class Request : public HTTPMessage
+struct RequestLine
 {
-	public:
-		Request();
-		Request(const Request &obj);
-		~Request();
+  Method      method;
+  std::string	requestTarget;
+  Version     version;
 
-		Request &operator=(const Request &obj);
+  RequestLine();
+};
 
-		const Method	&getMethod() const;
-		const std::string	&getRequestTarget() const;
-		const Version	&getVersion() const;
-		const std::string	&getRequestBody() const;
+typedef std::map<std::string, HeaderValue*> HeaderMap;
 
-		void	setMethod(const Method &method);
-		void	setRequestTarget(const std::string &requestTarget);
-		void	setVersion(const Version &version);
-		void	setRequestBody(const std::string &requestBody);
+struct Request
+{
+  RequestLine request_line;
+  HeaderMap   headers;
 
-	private:
-		Method	method_;
-		std::string	requestTarget_;
-		Version	version_;
-
-		std::string requestBody_;
+  ~Request();
+  void  clear_headers();
 };
 
