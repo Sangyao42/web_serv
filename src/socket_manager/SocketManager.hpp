@@ -32,6 +32,10 @@ struct ClientSocket
 	std::string req_buf;
 	std::string res_buf;
 
+	//for checking if body is received completely
+	// bool body_leftover; // ? do I need to check it?
+
+	//for managing client timeout
 	time_t last_active; //accept time or last request time
 	Maybe<time_t> first_recv_time; //time of first recv of one request
 	bool timeout;
