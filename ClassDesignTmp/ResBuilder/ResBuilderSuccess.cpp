@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-void	res_build::BuildPostResponseBody(struct Client *clt)
+void	res_builder::BuildPostResponseBody(struct Client *clt)
 {
 	std::string body;
 

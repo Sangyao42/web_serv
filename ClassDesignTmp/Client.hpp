@@ -8,6 +8,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <errno.h>
 #include "Request.hpp"
 #include "Response.hpp"
 #include "Protocol.hpp"
@@ -98,6 +101,7 @@ namespace res_builder
 	const std::string &BuildErrorPage(enum status_code code);
 
 	// redirect related helper functions
+	void	BuildRedirectResponseBody(struct Client *clt);
 
 	// autoindex related helper functions
 
