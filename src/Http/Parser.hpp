@@ -44,6 +44,7 @@ namespace http_parser
     std::string to_string() const;
     bool  is_valid() const;
     const char* consume(int amount = 1);
+    int   match(const char* string);
   };
 
   typedef StringSlice Input;
@@ -105,7 +106,15 @@ namespace http_parser
 
     kFieldValue,
     kFieldLine,
-    kFields
+    kFields,
+
+    kFieldContentType,
+    kFieldContentLength,
+    kFieldConnection,
+    kFieldHost,
+    kFieldTransferEncoding,
+    kFieldReferer,
+    kFieldUserAgent
   };
 
   struct PTNode
@@ -470,6 +479,82 @@ namespace http_parser
   ParseOutput  ParseFieldValue(Input input);
   ParseOutput  ParseFieldLine(Input input);
   ParseOutput  ParseFields(Input input);
+
+  //////////////////////////////////////////////////////////
+  ////////////////   specific field value   ////////////////
+  //////////////////////////////////////////////////////////
+
+  struct PTNodeFieldContentType : public PTNode
+  {
+    StringSlice       content;
+    PTNodeParameters* parameters;
+  };
+
+  struct PTNodeFieldContentLength : public PTNode
+  {
+    int number;
+  };
+
+  struct PTNodeFieldConnection : public PTNode
+  {
+    temporary::vector<PTNodeToken*> options;
+    // Only useful option is "close"
+  };
+
+  struct PTNodeFieldHost : public PTNode
+  {
+    PTNodeUriHost*  host;
+    PTNodeUriPort*  port;
+  };
+
+  struct PTNodeFieldReferer : public PTNode
+  {
+    union
+    {
+      PTNode*                         uri_header;
+      PTNodeUriAbsolute*              uri_absolute;
+      PTNodeUriReferenceNetworkPath*  network_path_reference;
+      PTNodePathAbsolute*             path_absolute;
+      PTNodePathNoScheme*             path_noscheme;
+      PTNodePathEmpty*                path_empty;
+    };
+  };
+
+  struct PTNodeFieldTransferEncoding : public PTNode
+  {
+    temporary::vector<StringSlice> codings;
+  };
+
+  /*Content-Type = media-type
+
+  media-type = type "/" subtype parameters
+
+  type = token
+
+  subtype = token*/
+  ParseOutput ParseFieldContentType(Input input);
+
+  // Content-Length      = 1*DIGIT
+  ParseOutput ParseFieldContentLength(Input input);
+
+  /*Connection = [ connection-option *( OWS "," OWS connection-option ) ]
+
+  connection-option = token*/
+  ParseOutput ParseFieldConnection(Input input);
+
+  /*RFC9110 7.2
+
+  Host = uri-host [ ":" port ] */
+  ParseOutput ParseFieldHost(Input input);
+
+  /* TE = [ t-codings *( OWS "," OWS t-codings ) ]
+  t-codings = "trailers" / ( transfer-coding [ weight ] )*/
+  ParseOutput ParseFieldTransferEncoding(Input input);
+
+  /* Referer = absolute-URI / partial-URI
+
+  partial-URI = relative-part [ "?" query ] */
+  ParseOutput ParseFieldReferer(Input input);
 
 } // namespace http_parser
 

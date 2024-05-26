@@ -147,6 +147,20 @@ namespace http_parser
     return output;
   }
 
+  int  StringSlice::match(const char* string)
+  {
+    int  matched_length = 0;
+
+    for (int i = 0; i < length; i++)
+    {
+      if (!*string || (bytes[i] != string[i]))
+        break;
+      else
+        matched_length++;
+    }
+    return matched_length;
+  }
+
   ScanOutput  ScanNewLine(Input input)
   {
     ScanOutput output;
@@ -2000,6 +2014,271 @@ namespace http_parser
     output.status = kParseSuccess;
     output.parsed_length = input.bytes - input_start;
     output.result = node_fields;
+    return output;
+  }
+
+  //////////////////////////////////////////////////////////
+  ////////////////   specific field value   ////////////////
+  //////////////////////////////////////////////////////////
+
+  ParseOutput ParseFieldContentType(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+
+    ArenaSnapshot snapshot = temporary::arena.snapshot();
+    {
+      ParseOutput parsed_main_type = ConsumeByParserFunction(&input, &ParseToken);
+      if (parsed_main_type.status != kParseSuccess)
+        return output;
+    }
+    if (ConsumeByCharacter(&input, '/') == 0)
+    {
+      temporary::arena.rollback(snapshot);
+      return output;
+    }
+    {
+      ParseOutput parsed_sub_type = ConsumeByParserFunction(&input, &ParseToken);
+      if (parsed_sub_type.status != kParseSuccess)
+      {
+        temporary::arena.rollback(snapshot);
+        return output;
+      }
+    }
+    temporary::arena.rollback(snapshot);
+    const char* content_end = input.bytes;
+    PTNodeParameters* parameters = NULL;
+    {
+      ParseOutput parsed_parameters = ConsumeByParserFunction(&input, &ParseParameters);
+      if (parsed_parameters.status == kParseSuccess)
+        parameters = static_cast<PTNodeParameters*>(parsed_parameters.result);
+      else
+        return output;
+    }
+
+    PTNodeFieldContentType*  content_type = PTNodeCreate<PTNodeFieldContentType>();
+    content_type->type = kFieldContentType;
+    content_type->content = StringSlice(input_start, content_end - input_start);
+    content_type->parameters = parameters;
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - input_start;
+    output.result = content_type;
+    return output;
+  }
+
+  ParseOutput ParseFieldContentLength(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+    int number = 0;
+
+    while ((input.length > 0) && IsDigit(*input.bytes))
+    {
+      number = number * 10 + (*input.bytes - '0');
+      input.consume();
+    }
+    if ((input.bytes - input_start) > 0)
+    {
+      PTNodeFieldContentLength*  content_length = PTNodeCreate<PTNodeFieldContentLength>();
+      content_length->type = kFieldContentLength;
+      content_length->number = number;
+
+      output.status = kParseSuccess;
+      output.parsed_length = input.bytes - input_start;
+      output.result = content_length;
+    }
+    return output;
+  }
+
+  ParseOutput ParseFieldConnection(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+    temporary::vector<PTNodeToken*> options;
+
+    {
+      ParseOutput parsed_connection_option = ConsumeByParserFunction(&input, &ParseToken);
+      if (parsed_connection_option.status == kParseSuccess)
+        options.push_back(static_cast<PTNodeToken*>(parsed_connection_option.result));
+      else
+      {
+        while (input.length > 0)
+        {
+          Input input_tmp = input;
+          if (!ConsumeByScanFunction(&input_tmp, &ScanOptionalWhitespace).is_valid() ||
+              (ConsumeByCharacter(&input_tmp, ',') == 0) ||
+              !ConsumeByScanFunction(&input_tmp, &ScanOptionalWhitespace).is_valid())
+            break;
+          parsed_connection_option = ConsumeByParserFunction(&input_tmp, &ParseToken);
+          if (parsed_connection_option.status == kParseSuccess)
+          {
+            options.push_back(static_cast<PTNodeToken*>(parsed_connection_option.result));
+            input = input_tmp;
+          }
+          else
+            break;
+        }
+      }
+    }
+    PTNodeFieldConnection*  connection = PTNodeCreate<PTNodeFieldConnection>();
+    connection->type = kFieldConnection;
+    connection->options = options;
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - input_start;
+    output.result = connection;
+    return output;
+  }
+
+  ParseOutput ParseFieldHost(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+    PTNodeUriHost*  uri_host;
+    PTNodeUriPort*  port;
+
+    {
+      ParseOutput parsed_uri_host = ConsumeByParserFunction(&input, &ParseUriHost);
+      if (parsed_uri_host.status == kParseSuccess)
+        uri_host = static_cast<PTNodeUriHost*>(parsed_uri_host.result);
+      else
+        return output;
+    }
+    Input input_tmp = input;
+    if (ConsumeByCharacter(&input_tmp, ':'))
+    {
+      ParseOutput parsed_port = ConsumeByParserFunction(&input_tmp, &ParseUriPort);
+      if (parsed_port.status == kParseSuccess)
+      {
+        port = static_cast<PTNodeUriPort*>(parsed_port.result);
+        input = input_tmp;
+      }
+    }
+
+    PTNodeFieldHost*  host = PTNodeCreate<PTNodeFieldHost>();
+    host->type = kFieldHost;
+    host->host = uri_host;
+    host->port = port;
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - input_start;
+    output.result = host;
+    return output;
+  }
+
+  ParseOutput ParseFieldReferer(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+    PTNode* uri_header = NULL;
+    {
+      ParseOutput parsed_uri_header = ConsumeByParserFunction(&input, &ParseUriAbsolute);
+      if (parsed_uri_header.status == kParseSuccess)
+        uri_header = parsed_uri_header.result;
+      else
+      {
+        parsed_uri_header = ConsumeByParserFunction(&input, &ParseUriReferenceNetworkPath);
+        if (parsed_uri_header.status == kParseSuccess)
+          uri_header = parsed_uri_header.result;
+        else
+        {
+          parsed_uri_header = ConsumeByParserFunction(&input, &ParsePathAbsolute);
+          if (parsed_uri_header.status == kParseSuccess)
+            uri_header = parsed_uri_header.result;
+          else
+          {
+            parsed_uri_header = ConsumeByParserFunction(&input, &ParsePathNoScheme);
+            if (parsed_uri_header.status == kParseSuccess)
+              uri_header = parsed_uri_header.result;
+            else
+            {
+              parsed_uri_header = ConsumeByParserFunction(&input, &ParsePathEmpty);
+              if (parsed_uri_header.status == kParseSuccess)
+                uri_header = parsed_uri_header.result;
+              else
+                return output;
+            }
+          }
+        }
+      }
+    }
+
+    PTNodeFieldReferer*  referer = PTNodeCreate<PTNodeFieldReferer>();
+    referer->type = kFieldReferer;
+    referer->uri_header = uri_header;
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - input_start;
+    output.result = referer;
+    return output;
+  }
+
+  StringSlice ScanTransferCoding(Input input)
+  {
+    ScanOutput  scan_output;
+
+    scan_output.length = input.match("chunked");
+    if (scan_output.length != 7)
+    {
+      scan_output.length = input.match("compress");
+      if (scan_output.length != 8)
+      {
+        scan_output.length = input.match("deflate");
+        if (scan_output.length != 7)
+        {
+          scan_output.length = input.match("gzip");
+          if (scan_output.length != 4)
+          {
+            scan_output.length = input.match("identity");
+            if (scan_output.length != 8)
+            {
+              scan_output.length = input.match("trailers");
+              if (scan_output.length != 8)
+              {
+                scan_output.length = 0;
+                return scan_output;
+              }
+            }
+          }
+        }
+      }
+    }
+    scan_output.bytes = input.bytes;
+    return scan_output;
+  }
+
+  ParseOutput ParseFieldTransferEncoding(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+    temporary::vector<StringSlice> codings;
+
+    StringSlice coding = ConsumeByScanFunction(&input, &ScanTransferCoding);
+    if (coding.is_valid())
+    {
+      codings.push_back(coding);
+      while (input.length > 0)
+      {
+        Input input_tmp = input;
+        ConsumeByScanFunction(&input_tmp, &ScanOptionalWhitespace);
+        if (ConsumeByCharacter(&input_tmp, ',') == 0)
+          break;
+        ConsumeByScanFunction(&input_tmp, &ScanOptionalWhitespace);
+        coding = ConsumeByScanFunction(&input_tmp, &ScanTransferCoding);
+        if (!coding.is_valid())
+          break;
+        else
+          codings.push_back(coding);
+      }
+    }
+    PTNodeFieldTransferEncoding*  transfer_encoding = PTNodeCreate<PTNodeFieldTransferEncoding>();
+    transfer_encoding->type = kFieldTransferEncoding;
+    transfer_encoding->codings = codings;
+
+    output.status = kParseSuccess;
+    output.parsed_length = input.bytes - input_start;
+    output.result = transfer_encoding;
     return output;
   }
 
