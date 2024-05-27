@@ -21,7 +21,7 @@ enum ResponseError
 {
 	kNoError,
 	kFileOpenError,
-	kFilestreamError
+	kFileStreamError
 };
 
 struct Client
@@ -119,7 +119,7 @@ namespace res_builder
 	void	AddLocationHeader(struct Client *clt);
 	void	AddAllowHeader(struct Client *clt);
 	void	AddAcceptHeader(struct Client *clt);
-	// void	BuildContentHeadersCGI(struct Client *clt);
+	void	BuildContentHeadersCGI(struct Client *clt);
 	void	BuildContentHeaders(struct Client *clt, std::string extension, std::string path);
 
 	// general utility functions

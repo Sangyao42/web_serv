@@ -47,8 +47,7 @@ void	res_builder::GenerateSuccessResponse(struct Client *clt)
 	// build the body and content headers
 	if (!clt->cgi_argv.empty())
 	{
-		// is cgi request
-		// do something
+		BuildContentHeadersCGI(clt);
 	}
 	else
 	{

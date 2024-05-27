@@ -8,9 +8,6 @@ void	res_builder::BuildErrorHeaders(struct Client *clt)
 		case k405:
 			AddAllowHeader(clt);
 			break ;
-		case k406:
-			// ? not sure what to do here
-			break ;
 		case k408:
 			clt->res->addNewPair("Connection", new HeaderString("close"));
 			break ;
@@ -19,9 +16,6 @@ void	res_builder::BuildErrorHeaders(struct Client *clt)
 			break ;
 		case k415:
 			AddAcceptHeader(clt);
-			// unsupported media types -> add Accept header
-			// AND/OR unsupported encoding -> add Accept-Encoding header
-			// ? should I simply add both headers or find a way to check them seperately
 			break ;
 		default:
 			break ;

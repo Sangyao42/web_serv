@@ -41,13 +41,16 @@ void	res_builder::AddAcceptHeader(struct Client *clt)
 	for (it = mime_types.begin(); it != mime_types.end(); ++it)
 		accepts.push_back(it->second);
 	clt->res->addNewPair("Accept", new HeaderStringVector(accepts));
-
-	clt->res->addNewPair("Accept-Encoding", new HeaderString("chunked"));
 }
 
-// void	res_builder::BuildContentHeadersCGI(struct Client *clt)
-// {
-// }
+void	res_builder::BuildContentHeadersCGI(struct Client *clt)
+{
+	// add content-length header
+	clt->res->addNewPair("Content-Length", new HeaderInt(static_cast<int>(strtol(clt->cgi_content_length.c_str(), NULL, 10))));
+
+	// add content-type header
+	clt->res->addNewPair("Content-Type", new HeaderString(clt->cgi_content_type));
+}
 
 void	res_builder::BuildContentHeaders(struct Client *clt, std::string extension, std::string path)
 {
@@ -126,7 +129,7 @@ enum ResponseError	res_builder::ReadFileToBody(const std::string &path, Response
 	ss << file.rdbuf();
 
 	if (file.fail())
-	 return (kFilestreamError);
+	 return (kFileStreamError);
 
 	res->setResponseBody(ss.str());
 	return (kNoError);
