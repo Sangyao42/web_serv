@@ -21,7 +21,7 @@ enum ResponseError
 {
 	kNoError,
 	kFileOpenError,
-	kFilestreamError
+	kFileStreamError
 };
 
 struct Client
@@ -35,6 +35,8 @@ struct Client
 	std::vector<std::string> cgi_env;
 	bool	keepAlive = true;
 	std::string location_created;
+	std::string cgi_content_type;
+	std::string cgi_content_length;
 	Request	*req;
 	Response	*res;
 };
@@ -112,7 +114,7 @@ namespace res_builder
 	void	AddLocationHeader(struct Client *clt);
 	void	AddAllowHeader(struct Client *clt);
 	void	AddAcceptHeader(struct Client *clt);
-	// void	BuildContentHeadersCGI(struct Client *clt);
+	void	BuildContentHeadersCGI(struct Client *clt);
 	void	BuildContentHeaders(struct Client *clt, std::string extension, std::string path);
 
 	// general utility functions
