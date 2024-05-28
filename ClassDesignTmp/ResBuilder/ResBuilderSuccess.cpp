@@ -5,9 +5,12 @@ void	res_builder::BuildPostResponseBody(struct Client *clt)
 	std::string body;
 
 	assert((clt->status_code == k201 || clt->status_code == k200) && "Invalid status code");
+
+	body = "<!DOCTYPE html>\r\n";
+	body += "<html>\r\n";
+
 	if (clt->status_code == k201)
 	{
-		body = "<html>\r\n";
 		body += "<head><title>Resource Created</title></head>\r\n";
 		body += "<body>\r\n";
 		body += "<h1>Resource Created</h1>\r\n";
@@ -20,7 +23,6 @@ void	res_builder::BuildPostResponseBody(struct Client *clt)
 	}
 	else
 	{
-		body = "<html>\r\n";
 		body += "<head><title>Resource Modified</title></head>\r\n";
 		body += "<body>\r\n";
 		body += "<h1>Resource Modified</h1>\r\n";
