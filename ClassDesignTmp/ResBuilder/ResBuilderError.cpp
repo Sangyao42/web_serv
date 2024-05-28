@@ -26,7 +26,8 @@ const std::string &res_builder::BuildErrorPage(enum status_code status_code)
 {
 	std::string response;
 
-	response = "<html>\r\n";
+	response = "<!DOCTYPE html>\r\n";
+	response += "<html>\r\n";
 	response += "<head><title>";
 	response += StatusCodeAsString(status_code);
 	response += "</title></head>\r\n";

@@ -4,9 +4,11 @@ void	res_builder::BuildRedirectResponseBody(struct Client *clt)
 {
 	std::string	body;
 
+	body = "<!DOCTYPE html>\r\n";
+	body += "<html>\r\n";
+
 	if (clt->status_code == k301)
 	{
-		body = "<html>\r\n";
 		body += "<head><title>Resource Moved Permanently</title></head>\r\n";
 		body += "<body>\r\n";
 		body += "<h1>Resource Moved Permanently</h1>\r\n";
@@ -15,7 +17,6 @@ void	res_builder::BuildRedirectResponseBody(struct Client *clt)
 	}
 	else
 	{
-		body = "<html>\r\n";
 		body += "<head><title>Resource Moved Temporarily</title></head>\r\n";
 		body += "<body>\r\n";
 		body += "<h1>Resource Moved Temporarily</h1>\r\n";
