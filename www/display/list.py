@@ -2,9 +2,9 @@ import os
 import sys
 
 def index():
-	# TODO: for getting the list of file
-    # root = os.environ['DOCUMENT_ROOT']
-    root = './www'
+	# get root from envp
+    root = os.environ['DOCUMENT_ROOT']
+
     upload_folder = root + '/upload'
     files = os.listdir(upload_folder)
 
@@ -25,13 +25,14 @@ def index():
     html += "</body>\n"
     html += "<script>" + script + "</script></html>"
 
-	# For testing generated html
+	# TODO: For testing generated html, can be deleted aftertesting
     f = open( os.path.join(dir_cgi, 'delete1.html'), "w+")
     f.write(html)
     f.close()
-    
-    # TODO: Add "Content-Type in html"
-    print(html)
+	# End of TODO
+
+    print("Content-Type: text/html", end='\r\n')
+    print(html, end='')
 
 
 if __name__ == '__main__':

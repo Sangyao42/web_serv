@@ -4,13 +4,11 @@ import os
 from sys import stdin
 
 def save_registry():
-    # TODO: get document root from parent process
-    # root = os.environ['DOCUMENT_ROOT']
-    root = './www'
-    # read from stdin. TODO: need test with execve
-    # TODO: for testing stdin
-    body = input()
-    # body = sys.stdin.read()
+    root = os.environ['DOCUMENT_ROOT']
+
+    # read from stdin.
+    body = sys.stdin.read()
+
     user_name_json_obj = json.loads(body)
     user_name = user_name_json_obj["userName"]
     if not user_name:
@@ -20,8 +18,8 @@ def save_registry():
     f = open(root + '/usernames/usernames.txt', 'a+')
     f.write(user_name + '\n')
     f.close()
-    print("Content-Type=text/plain\r\n\r\n")
-    print("Registration Success!")
+    print("Content-Type: text/html", end='\r\n')
+    print("<!DOCTYPE html><html><body><h1>Registration Success!</h1></body></html>", end='')
     return
 
 if __name__ == "__main__":
