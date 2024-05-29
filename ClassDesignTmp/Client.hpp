@@ -1,5 +1,6 @@
 #pragma once
 
+#include <set>
 #include <iterator>
 #include <fstream>
 #include <sstream>
@@ -17,13 +18,18 @@
 #include "SocketManager.hpp"
 #include "Configuration.hpp"
 
+typedef std::string DName; // for dirent/autoindex
+typedef	unsigned char DType;
+typedef std::pair<DType, DName> DPair;
+typedef std::set<DPair> DSet;
+typedef DSet::iterator DSetIt;
+
 enum ResponseError
 {
 	kNoError,
 	kFileOpenError,
 	kFileStreamError
 };
-
 struct Client
 {
 	status_code	status_code;
@@ -111,6 +117,7 @@ namespace res_builder
 	void	BuildRedirectResponseBody(struct Client *clt);
 
 	// autoindex related helper functions
+	std::string BuildAutoindexHTML(DSet files, std::string path);
 
 	// success related helper functions
 	void	BuildPostResponseBody(struct Client *clt);
