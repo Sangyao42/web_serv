@@ -26,27 +26,23 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 		close(cgi_output[PipeEnd::kRead]);
 		dup2(cgi_output[PipeEnd::kWrite], STDOUT_FILENO);
 		assert(!clt->cgi_argv.empty() && "ProcessGetRequestCgi: clt->cgi_argv is NULL");
-		// char* cgi_executable = clt->cgi_executable.c_str(); // get excutable from looping through location->cgis based on the file extension and check permission
-		// char* cgi_path = clt->path.c_str(); // get excutable from looping through location->cgis based on the file extension and check permission
 		if (access(clt->cgi_argv[0].c_str(), F_OK | X_OK) != 0 || \
 		access(clt->cgi_argv[1].c_str(), F_OK | R_OK) != 0)
 		{
 			close(cgi_output[PipeEnd::kWrite]);
 			exit(1);
 		}
-		// std::vector<char*> cgi_argv = ConstructExecArray(clt->cgi_argv);
-		char** cgi_argv = StringVecToTwoDimArray(clt->cgi_argv);
 		SetCgiEnv(clt);
-		// std::vector<char*> cgi_env = ConstructExecArray(clt->cgi_env);
-		char** cgi_env = StringVecToTwoDimArray(clt->cgi_env);
+		std::vector<char *> cstrings_argv;
+		std::vector<char *> cstrings_env;
+		char** cgi_argv = StringVecToTwoDimArray(cstrings_argv, clt->cgi_argv);
+		char** cgi_env = StringVecToTwoDimArray(cstrings_env, clt->cgi_env);
 		if (cgi_argv == NULL || cgi_env == NULL)
 		{
 			close(cgi_output[PipeEnd::kWrite]);
 			exit(1);
 		}
 		execve(cgi_argv[0], cgi_argv, cgi_env);
-		// int checkfree = FreeTwoDimArray(cgi_argv);
-		// int checkfree2 = FreeTwoDimArray(cgi_env);
 		std::cerr << "Error: execve" << std::endl;
 		close(cgi_output[PipeEnd::kWrite]);
 		exit(1);
@@ -137,11 +133,11 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 			close(cgi_output[PipeEnd::kWrite]);
 			exit(1);
 		}
-		// std::vector<char*> cgi_argv = ConstructExecArray(clt->cgi_argv);
-		char** cgi_argv = StringVecToTwoDimArray(clt->cgi_argv);
 		SetCgiEnv(clt);
-		// std::vector<char*> cgi_env = ConstructExecArray(clt->cgi_env);
-		char** cgi_env = StringVecToTwoDimArray(clt->cgi_env);
+		std::vector<char *> cstrings_argv;
+		std::vector<char *> cstrings_env;
+		char** cgi_argv = StringVecToTwoDimArray(cstrings_argv, clt->cgi_argv);
+		char** cgi_env = StringVecToTwoDimArray(cstrings_env, clt->cgi_env);
 		if (cgi_argv == NULL || cgi_env == NULL)
 		{
 			close(cgi_input[PipeEnd::kRead]);
@@ -149,8 +145,6 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 			exit(1);
 		}
 		execve(cgi_argv[0], cgi_argv, cgi_env);
-		// int checkfree = FreeTwoDimArray(cgi_argv);
-		// int checkfree2 = FreeTwoDimArray(cgi_env);
 		std::cerr << "Error: execve" << std::endl;
 		close(cgi_input[PipeEnd::kRead]);
 		close(cgi_output[PipeEnd::kWrite]);
@@ -293,7 +287,7 @@ void	cgi::SetCgiEnv(struct Client *clt)
 
 	//construct document_root
 	std::string document_root = clt->config->query->root;
-	clt->cgi_env.push_back("DOCUMENT_ROOT=." + document_root);
+	clt->cgi_env.push_back("DOCUMENT_ROOT=.." + document_root);
 
 	//construct script_name
 	size_t pos = clt->path.find(clt->config->query->root) + clt->config->query->root.size();
@@ -301,7 +295,7 @@ void	cgi::SetCgiEnv(struct Client *clt)
 	clt->cgi_env.push_back("SCRIPT_NAME=" + script_name);
 
 	//construct scipt_filename
-	clt->cgi_env.push_back("SCRIPT_FILENAME=." + document_root + script_name);
+	clt->cgi_env.push_back("SCRIPT_FILENAME=.." + document_root + script_name);
 
 }
 
@@ -393,31 +387,8 @@ bool	cgi::ParseCgiOutput(struct CgiOutput &cgi_output, std::string &response_tmp
 
 //helper functions
 
-// std::vector<char *>	process::ConstructExecArray(std::vector<std::string> &cgi_params) //{extension, cgi_path, NULL}
-// {
-// 	std::vector<char*> cstrings;
-// 	int cstrs_size = StringVecToTwoDimArray(cstrings, cgi_params);
-// 	if (cstrs_size == 1)
-// 	{
-// 		std::cerr << "Error: ConstructExecveArrays" << std::endl;
-// 		return (std::vector<char*>());
-// 	}
-// 	return cstrings;
-// }
-
-// int	process::StringVecToTwoDimArray(std::vector<char *> &cstrings,const std::vector<std::string> &strings)
-// {
-// 	size_t vector_size = strings.size();
-// 	cstrings.reserve(vector_size + 1);
-// 	for(size_t i = 0; i < vector_size; ++i)
-// 		cstrings.push_back(const_cast<char*>(strings[i].c_str()));
-// 	cstrings.push_back(NULL);
-// 	return cstrings.size();
-// }
-
-char**	cgi::StringVecToTwoDimArray(const std::vector<std::string> &strings)
+char**	cgi::StringVecToTwoDimArray(std::vector<char *> &cstrings, const std::vector<std::string> &strings)
 {
-	std::vector<char *> cstrings;
 	size_t vector_size = strings.size();
 	cstrings.reserve(vector_size + 1);
 	for(size_t i = 0; i < vector_size; ++i)

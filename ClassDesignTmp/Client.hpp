@@ -92,8 +92,7 @@ namespace cgi
 	bool	ParseCgiOutput(struct CgiOutput &cgi_output, std::string &response_tmp);
 
 	//helper functions
-	// std::vector<char *>	ConstructExecArray(std::vector<std::string> &cgi_params);
-	char**	StringVecToTwoDimArray(const std::vector<std::string> &strings);
+	char**	StringVecToTwoDimArray(std::vector<char *> &cstrings, const std::vector<std::string> &strings);
 }
 
 namespace res_builder
