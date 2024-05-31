@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List of Files</title>
+</head>
+<body>
+    <input id="getRequestButton" type="button" value="list files">
+</body>
+<script>
+	document.getElementById("getRequestButton").addEventListener("click", function() {
+		fetch("http://localhost:8080/display/list.py"), {
+			method: 'GET'
+		}
+		.then(response => {
+		if (!response.ok) {
+				throw new Error("Network response was not ok " + response.statusText);
+			}
+			return response.json(); // or response.text() if you expect a text response
+		})
+		.then(data => {
+			console.log("Response:", data);
+		})
+		.catch(error => {
+			console.log("Error:", error);
+		});
+	});
+</script>
+</html>
