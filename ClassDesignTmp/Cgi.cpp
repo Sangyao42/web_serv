@@ -95,6 +95,7 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 	}
 	else
 	{
+		close(cgi_output[PipeEnd::kRead]);
 		clt->status_code = k500;
 		return (res_builder::GenerateErrorResponse(clt));
 	}
@@ -215,6 +216,7 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 	}
 	else
 	{
+		close(cgi_output[PipeEnd::kRead]);
 		clt->status_code = k500;
 		return (res_builder::GenerateErrorResponse(clt));
 	}
