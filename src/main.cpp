@@ -170,6 +170,8 @@ int main(int argc, char **argv)
 					client_lifespan::UpdateStatusCode(clt, k408);
 					std::cout << "timeout" << std::endl;
 					pfds[i].events = POLLOUT;
+					clt->keepAlive = false;
+					process::ProcessRequest(clt);
 					continue;
 				}
 				//recv from client and add to request buffer
@@ -327,14 +329,17 @@ int main(int argc, char **argv)
 						pollfds::DeleteClientFd(pfds, i);
 						client_count--;
 					}
-					//set pfds[i].events = POLLIN;
-					pfds[i].events = POLLIN;
-					//set last_active time to time(NULL);
-					//set first_recv_time to to Maybe<time_t> init_time, which is_ok_ = false; and value does not matter
-					//set timeout to false
-					sm.set_time_assets(pfds[i].fd);
-					//TODO: reset Client struct for new request
-					ResetClient(&clients);
+					else
+					{
+						//set pfds[i].events = POLLIN;
+						pfds[i].events = POLLIN;
+						//set last_active time to time(NULL);
+						//set first_recv_time to to Maybe<time_t> init_time, which is_ok_ = false; and value does not matter
+						//set timeout to false
+						sm.set_time_assets(pfds[i].fd);
+						//TODO: reset Client struct for new request
+						ResetClient(&clients);
+					}
 				}
 			}
 		}
