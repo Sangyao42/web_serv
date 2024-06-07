@@ -318,9 +318,8 @@ int main(int argc, char **argv)
 					// sm.delete_client_socket(pfds[i].fd);
 					// pollfds::DeleteClientFd(pfds, i);
 					// client_count--;
-					//TODO: delete client to clients vector
-					// delete client to clients vector
-					if (IsClientAlive(clients, pfds[i].fd) == false)
+					//TODO: delete client from clients vector
+					if (IsClientAlive(clt) == false)
 					{
 						close(pfds[i].fd);
 						DeleteClientFromVector(&clients, pfds[i].fd);

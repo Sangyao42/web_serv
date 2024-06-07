@@ -49,6 +49,13 @@ void client_lifespan::UpdateStatusCode(struct Client &clt, status_code statuscod
 	clt->status_code = statuscode;
 }
 
+//check if client is alive
+bool client_lifespan::IsClientAlive(struct Client &clt)
+{
+	return (clt.keepAlive);
+
+}
+
 void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 {
 	HeaderString	*Host = dynamic_cast<HeaderString *> (clt->req->returnValueAsPointer("Host"));
