@@ -128,22 +128,22 @@ int main(int argc, char **argv)
 			{
 				std::cout << "poll error" << std::endl;
 				close(pfds[i].fd);
+				//TODO: delete client to clients vector
+				DeleteClientFromVector(&clients, pfds[i].fd);
 				sm.delete_client_socket(pfds[i].fd);
 				pollfds::DeleteClientFd(pfds, i);
 				client_count--;
-				//TODO: delete client to clients vector
-				DeleteClientFromVector(&clients, pfds[i].fd);
 				continue;
 			}
 			else if ((pfds[i].revents & POLLHUP))
 			{
 				std::cout << "poll hup" << std::endl;
 				close(pfds[i].fd);
+				//TODO: delete client to clients vector
+				DeleteClientFromVector(&clients, pfds[i].fd);
 				sm.delete_client_socket(pfds[i].fd);
 				pollfds::DeleteClientFd(pfds, i);
 				client_count--;
-				//TODO: delete client to clients vector
-				DeleteClientFromVector(&clients, pfds[i].fd);
 				continue;
 			}
 			else if ((pfds[i].revents & (POLLIN | POLLOUT)) == 0) //no client events
@@ -152,11 +152,11 @@ int main(int argc, char **argv)
 				{
 					std::cout << "timeout" << std::endl;
 					close(pfds[i].fd);
+					//TODO: delete client to clients vector
+					DeleteClientFromVector(&clients, pfds[i].fd);
 					sm.delete_client_socket(pfds[i].fd);
 					pollfds::DeleteClientFd(pfds, i);
 					client_count--;
-					//TODO: delete client to clients vector
-					DeleteClientFromVector(&clients, pfds[i].fd);
 				}
 				continue;
 			}
@@ -178,12 +178,13 @@ int main(int argc, char **argv)
 				if (recv_len <= 0)
 				{
 					std::cout << "recv_len <= 0" << std::endl;
+					//TODO: delete client to clients vector
+					DeleteClientFromVector(&clients, pfds[i].fd);
 					close(pfds[i].fd);
 					pollfds::DeleteClientFd(pfds, i);
 					// sm.delete_client_socket(pfds[i].fd); Already done in recv_append()
-					//TODO: delete client to clients vector
-					DeleteClientFromVector(&clients, pfds[i].fd);
 					client_count--;
+					continue;
 				}
 				else
 				{
@@ -304,10 +305,10 @@ int main(int argc, char **argv)
 				if (send_len == -1)
 				{
 					close(pfds[i].fd);
-					pollfds::DeleteClientFd(pfds, i);
-					sm.delete_client_socket(pfds[i].fd);
 					//TODO: delete client from clients vector
 					DeleteClientFromVector(&clients, pfds[i].fd);
+					pollfds::DeleteClientFd(pfds, i);
+					sm.delete_client_socket(pfds[i].fd);
 					client_count--;
 				}
 				else
@@ -322,9 +323,9 @@ int main(int argc, char **argv)
 					if (IsClientAlive(clients, pfds[i].fd) == false)
 					{
 						close(pfds[i].fd);
+						DeleteClientFromVector(&clients, pfds[i].fd);
 						sm.delete_client_socket(pfds[i].fd);
 						pollfds::DeleteClientFd(pfds, i);
-						DeleteClientFromVector(&clients, pfds[i].fd);
 						client_count--;
 					}
 					//set pfds[i].events = POLLIN;
@@ -342,8 +343,3 @@ int main(int argc, char **argv)
 	//TODO: cleanup: close all sockets, clean vector of pollfds
 
 }
-
-
-
-
-new Request();
