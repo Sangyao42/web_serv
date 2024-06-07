@@ -167,7 +167,7 @@ int main(int argc, char **argv)
 				{
 					//TODO: generate 408 Request Timeout and build std::string response in client
 					// set 408 in client struct and process::ProcessRequest()
-					client_lifespan::UpdateStatusCode(&clients, pfds[i].fd);
+					client_lifespan::UpdateStatusCode(clt, k408);
 					std::cout << "timeout" << std::endl;
 					pfds[i].events = POLLOUT;
 					continue;

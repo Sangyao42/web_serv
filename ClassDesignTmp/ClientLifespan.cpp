@@ -44,17 +44,9 @@ void	client_lifespan::DeleteClientFromVector(std::vector<struct Client> &clients
 }
 
 //update functions
-void	client_lifespan::UpdateStatusCode(std::vector<struct Client> &clients, int client_socket_fd, status_code statuscode)
+void client_lifespan::UpdateStatusCode(struct Client &clt, status_code statuscode)
 {
-	std::vector<struct Client>::iterator it;
-	for (it = clients.begin(); it != clients.end(); it++)
-	{
-		if (it->client_socket->socket == client_socket_fd)
-		{
-			it->status_code = statuscode;
-			break;
-		}
-	}
+	clt->status_code = statuscode;
 }
 
 void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)

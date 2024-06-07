@@ -46,7 +46,7 @@ namespace client_lifespan
 	void	ResetClient(struct Client &client);
 
 	//update functions
-	void	UpdateStatusCode(std::vector<struct Client> &clients, int client_socket_fd, status_code statuscode);
+	void	UpdateStatusCode(struct Client &clt, status_code statuscode);
 	void	CheckHeaderBeforeProcess(struct Client *clt);
 	bool	IsClientAlive(std::vector<struct Client> &clients, int client_socket_fd);
 
