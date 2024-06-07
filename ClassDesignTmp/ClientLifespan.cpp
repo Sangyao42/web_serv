@@ -8,8 +8,8 @@ void	client_lifespan::InitClient(struct Client &client, struct ClientSocket *cli
 	//???? do I need to set stat_buff to 0???
 	memset(&client.stat_buff, 0, sizeof(struct stat));
 	client.keepAlive = true;
-	new (&client.Request) Request();
-	new (&client.Response) Response();
+	new (&client.Req) Request();
+	new (&client.Res) Response();
 }
 
 void	client_lifespan::ResetClient(struct Client &client)
@@ -26,8 +26,8 @@ void	client_lifespan::ResetClient(struct Client &client)
 	client.cgi_content_type.clear();
 	client.cgi_content_length.clear();
 	req.cleanHeaderMap();
-	new (&client.Request) Request();
-	new (&client.Response) Response();
+	new (&client.Req) Request();
+	new (&client.Res) Response();
 }
 
 void	client_lifespan::DeleteClientFromVector(std::vector<struct Client> &clients, int client_fd)
