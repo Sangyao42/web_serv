@@ -34,7 +34,12 @@ struct Client
 	std::string location_created;
 	std::string cgi_content_type;
 	std::string cgi_content_length;
-	int chunked_body_size = -1;
+	//START: request status before processing
+	bool continue_reading;
+	bool exceed_max_body_size;
+	bool is_chunked;
+	bool consume_body;
+	//END: request status before processing
 	Request	req;
 	Response	res;
 };

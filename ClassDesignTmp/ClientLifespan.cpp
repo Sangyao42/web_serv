@@ -8,6 +8,10 @@ void	client_lifespan::InitClient(struct Client &client, struct ClientSocket *cli
 	//???? do I need to set stat_buff to 0???
 	memset(&client.stat_buff, 0, sizeof(struct stat));
 	client.keepAlive = true;
+	continue_reading = false;
+	exceed_max_body_size = false;
+	is_chunked = false;
+	consume_body = true;
 	new (&client.Req) Request();
 	new (&client.Res) Response();
 }
@@ -22,6 +26,10 @@ void	client_lifespan::ResetClient(struct Client &client)
 	client.cgi_argv.clear();
 	client.cgi_env.clear();
 	client.keepAlive = true;
+	continue_reading = false;
+	exceed_max_body_size = false;
+	is_chunked = false;
+	consume_body = true;
 	client.location_created.clear();
 	client.cgi_content_type.clear();
 	client.cgi_content_length.clear();
