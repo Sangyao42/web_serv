@@ -10,13 +10,13 @@ namespace directive
 {
   AllowMethods::AllowMethods()
     : Directive(), accepted_methods_(AllowMethods::kDefaultMethods) {}
-  
+
   AllowMethods::AllowMethods(const Context& context)
     : Directive(context), accepted_methods_(AllowMethods::kDefaultMethods) {}
-  
+
   AllowMethods::AllowMethods(const AllowMethods& other)
     : Directive(other), accepted_methods_(other.accepted_methods_) {}
-  
+
   AllowMethods& AllowMethods::operator=(const AllowMethods& other)
   {
     if (this != &other)
@@ -52,6 +52,6 @@ namespace directive
 
   bool  AllowMethods::is_allowed(Method method) const
   {
-    return (accepted_methods_ & static_cast<std::bitset<3> >(method)) != 0;
+    return (accepted_methods_ & method) != 0;
   }
 } // namespace configuration

@@ -6,7 +6,7 @@
 
 namespace directive
 {
-  typedef std::bitset<3> Methods;
+  typedef int Methods;
   enum Method
   {
     kMethodGet    = 1,
