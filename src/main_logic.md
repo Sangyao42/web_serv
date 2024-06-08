@@ -4,6 +4,7 @@ if (!clt->continue_reading):
 void preprocess_headers(clt){
 	//update status_code
 	//update clt->consume_body = false when error occurs
+	//update clt->max_body_size
 	//check if chunked, update clt->is_chunked = true
 }
 

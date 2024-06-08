@@ -1,5 +1,8 @@
 #include "Client.hpp"
 
+extern const size_t	constants::kDefaultClientMaxBodySize;
+
+
 void	client_lifespan::InitClient(struct Client &client, struct ClientSocket *client_socket)
 {
 	client.status_code = status_code::k000;
@@ -8,10 +11,12 @@ void	client_lifespan::InitClient(struct Client &client, struct ClientSocket *cli
 	//???? do I need to set stat_buff to 0???
 	memset(&client.stat_buff, 0, sizeof(struct stat));
 	client.keepAlive = true;
-	continue_reading = false;
-	exceed_max_body_size = false;
-	is_chunked = false;
-	consume_body = true;
+	client.content_length = 0;
+	client.max_body_size = constants::kDefaultClientMaxBodySize;
+	client.continue_reading = false;
+	client.exceed_max_body_size = false;
+	client.is_chunked = false;
+	client.consume_body = true;
 	new (&client.Req) Request();
 	new (&client.Res) Response();
 }
@@ -26,10 +31,12 @@ void	client_lifespan::ResetClient(struct Client &client)
 	client.cgi_argv.clear();
 	client.cgi_env.clear();
 	client.keepAlive = true;
-	continue_reading = false;
-	exceed_max_body_size = false;
-	is_chunked = false;
-	consume_body = true;
+	client.content_length = 0;
+	client.max_body_size = constants::kDefaultClientMaxBodySize;;
+	client.continue_reading = false;
+	client.exceed_max_body_size = false;
+	client.is_chunked = false;
+	client.consume_body = true;
 	client.location_created.clear();
 	client.cgi_content_type.clear();
 	client.cgi_content_length.clear();
@@ -66,9 +73,16 @@ bool client_lifespan::IsClientAlive(struct Client &clt)
 
 void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 {
-	// there is an existing error
-	if (clt->status_code != k000)
-		return ;
+	// check if is_chunked
+	HeaderString	*transfer_encoding = dynamic_cast<HeaderString *> (clt->req->returnValueAsPointer("Transfer-Encoding"));
+	if (transfer_encoding && transfer_encoding->content() == "chunked")
+	{
+		clt->is_chunked = true;
+	}
+
+	// there is an existing error, consume body is already set to false
+	// if (clt->status_code != k000)
+	// 	return ;
 
 	HeaderString	*Host = dynamic_cast<HeaderString *> (clt->req->returnValueAsPointer("Host"));
 	// query configuration
@@ -76,15 +90,19 @@ void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 		(Host ? Host->content() : ""), \
 		clt->req->getRequestTarget().path);
 
-	if (clt->config->is_empty())
-	{
-		clt->status_code = k500;
-		clt->consume_body = false;
-		return ;
-	}
+	assert(clt->config && "No configuration found for this request");
+	// if (clt->config->is_empty())
+	// {
+	// 	clt->status_code = k500;
+	// 	clt->consume_body = false;
+	// 	return ;
+	// }
 
 	assert(clt->config->query && "Location Block in Server block is empty"); //query gives the all the needed info related to server block and location block
 	cache::LocationQuery	*location= clt->config->query;
+
+	clt->max_body_size = location->max_body_size;
+
 	if (!(location->allowed_methods & (int) clt->req->getMethod()))
 	{
 		clt->status_code = k405;
@@ -111,15 +129,6 @@ void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 			return ;
 		}
 	}
-
-	// check if is_chunked
-	HeaderString	*transfer_encoding = dynamic_cast<HeaderString *> (clt->req->returnValueAsPointer("Transfer-Encoding"));
-	if (transfer_encoding && transfer_encoding->content() == "chunked")
-	{
-		clt->is_chunked = true;
-		return ;
-	}
-
 	return ;
 }
 

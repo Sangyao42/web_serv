@@ -13,8 +13,6 @@
 
 #define POLL_TIMEOUT 30
 
-extern const size_t               constants::kDefaultClientMaxBodySize;
-
 int server_running = 1;
 
 void  Config2(directive::MainBlock& main);
@@ -277,7 +275,7 @@ int main(int argc, char **argv)
 								chunk_size = chunk_size_line.second;
 								clt->client_socket->req_buf.erase(0, chunk_size_line.first.parse_length);
 							}
-							if ((clt->req.body.size() + chunk_size) > ws_database.max_body_size())
+							if ((clt->req.body.size() + chunk_size) > clt->max_body_size)
 							{
 								clt->exceed_max_body_size = true;
 							}
@@ -334,8 +332,9 @@ int main(int argc, char **argv)
 						if (!clt->continue_reading)
 						{
 							HeaderInt *content_length = dynamic_cast<HeaderInt *> (clt->req->returnValueAsPointer("Content-Length"));
-							if (content_length && content_length.content() > constants::kDefaultClientMaxBodySize)
+							if (content_length && content_length.content() > clt->max_body_size)
 							{
+								clt->exceed_max_body_size = true;
 								clt->status_code = k413;
 								clt->keepAlive = false;
 								process::ProcessRequest(clt);
