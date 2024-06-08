@@ -164,8 +164,7 @@ namespace http_parser
   ScanOutput  ScanNewLine(Input input)
   {
     ScanOutput output;
-    if (input.is_valid() &&
-        (input.length >= 2) &&
+    if ((input.length >= 2) &&
         IsCarriageReturn(*input.bytes) &&
         IsLinefeed(*(input.bytes + 1)))
     {
@@ -179,21 +178,18 @@ namespace http_parser
   {
     ScanOutput output;
 
-    if (input.is_valid())
+    output.bytes = input.bytes;
+    while (input.length > 0)
     {
-      output.bytes = input.bytes;
-      while (input.length > 0)
+      ScanOutput tmp = ScanNewLine(input);
+      if (tmp.is_valid())
       {
-        ScanOutput tmp = ScanNewLine(input);
-        if (tmp.is_valid())
-        {
-          input.consume(tmp.length);
-        }
-        const char* target = input.consume();
-        if (!IsWhitespace(*target))
-          break;
-        output.length += (tmp.length + 1);
+        input.consume(tmp.length);
       }
+      const char* target = input.consume();
+      if (!IsWhitespace(*target))
+        break;
+      output.length += (tmp.length + 1);
     }
     return output;
   }
@@ -202,16 +198,13 @@ namespace http_parser
   {
     ScanOutput output;
 
-    if (input.is_valid())
+    output.bytes = input.bytes;
+    while (input.length > 0)
     {
-      output.bytes = input.bytes;
-      while (input.length > 0)
-      {
-        const char* target = input.consume();
-        if (target && !(IsSpace(*target) || IsHorizontalTab(*target)))
-          break;
-        output.length++;
-      }
+      const char* target = input.consume();
+      if (target && !(IsSpace(*target) || IsHorizontalTab(*target)))
+        break;
+      output.length++;
     }
     return output;
   }
@@ -220,19 +213,16 @@ namespace http_parser
   {
     ScanOutput output;
 
-    if (input.is_valid())
+    output.bytes = input.bytes;
+    while (input.length > 0)
     {
-      output.bytes = input.bytes;
-      while (input.length > 0)
-      {
-        const char* target = input.consume();
-        if (target && !(IsSpace(*target) || IsHorizontalTab(*target)))
-          break;
-        output.length++;
-      }
-      if (output.length < 1)
-        output.bytes = NULL;
+      const char* target = input.consume();
+      if (target && !(IsSpace(*target) || IsHorizontalTab(*target)))
+        break;
+      output.length++;
     }
+    if (output.length < 1)
+      output.bytes = NULL;
     return output;
   }
 
@@ -314,9 +304,9 @@ namespace http_parser
   static ParseOutput  ConsumeByParserFunction(Input* input, ParseOutput (*func)(Input))
   {
     ParseOutput output = func(*input);
-    if (output.status == kParseSuccess)
+    if (output.is_valid())
     {
-      input->consume(output.parsed_length);
+      input->consume(output.length);
     }
     return output;
   }
@@ -328,25 +318,22 @@ namespace http_parser
   ParseOutput  ParseToken(Input input)
   {
     ParseOutput output;
-    if (input.is_valid())
+    StringSlice content;
+    content.bytes = input.bytes;
+    while (input.length > 0)
     {
-      StringSlice content;
-      content.bytes = input.bytes;
-      while (input.length > 0)
-      {
-        if (!ConsumeByUnitFunction(&input, &IsTokenText))
-          break;
-        content.length++;
-      }
-      if (content.length >= 1)
-      {
-        PTNodeToken*  token = PTNodeCreate<PTNodeToken>();
-        token->type = kToken;
-        token->content = content;
+      if (!ConsumeByUnitFunction(&input, &IsTokenText))
+        break;
+      content.length++;
+    }
+    if (content.length >= 1)
+    {
+      PTNodeToken*  token = PTNodeCreate<PTNodeToken>();
+      token->type = kToken;
+      token->content = content;
 
-        output.parsed_length = content.length;
-        output.result = token;
-      }
+      output.length = content.length;
+      output.result = token;
     }
     return output;
   }
@@ -354,40 +341,37 @@ namespace http_parser
   ParseOutput  ParseQuotedString(Input input)
   {
     ParseOutput output;
-    if (input.is_valid())
+    StringSlice content;
+    content.bytes = input.bytes;
+    content.length = ConsumeByUnitFunction(&input, &IsDoubleQuote);
+    if (content.length > 0)
     {
-      StringSlice content;
-      content.bytes = input.bytes;
-      content.length = ConsumeByUnitFunction(&input, &IsDoubleQuote);
-      if (content.length > 0)
+      int parsed_length = 1;
+      while (input.length > 0 && parsed_length > 0)
       {
-        int parsed_length = 1;
-        while (input.length > 0 && parsed_length > 0)
+        int   parsed_length = ConsumeByUnitFunction(&input, &IsQuotedStringText);
+        if (parsed_length == 0)
         {
-          int   parsed_length = ConsumeByUnitFunction(&input, &IsQuotedStringText);
-          if (parsed_length == 0)
+          parsed_length = ConsumeByCharacter(&input, '\\');
+          if (parsed_length > 0)
           {
-            parsed_length = ConsumeByCharacter(&input, '\\');
-            if (parsed_length > 0)
-            {
-              int parsed_length_2 = ConsumeByUnitFunction(&input, &IsEscapedText);
-              if (parsed_length_2 > 0)
-                parsed_length += parsed_length_2;
-            }
+            int parsed_length_2 = ConsumeByUnitFunction(&input, &IsEscapedText);
+            if (parsed_length_2 > 0)
+              parsed_length += parsed_length_2;
           }
-          content.length += parsed_length;
         }
-        parsed_length = ConsumeByUnitFunction(&input, &IsDoubleQuote);
-        if (parsed_length > 0)
-        {
-          content.length += parsed_length;
-          PTNodeQuotedString*  quoted_string = PTNodeCreate<PTNodeQuotedString>();
-          quoted_string->type = kQuotedString;
-          quoted_string->content = content;
+        content.length += parsed_length;
+      }
+      parsed_length = ConsumeByUnitFunction(&input, &IsDoubleQuote);
+      if (parsed_length > 0)
+      {
+        content.length += parsed_length;
+        PTNodeQuotedString*  quoted_string = PTNodeCreate<PTNodeQuotedString>();
+        quoted_string->type = kQuotedString;
+        quoted_string->content = content;
 
-          output.parsed_length = content.length;
-          output.result = quoted_string;
-        }
+        output.length = content.length;
+        output.result = quoted_string;
       }
     }
     return output;
@@ -396,30 +380,29 @@ namespace http_parser
   ParseOutput  ParseComment(Input input)
   {
     ParseOutput output;
-    if (input.is_valid())
+    StringSlice content;
+    content.bytes = input.bytes;
+    content.length = ConsumeByCharacter(&input, '(' );
+    if (content.length > 0)
     {
-      StringSlice content;
-      content.bytes = input.bytes;
-      content.length = ConsumeByCharacter(&input, '(' );
-      if (content.length > 0)
+      int parsed_length = 1;
+      while (input.length > 0 && parsed_length > 0)
       {
-        int parsed_length = 1;
-        while (input.length > 0 && parsed_length > 0)
+        int parsed_length = ConsumeByUnitFunction(&input, &IsCommentText);
+        if (parsed_length == 0)
         {
-          int parsed_length = ConsumeByUnitFunction(&input, &IsCommentText);
-          if (parsed_length == 0)
+          parsed_length = ConsumeByCharacter(&input, '\\');
+          if (parsed_length > 0)
           {
-            parsed_length = ConsumeByCharacter(&input, '\\');
-            if (parsed_length > 0)
+            int parsed_length_2 = ConsumeByUnitFunction(&input, &IsEscapedText);
+            if (parsed_length_2 > 0)
             {
-              int parsed_length_2 = ConsumeByUnitFunction(&input, &IsEscapedText);
-              if (parsed_length_2 > 0)
-              {
-                parsed_length += parsed_length_2;
-              }
+              parsed_length += parsed_length_2;
             }
           }
-          if (parsed_length == 0)
+        }
+        if (parsed_length == 0)
+        {
           ArenaSnapshot snapshot = temporary::arena.snapshot();
           ParseOutput parse_output = ConsumeByParserFunction(&input, &ParseComment);
           if (parse_output.is_valid())
@@ -427,18 +410,18 @@ namespace http_parser
             parsed_length = parse_output.length;
             temporary::arena.rollback(snapshot);
           }
-          content.length += parsed_length;
         }
-        parsed_length = ConsumeByCharacter(&input, ')');
-        if (parsed_length > 0)
-        {
-          content.length++;
-          PTNodeComment*  comment = PTNodeCreate<PTNodeComment>();
-          comment->type = kComment;
+        content.length += parsed_length;
+      }
+      parsed_length = ConsumeByCharacter(&input, ')');
+      if (parsed_length > 0)
+      {
+        content.length++;
+        PTNodeComment*  comment = PTNodeCreate<PTNodeComment>();
+        comment->type = kComment;
 
-          output.parsed_length = content.length;
-          output.result = comment;
-        }
+        output.length = content.length;
+        output.result = comment;
       }
     }
     return output;
@@ -496,7 +479,7 @@ namespace http_parser
         ParseOutput parameter_parse_output = ConsumeByParserFunction(&input, &ParseParameter);
         if (parameter_parse_output.is_valid())
         {
-          parsed_length += parsed_length_1 + parsed_length_2 + parsed_length_3 + parameter_parse_output.parsed_length;
+          parsed_length += parsed_length_1 + parsed_length_2 + parsed_length_3 + parameter_parse_output.length;
           children.push_back(static_cast<PTNodeParameter*>(parameter_parse_output.result));
           error = false;
         }
@@ -546,21 +529,18 @@ namespace http_parser
   ScanOutput  ScanPathChar(Input input)
   {
     ScanOutput  output;
-    if (input.is_valid())
+    if (input.length > 0 && 
+        (IsUnreservered(*input.bytes) ||
+        IsSubDelims(*input.bytes) ||
+        *input.bytes == ':' ||
+        *input.bytes == '@'))
     {
-      if (input.length > 0 && 
-          (IsUnreservered(*input.bytes) ||
-          IsSubDelims(*input.bytes) ||
-          *input.bytes == ':' ||
-          *input.bytes == '@'))
-      {
-        output.bytes = input.bytes;
-        output.length = 1;
-      }
-      else
-      {
-        output = ScanPctEncoded(input);
-      }
+      output.bytes = input.bytes;
+      output.length = 1;
+    }
+    else
+    {
+      output = ScanPctEncoded(input);
     }
     return output;
   }
@@ -569,7 +549,7 @@ namespace http_parser
   {
     ScanOutput  output;
 
-    if (input.is_valid() && input.length >= 3)
+    if (input.length >= 3)
     {
       output.bytes = input.bytes;
       if (*input.bytes == '%' &&
@@ -586,18 +566,15 @@ namespace http_parser
   {
     ScanOutput  output;
 
-    if (input.is_valid())
+    output.bytes = input.bytes;
+    int total_length = 0;
+    ScanOutput scan_result = ConsumeByScanFunction(&input, &ScanPathChar);
+    while (scan_result.is_valid())
     {
-      output.bytes = input.bytes;
-      int total_length = 0;
-      ScanOutput scan_result = ConsumeByScanFunction(&input, &ScanPathChar);
-      while (scan_result.is_valid())
-      {
-        total_length += scan_result.length;
-        scan_result = ConsumeByScanFunction(&input, &ScanPathChar);
-      }
-      output.length = total_length;
+      total_length += scan_result.length;
+      scan_result = ConsumeByScanFunction(&input, &ScanPathChar);
     }
+    output.length = total_length;
     return output;
   }
 
@@ -605,26 +582,23 @@ namespace http_parser
   {
     ScanOutput  output;
 
-    if (input.is_valid())
+    output.bytes = input.bytes;
+    int total_length = 0;
+    while (true)
     {
-      output.bytes = input.bytes;
-      int total_length = 0;
-      while (true)
+      int parsed_length_1 = ConsumeByCharacter(&input, '/');
+      int parsed_length_2 = 0;
+      if (parsed_length_1 > 0)
       {
-        int parsed_length_1 = ConsumeByCharacter(&input, '/');
-        int parsed_length_2 = 0;
-        if (parsed_length_1 > 0)
-        {
-          parsed_length_2 = ConsumeByScanFunction(&input, &ScanSegment).length;
-        }
-        int segment_length = parsed_length_1 + parsed_length_2;
-        if (segment_length > 0)
-          total_length += segment_length;
-        else
-          break;
+        parsed_length_2 = ConsumeByScanFunction(&input, &ScanSegment).length;
       }
-      output.length = total_length;
+      int segment_length = parsed_length_1 + parsed_length_2;
+      if (segment_length > 0)
+        total_length += segment_length;
+      else
+        break;
     }
+    output.length = total_length;
     return output;
   }
 
@@ -632,21 +606,18 @@ namespace http_parser
   {
     ScanOutput  output;
 
-    if (input.is_valid())
+    output.bytes = input.bytes;
+    int total_length = 0;
+    ScanOutput scan_result = ConsumeByScanFunction(&input, &ScanPathChar);
+    while (scan_result.is_valid())
     {
-      output.bytes = input.bytes;
-      int total_length = 0;
-      ScanOutput scan_result = ConsumeByScanFunction(&input, &ScanPathChar);
-      while (scan_result.is_valid())
-      {
-        total_length += scan_result.length;
-        scan_result = ConsumeByScanFunction(&input, &ScanPathChar);
-      }
-      if (total_length > 1)
-        output.length = total_length;
-      else
-        output.bytes = NULL;
+      total_length += scan_result.length;
+      scan_result = ConsumeByScanFunction(&input, &ScanPathChar);
     }
+    if (total_length > 1)
+      output.length = total_length;
+    else
+      output.bytes = NULL;
     return output;
   }
 
@@ -654,27 +625,24 @@ namespace http_parser
   {
     ScanOutput  output;
 
-    if (input.is_valid())
+    output.bytes = input.bytes;
+    int total_length = 0;
+    int scan_length = 1;
+    while (scan_length > 0)
     {
-      output.bytes = input.bytes;
-      int total_length = 0;
-      int scan_length = 1;
-      while (scan_length > 0)
-      {
-        scan_length = ConsumeByUnitFunction(&input, &IsUnreservered);
-        if (scan_length == 0)
-          scan_length = ConsumeByScanFunction(&input, &ScanPctEncoded).length;
-        if (scan_length == 0)
-          scan_length = ConsumeByUnitFunction(&input, &IsSubDelims);
-        if (scan_length == 0)
-          scan_length = ConsumeByCharacter(&input, '@');
-        total_length += scan_length;
-      }
-      if (total_length > 1)
-        output.length = total_length;
-      else
-        output.bytes = NULL;
+      scan_length = ConsumeByUnitFunction(&input, &IsUnreservered);
+      if (scan_length == 0)
+        scan_length = ConsumeByScanFunction(&input, &ScanPctEncoded).length;
+      if (scan_length == 0)
+        scan_length = ConsumeByUnitFunction(&input, &IsSubDelims);
+      if (scan_length == 0)
+        scan_length = ConsumeByCharacter(&input, '@');
+      total_length += scan_length;
     }
+    if (total_length > 1)
+      output.length = total_length;
+    else
+      output.bytes = NULL;
     return output;
   }
 
@@ -682,16 +650,13 @@ namespace http_parser
   {
     ParseOutput output;
     StringSlice content = ConsumeByScanFunction(&input, &ScanSegments);
-    if (output.parsed_length > 0)
-    {
-      PTNodePathAbEmpty*  path_abempty = PTNodeCreate<PTNodePathAbEmpty>();
+    PTNodePathAbEmpty*  path_abempty = PTNodeCreate<PTNodePathAbEmpty>();
 
-      path_abempty->type = kPathAbempty;
-      path_abempty->content = content;
+    path_abempty->type = kPathAbempty;
+    path_abempty->content = content;
 
-      output.parsed_length = content.length;
-      output.result = path_abempty;
-    }
+    output.length = content.length;
+    output.result = path_abempty;
     return output;
   }
 
@@ -790,8 +755,7 @@ namespace http_parser
   {
     ScanOutput  output;
 
-    if (input.is_valid() &&
-       (input.length > 0))
+    if (input.length > 0)
     {
       output.bytes = input.bytes;
       int scan_length = 0;
@@ -829,8 +793,7 @@ namespace http_parser
   {
     ScanOutput  output;
 
-    if (input.is_valid() &&
-       (input.length > 0))
+    if (input.length > 0)
     {
       int scan_length = 0;
       for (int i = 0; i < 4; i++)
@@ -947,7 +910,6 @@ namespace http_parser
     PTNodeIpvFutureAddress* ipv_future_address = PTNodeCreate<PTNodeIpvFutureAddress>(); 
     ipv_future_address->type = kIpvFutureAddress;
     ipv_future_address->content = StringSlice(input_start, input.bytes - input_start);
-
     
     output.length = ipv_future_address->content.length;
     output.result = ipv_future_address;
@@ -1510,23 +1472,25 @@ namespace http_parser
   ScanOutput  ScanStartLineSpaces(Input input)
   {
     ScanOutput output;
-    if (input.is_valid())
+    output.bytes = input.bytes;
+    int scan_length = 0;
+    while ((input.length > 0) &&
+          (IsSpace(*input.bytes) ||
+           IsHorizontalTab(*input.bytes) ||
+           (*input.bytes == 11) || // vertical tab
+           (*input.bytes == 12) || // NP form feed, new page
+           IsCarriageReturn(*input.bytes)))
     {
-      int scan_length = 0;
-      while ((input.length > 0) &&
-            (IsSpace(*input.bytes) ||
-             IsHorizontalTab(*input.bytes) ||
-             (*input.bytes == 11) || // vertical tab
-             (*input.bytes == 12) || // NP form feed, new page
-             IsCarriageReturn(*input.bytes)))
-      {
-        scan_length++;
-      }
-      if (scan_length > 0)
-      {
-        output.bytes = input.bytes;
-        output.length = scan_length;
-      }
+      scan_length++;
+      input.consume();
+    }
+    if (scan_length > 0)
+    {
+      output.length = scan_length;
+    }
+    else
+    {
+      output.bytes = NULL;
     }
     return output;
   }
