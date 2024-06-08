@@ -2,6 +2,7 @@
 
 #include <string>
 #include <map>
+
 #include "Uri/Uri.hpp"
 #include "Protocol.hpp"
 #include "Http/HeaderValue/HeaderValue.hpp"
@@ -19,8 +20,9 @@ typedef std::map<std::string, HeaderValue*> HeaderMap;
 
 struct Request
 {
-  RequestLine request_line;
-  HeaderMap   headers;
+  RequestLine   request_line;
+  HeaderMap     headers;
+  std::string   body;
 
   ~Request();
   void  clear_headers();
