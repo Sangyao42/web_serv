@@ -167,7 +167,8 @@ int main(int argc, char **argv)
 				{
 					//TODO: generate 408 Request Timeout and build std::string response in client
 					// set 408 in client struct and process::ProcessRequest()
-					client_lifespan::UpdateStatusCode(clt, k408);
+					// client_lifespan::UpdateStatusCode(clt, k408);
+					clt.status_code = k408;
 					std::cout << "timeout" << std::endl;
 					pfds[i].events = POLLOUT;
 					clt->keepAlive = false;
@@ -204,33 +205,51 @@ int main(int argc, char **argv)
 					sm.set_first_recv_time(pfds[i].fd); //set first recv time if it is not set
 					//TODO:
 					//parse request
-					if (!clt->req->has_start_line())
+					if (!clt->continue_reading)
 					{
-						std::pair<ParseMetaData, RequestLine> start_line = ParseRequestLine(clt->client_socket->req_buf);
-						if (start_line.first.parse_error_flags != ParseError::kNone)
+						if (!clt->req->has_start_line())
 						{
-							// handle error
+							std::pair<ParseMetaData, RequestLine> start_line = ParseRequestLine(clt->client_socket->req_buf);
+							if (start_line.first.parse_error_flags == ParseError::kSyntax)
+							{
+								//handle only syntax error
+								clt->status_code = k400;
+								clt->keepAlive = false;
+								process::ProcessRequest(clt);
+								pfds[i].events = POLLOUT;
+								continue;
+							}
+							else
+							{
+								if (start_line.first.parse_error_flags != ParseError::kNone)
+									clt->consume_body = false;
+								clt->status_code = ParserErrorToStatusCode(start_line.first.parse_error_flags);
+								clt->req->set_start_line(start_line.second);
+								clt->client_socket->req_buf.erase(0, start_line.first.parse_length);
+							}
 						}
-						else
+						if (!clt->req->has_headers())
 						{
-							clt->req->set_start_line(start_line.second);
-							clt->client_socket->req_buf.erase(0, start_line.first.parse_length);
+							std::pair<ParseMetaData, RequestLine> start_line = ParseRequestheaders(clt->client_socket->req_buf);
+							if (start_line.first.parse_error_flags != ParseError::kSyntax)
+							{
+								//handle only syntax error
+								clt->status_code = k400;
+								clt->keepAlive = false;
+								process::ProcessRequest(clt);
+								pfds[i].events = POLLOUT;
+								continue;
+							}
+							else
+							{
+								if (start_line.first.parse_error_flags != ParseError::kNone)
+									clt->consume_body = false;
+								clt->req->set_headers(start_line.second);
+								clt->client_socket->req_buf.erase(0, start_line.first.parse_length);
+							}
 						}
+						client_lifespan::CheckHeaderBeforeProcess(clt);
 					}
-					if (!clt->req->has_headers())
-					{
-						std::pair<ParseMetaData, RequestLine> start_line = ParseRequestheaders(clt->client_socket->req_buf);
-						if (start_line.first.parse_error_flags != ParseError::kNone)
-						{
-							// handle error
-						}
-						else
-						{
-							clt->req->set_headers(start_line.second);
-							clt->client_socket->req_buf.erase(0, start_line.first.parse_length);
-						}
-					}
-					CheckHeaderBeforeProcess(clt);
 					if (req->is_chunked())
 					{
 						// find delimiter

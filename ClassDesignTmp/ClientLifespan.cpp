@@ -2,7 +2,7 @@
 
 void	client_lifespan::InitClient(struct Client &client, struct ClientSocket *client_socket)
 {
-	client.status_code = status_code::k200;
+	client.status_code = status_code::k000;
 	client.client_socket = client_socket;
 	client.config = NULL;
 	//???? do I need to set stat_buff to 0???
@@ -18,7 +18,7 @@ void	client_lifespan::InitClient(struct Client &client, struct ClientSocket *cli
 
 void	client_lifespan::ResetClient(struct Client &client)
 {
-	client.status_code = status_code::k200;
+	client.status_code = status_code::k000;
 	client.client_socket->res_buf.clear();
 	client.config = NULL;
 	memset(&client.stat_buff, 0, sizeof(struct stat));
@@ -66,8 +66,11 @@ bool client_lifespan::IsClientAlive(struct Client &clt)
 
 void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 {
-	HeaderString	*Host = dynamic_cast<HeaderString *> (clt->req->returnValueAsPointer("Host"));
+	// there is an existing error
+	if (clt->status_code != k000)
+		return ;
 
+	HeaderString	*Host = dynamic_cast<HeaderString *> (clt->req->returnValueAsPointer("Host"));
 	// query configuration
 	clt->config = &ws_database.query(clt->client_socket->socket, \
 		(Host ? Host->content() : ""), \
@@ -76,6 +79,7 @@ void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 	if (clt->config->is_empty())
 	{
 		clt->status_code = k500;
+		clt->consume_body = false;
 		return ;
 	}
 
@@ -84,19 +88,39 @@ void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 	if (!(location->allowed_methods & (int) clt->req->getMethod()))
 	{
 		clt->status_code = k405;
+		clt->consume_body = false;
 		return ;
 	}
 
-	HeaderInt *content_length = dynamic_cast<HeaderInt *> (clt->req->returnValueAsPointer("Content-Length"));
-
-	if ((content_length && content_length->content() > location->client_max_body_size) || \
-	(clt->req->body_size_chunked_ != -1 && clt->req->body_size_chunked_ > location->client_max_body_size))
+	// check if the path exists (for get and delete)
+	std::string path = process::GetExactPath(location->root, location->match_path, clt->req->getRequestTarget());
+	clt->path = path;
+	if ((access(path.c_str(), F_OK) != 0) \
+	&& (clt->req->getMethod() == kGet || clt->req->getMethod() == kDelete))
 	{
-		clt->status_code = k413;
+		clt->status_code = k404;
+		clt->consume_body = false;
+		return ;
+	}
+	else
+	{
+		if (stat(path.c_str(), &clt->stat_buff) != 0)
+		{
+			clt->status_code = k500;
+			clt->consume_body = false;
+			return ;
+		}
+	}
+
+	// check if is_chunked
+	HeaderString	*transfer_encoding = dynamic_cast<HeaderString *> (clt->req->returnValueAsPointer("Transfer-Encoding"));
+	if (transfer_encoding && transfer_encoding->content() == "chunked")
+	{
+		clt->is_chunked = true;
 		return ;
 	}
 
-
+	return ;
 }
 
 //helper functions
