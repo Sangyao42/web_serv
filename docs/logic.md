@@ -28,15 +28,7 @@ void	processRequest(struct Client *clt)
 		return (generateErrorResponse(clt));
 	}
 
-	// query Location
-	LocationQuery location;
-	LocationBlock* location_block
-	location->construct(clt->config, location_block); //TODO: how to query location?
-	if (!location)
-	{
-		clt->statusCode = k404;
-		return (generateErrorResponse(clt));
-	}
+	location = clt->config->query;
 
 	if (!location->allowed_methods & req->getMethod())
 	{
@@ -181,7 +173,7 @@ void	processDeleteRequest(clt)
 {
 	if (is_cgi)
 	{
-		clt->statusCode = k403;
+		clt->statusCode = k405;
 		return (generateErrorResponse(clt));
 	}
 	if (is_filename? || force_delete?)
