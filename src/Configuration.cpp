@@ -124,8 +124,7 @@ const ConfigurationQueryResult  Configuration::query(int server_socket_fd,
                                                      const std::string& path)
 {
   const directive::ServerBlock* server_block = query_server_block(server_socket_fd, server_name);
-  if (server_block == NULL)
-    return ConfigurationQueryResult();
+  assert(server_block != NULL);
   const directive::LocationBlock* location_block = query_location_block(server_block, path);
   if (location_block != NULL)
   {
@@ -194,8 +193,7 @@ const directive::ServerBlock*  Configuration::query_server_block(int server_sock
                                                                  const std::string& server_name) const
 {
   ServerBlocksQueryResult server_blocks = query_server_blocks(server_socket_fd);
-  if (!server_blocks.is_ok())
-    return NULL;
+  assert(server_blocks.is_ok());
   // iterate over all server blocks
   for (std::vector<const directive::ServerBlock*>::const_iterator it = server_blocks.value()->begin(); it != server_blocks.value()->end(); ++it)
   {
