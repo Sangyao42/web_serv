@@ -1,5 +1,6 @@
 #pragma once
 
+#include <set>
 #include <iterator>
 #include <fstream>
 #include <sstream>
@@ -8,19 +9,27 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <errno.h>
 #include "Request.hpp"
 #include "Response.hpp"
 #include "Protocol.hpp"
 #include "SocketManager.hpp"
 #include "Configuration.hpp"
 
+typedef std::string DName; // for dirent/autoindex
+typedef	unsigned char DType;
+typedef std::pair<DType, DName> DPair;
+typedef std::set<DPair> DSet;
+typedef DSet::iterator DSetIt;
+
 enum ResponseError
 {
 	kNoError,
 	kFileOpenError,
-	kFilestreamError
+	kFileStreamError
 };
-
 struct Client
 {
 	status_code	status_code;
@@ -44,8 +53,6 @@ namespace process
 	void	ProcessGetRequest(struct Client *clt);
 	void	ProcessPostRequest(struct Client *clt);
 	void	ProcessDeleteRequest(struct Client *clt);
-
-
 
 	//file and path and content-type related functions
 	std::string GetExactPath(const std::string root, std::string match_path, const struct Uri uri);
@@ -107,17 +114,28 @@ namespace res_builder
 	const std::string &BuildErrorPage(enum status_code code);
 
 	// redirect related helper functions
+	void	BuildRedirectResponseBody(struct Client *clt);
 
 	// autoindex related helper functions
+	std::string BuildAutoindexHTML(DSet files, std::string path);
 
 	// success related helper functions
+	void	BuildPostResponseBody(struct Client *clt);
+
+	// header related helper functions
+	void	AddLocationHeader(struct Client *clt);
+	void	AddAllowHeader(struct Client *clt);
+	void	AddAcceptHeader(struct Client *clt);
+	void	BuildContentHeadersCGI(struct Client *clt);
+	void	BuildContentHeaders(struct Client *clt, std::string extension, std::string path);
 
 	// general utility functions
-	void	BuildContentHeaders(struct Client *clt);
-	void	ServerError(struct Client *clt);
+	std::string MethodToString(enum directive::Method method);
+	void	ServerError500(struct Client *clt);
 	std::string	GetTimeGMT();
+	std::string GetTimeGMT(time_t raw_time);
 	void	BuildBasicHeaders(Response *res);
 	void	BuildStatusLine(enum status_code status_code, std::string &response);
-	enum ResponseError	ReadFileToString(const std::string &path, std::string &body);
+	enum ResponseError	ReadFileToBody(const std::string &path, Response *res);
 	const std::string	&StatusCodeAsString(enum status_code code);
 }

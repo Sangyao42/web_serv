@@ -6,23 +6,18 @@ void	res_builder::BuildErrorHeaders(struct Client *clt)
 	switch (clt->status_code)
 	{
 		case k405:
-			// clt->config->query->allowed_methods
-			// clt->res->addNewPair("Allow", new HeaderSomething());
-			break ;
-		case k406:
-			//not sure what to do here
+			AddAllowHeader(clt);
 			break ;
 		case k408:
 			clt->res->addNewPair("Connection", new HeaderString("close"));
 			break ;
 		case k413:
 			clt->res->addNewPair("Connection", new HeaderString("close"));
+			break ;
 		case k415:
-			// unsupported media types
-			// clt->res->addNewPair("Accept", new HeaderSomething());
-			// AND/OR unsupported encoding
-			// clt->res->addNewPair("Accept-Encoding", new HeaderSomething());
-			// ? should I simply add both headers or find a way to check them seperately
+			AddAcceptHeader(clt);
+			break ;
+		default:
 			break ;
 	}
 }
@@ -31,7 +26,8 @@ const std::string &res_builder::BuildErrorPage(enum status_code status_code)
 {
 	std::string response;
 
-	response = "<html>\r\n";
+	response = "<!DOCTYPE html>\r\n";
+	response += "<html>\r\n";
 	response += "<head><title>";
 	response += StatusCodeAsString(status_code);
 	response += "</title></head>\r\n";
@@ -54,7 +50,7 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 
 	// build basic and error headers
 	BuildBasicHeaders(clt->res); // add basic headers
-	// BuildErrorHeaders(clt); // add additional headers according to the error code
+	BuildErrorHeaders(clt); // add additional headers according to the error code
 
 	// build the body
 
@@ -64,7 +60,7 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 	std::vector<const directive::ErrorPage *>::const_iterator	it;
 
 	Maybe<std::string> result;
-	std::string	pathErrorPage;
+	std::string	pathErrorPage = "";
 	std::string body;
 
 	for (it = errorPages.begin(); it != errorPages.end(); ++it)
@@ -76,28 +72,25 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 	if (it != errorPages.end())
 	{
 		pathErrorPage = (*it)->file_path();
-		if (ReadFileToString(pathErrorPage, body) != kNoError);
+		if (ReadFileToBody(pathErrorPage, clt->res) != kNoError);
 		{
-			ServerError(clt);
+			ServerError500(clt);
 			return ;
 		}
+		// build content headers
+		BuildContentHeaders(clt, process::GetResContentType(pathErrorPage), pathErrorPage);
 	}
 	else
 	{
-		body = BuildErrorPage(clt->status_code);
+		clt->res->setResponseBody(BuildErrorPage(clt->status_code));
+		BuildContentHeaders(clt, "html", "");
 	}
-
-	// set the body
-	clt->res->setResponseBody(body);
-
-	// build content headers
-	BuildContentHeaders(clt);
 
 	// add headers to the response
 	std::string	headers = clt->res->returnMapAsString();
 	if (headers.empty()) // stream error occurred
 	{
-		ServerError(clt);
+		ServerError500(clt);
 		return ;
 	}
 	response += headers;
