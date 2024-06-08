@@ -13,6 +13,8 @@
 
 #define POLL_TIMEOUT 30
 
+extern const size_t               constants::kDefaultClientMaxBodySize;
+
 int server_running = 1;
 
 void  Config2(directive::MainBlock& main);
@@ -250,24 +252,24 @@ int main(int argc, char **argv)
 						}
 						client_lifespan::CheckHeaderBeforeProcess(clt);
 					}
-					if (req->is_chunked())
+					if (clt->is_chunked)
 					{
 						// find delimiter
-
 						int	chunk_size = 0;
-						bool	is_exceed_max_body_size = false;
-						bool	is_continue_reading = false;
+						clt->continue_reading = false;
+						bool syntax_error_during_unchunk = false;
 						do
 						{
 							std::pair<ParseMetaData, int> chunk_size_line = ParseChunkSizeLine(clt->client_socket->req_buf);
 							if (chunk_size_line.first.parse_error_flags & kNoCRLFFound)
 							{
-								// continue reading
+								clt->continue_reading = true;
 								break;
 							}
 							else if (chunk_size_line.first.parse_error_flags & kSyntaxError)
 							{
-								// handle error
+								// handle syntax error
+								syntax_error_during_unchunk = true;
 								break;
 							}
 							else
@@ -277,44 +279,85 @@ int main(int argc, char **argv)
 							}
 							if ((clt->req.body.size() + chunk_size) > ws_database.max_body_size())
 							{
-								is_exceed_max_body_size = true;
+								clt->exceed_max_body_size = true;
 							}
 							ParseMetaData = ParseChunkData(clt->client_socket->req_buf, chunk_size);
 							if (ParseMetaData.parse_error_flags & kNoCRLFFound)
 							{
-								// continue reading
+								clt->continue_reading = true;
 								break;
 							}
 							else if (ParseMetaData.parse_error_flags & kSyntaxError)
 							{
-								// handle error
+								// handle syntax error
+								syntax_error_during_unchunk = true;
 								break;
 							}
 							std::string chunk = clt->client_socket->req_buf.substr(0, chunk_size);
-							if (!is_exceed_max_body_size)
+							if (!clt->exceed_max_body_size)
 							{
-								if (consume_body)
+								if (clt->consume_body)
 									ctl->req.body.append(chunk);
 							}
 							clt->client_socket->req_buf.erase(0, chunk_size);
 						} while (chunk_size > 0);
+						if (syntax_error_during_unchunk) // when syntax error happens
+						{
+							clt->status_code = k400;
+							clt->keepAlive = false;
+							process::ProcessRequest(clt);
+							pfds[i].events = POLLOUT;
+							continue;
+						}
 						IgnoreEntityHeaders(clt->client_socket->req_buf);
-						if (is_continue_reading)
-						{}
+						if (!CheckCrlf(clt->client_socket->req_buf))
+						{
+							clt->status_code = k400;
+							clt->keelAlive = false;
+							process::ProcessRequest(clt);
+							pfds[i].events = POLLOUT;
+							continue
+						}
+						clt->client_socket->req_buf.erase(0, 2);
+						if (clt->continue_reading)
+							continue;
+						if (clt->exceed_max_body_size)
+						{
+							clt->status_code = k413;
+							clt->keepAlive = false;
+						}
+						process::ProcessRequest(clt);
+						pfds[i].events = POLLOUT;
 					}
 					else
 					{
-						//if request.content-length exceeds max body size
-							//set pfds[i].events = POLLOUT;
-							//generate 413 Request Entity Too Large and build std::string response in client
-							//set 413 in client struct and process::ProcessRequest()
-							// continue;
-						HeaderInt *content_length = dynamic_cast<HeaderInt *> (clt->req->returnValueAsPointer("Content-Length"));
-						if (content_length && content_length.content() > )
-						//if request is complete (req.size() - parsed_length>= content-length)
-							//set pfds[i].events = POLLOUT;
-							// process request
-							// continue;
+						if (!clt->continue_reading)
+						{
+							HeaderInt *content_length = dynamic_cast<HeaderInt *> (clt->req->returnValueAsPointer("Content-Length"));
+							if (content_length && content_length.content() > constants::kDefaultClientMaxBodySize)
+							{
+								clt->status_code = k413;
+								clt->keepAlive = false;
+								process::ProcessRequest(clt);
+								pfds[i].events = POLLOUT;
+								continue;
+							}
+							if (content_length)
+								clt->content_length = content_length.content();
+						}
+						clt->continue_reading = false;
+						if (clt->content_length > len(clt->client_socket->req_buf))
+						{
+							clt->continue_reading = true;
+							continue;
+						}
+						if (consume_body)
+						{
+							clt->req.body = clt->client_socket->req_buf.substr(0, clt->content_length);
+						}
+						clt->client_socket->req_buf.erase(0, clt->content_length);
+						process::ProcessRequest(clt);
+						pfds[i].events = POLLOUT;
 					}
 				}
 			}
