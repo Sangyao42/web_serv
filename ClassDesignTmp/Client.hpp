@@ -23,7 +23,7 @@ enum ResponseError
 
 struct Client
 {
-	status_code	status_code;
+	StatusCode	status_code;
 	struct ClientSocket	*client_socket;
 	const struct ConfigurationQueryResult	*config;
 	struct stat	stat_buff;
