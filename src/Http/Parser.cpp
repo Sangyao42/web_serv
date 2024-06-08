@@ -268,7 +268,12 @@ namespace http_parser
     for (int i = 0; i < input->length; i++)
     {
       if (*cstring && (*cstring == input->bytes[i]))
+      {
         consumed_character++;
+        cstring++;
+      }
+      else
+        break;
     }
     if (*cstring)
       consumed_character = 0;
