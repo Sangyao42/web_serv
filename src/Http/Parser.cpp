@@ -2068,8 +2068,7 @@ namespace http_parser
   {
     ParseOutput output;
     const char* input_start = input.bytes;
-    PTNodeUriHost*  uri_host;
-    PTNodeUriPort*  port;
+    PTNodeUriHost*  uri_host = NULL;
     PTNodeUriPort*  port = NULL;
 
     {
