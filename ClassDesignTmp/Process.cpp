@@ -90,11 +90,11 @@ void	process::ProcessGetRequest(struct Client *clt)
 		if (process::IsCgi(clt->cgi_argv, clt->path, location)) //check file extension and get the cgi path inside IsCgi
 			return (cgi::ProcessGetRequestCgi(clt));
 		std::string content_type = process::GetReqExtension(clt->path);
-		if (!content_type.empty()  && !process::IsAcceptable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
-		{
-			clt->status_code = k406;
-			return (res_builder::GenerateErrorResponse(clt));
-		}
+		// if (!content_type.empty()  && !process::IsAcceptable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
+		// {
+		// 	clt->status_code = k406;
+		// 	return (res_builder::GenerateErrorResponse(clt));
+		// }
 		if (access(clt->path.c_str(), R_OK) != 0)
 		{
 			clt->status_code = k403;
@@ -289,18 +289,18 @@ std::string	process::GetReqExtension(std::string path)
 		return (extension);
 }
 
-bool	process::IsAcceptable(std::string content_type, HeaderValue *accept, cache::LocationQuery *location)
-{
-	directive::MimeTypes	mime_types;
-	// find types in both accept header and location->mime_types
-	mime_types = TypeAcceptableAndServable(accept, location->mime_types);
-	if (mime_types.get().size() == 0)
-		return (false);
-	if (mime_types.query(content_type).is_ok())
-		return (true);
-	else
-		return (false);
-}
+// bool	process::IsAcceptable(std::string content_type, HeaderValue *accept, cache::LocationQuery *location)
+// {
+// 	directive::MimeTypes	mime_types;
+// 	// find types in both accept header and location->mime_types
+// 	mime_types = TypeAcceptableAndServable(accept, location->mime_types);
+// 	if (mime_types.get().size() == 0)
+// 		return (false);
+// 	if (mime_types.query(content_type).is_ok())
+// 		return (true);
+// 	else
+// 		return (false);
+// }
 
 std::string	process::GetIndexPath(std::string path, cache::LocationQuery *location)
 {

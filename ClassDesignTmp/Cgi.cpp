@@ -78,11 +78,11 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
-		if (IsAcceptable(cgi_output.content_type)) // TODO: get the content type from the string returned by cgi, check Accept header and MIME type && check response entity's content type and Accept Header
-		{
-			clt->status_code = k406;
-			return (res_builder::GenerateErrorResponse(clt));
-		}
+		// if (IsAcceptable(cgi_output.content_type)) // TODO: get the content type from the string returned by cgi, check Accept header and MIME type && check response entity's content type and Accept Header
+		// {
+		// 	clt->status_code = k406;
+		// 	return (res_builder::GenerateErrorResponse(clt));
+		// }
 		else
 		{
 			// TODO: generate the response body with content type and content length
@@ -199,11 +199,11 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
-		if (IsAcceptable(cgi_output.content_type)) // TODO: get the content type from the string returned by cgi, check Accept header and MIME type && check response entity's content type and Accept Header
-		{
-			clt->status_code = k406;
-			return (res_builder::GenerateErrorResponse(clt));
-		}
+		// if (IsAcceptable(cgi_output.content_type)) // TODO: get the content type from the string returned by cgi, check Accept header and MIME type && check response entity's content type and Accept Header
+		// {
+		// 	clt->status_code = k406;
+		// 	return (res_builder::GenerateErrorResponse(clt));
+		// }
 		else
 		{
 			// TODO: generate the response body with content type and content length
