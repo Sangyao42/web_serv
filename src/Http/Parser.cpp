@@ -1104,7 +1104,7 @@ namespace http_parser
     const char* input_start = input.bytes;
     PTNodeUriUserInfo*  user_info = NULL;
     PTNodeUriHost*      host = NULL;
-    PTNodeUriQuery*     query = NULL;
+    PTNodeUriPort*      port = NULL;
 
     ArenaSnapshot snapshot = temporary::arena.snapshot();
     {
@@ -1133,10 +1133,10 @@ namespace http_parser
       Input input_tmp = input;
       if (ConsumeByCharacter(&input_tmp, ':'))
       {
-        ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriQuery);
-        if (parsed_query.is_valid())
+        ParseOutput parsed_port = ConsumeByParserFunction(&input_tmp, &ParseUriPort);
+        if (parsed_port.is_valid())
         {
-          query = static_cast<PTNodeUriQuery*>(parsed_query.result);
+          port = static_cast<PTNodeUriPort*>(parsed_port.result);
           input = input_tmp;
         }
       }
@@ -1145,7 +1145,7 @@ namespace http_parser
     authority->type = kUriAuthority;
     authority->user_info = user_info;
     authority->host = host;
-    authority->query = query;
+    authority->port = port;
 
     output.length = input.bytes - input_start;
     output.result = authority;

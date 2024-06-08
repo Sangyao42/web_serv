@@ -293,7 +293,7 @@ namespace http_parser
   {
     PTNodeUriUserInfo*  user_info;
     PTNodeUriHost*      host;
-    PTNodeUriQuery*     query;
+    PTNodeUriPort*      port;
   };
 
   struct PTNodeUriFragment : public PTNode
