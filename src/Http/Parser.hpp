@@ -276,7 +276,7 @@ namespace http_parser
 
   struct PTNodeUriPort : public PTNode
   {
-    int number;
+    StringSlice content;
   };
 
   struct PTNodeUriQuery : public PTNode

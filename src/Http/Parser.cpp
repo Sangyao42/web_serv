@@ -1044,17 +1044,15 @@ namespace http_parser
   {
     ParseOutput output;
     const char* input_start = input.bytes;
-    int number = 0;
 
     while ((input.length > 0) && IsDigit(*input.bytes))
     {
-      number = number * 10 + (*input.bytes - '0');
       input.consume();
     }
 
     PTNodeUriPort* port = PTNodeCreate<PTNodeUriPort>(); 
     port->type = kUriPort;
-    port->number = number;
+    port->content = StringSlice(input_start, input.bytes - input_start);
 
     output.length = input.bytes - input_start;
     output.result = port;
