@@ -259,12 +259,12 @@ int main(int argc, char **argv)
 						do
 						{
 							std::pair<ParseMetaData, int> chunk_size_line = ParseChunkSizeLine(clt->client_socket->req_buf);
-							if (chunk_size_line.first.parse_error_flags & kNoCRLFFound)
+							if (chunk_size_line.first.parse_error_flags == kNoCRLFFound)
 							{
 								clt->continue_reading = true;
 								break;
 							}
-							else if (chunk_size_line.first.parse_error_flags & kSyntaxError)
+							else if (chunk_size_line.first.parse_error_flags == kSyntaxError)
 							{
 								// handle syntax error
 								syntax_error_during_unchunk = true;
@@ -280,12 +280,12 @@ int main(int argc, char **argv)
 								clt->exceed_max_body_size = true;
 							}
 							ParseMetaData = ParseChunkData(clt->client_socket->req_buf, chunk_size);
-							if (ParseMetaData.parse_error_flags & kNoCRLFFound)
+							if (ParseMetaData.parse_error_flags == kNoCRLFFound)
 							{
 								clt->continue_reading = true;
 								break;
 							}
-							else if (ParseMetaData.parse_error_flags & kSyntaxError)
+							else if (ParseMetaData.parse_error_flags ==  kSyntaxError)
 							{
 								// handle syntax error
 								syntax_error_during_unchunk = true;
