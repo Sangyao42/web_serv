@@ -2,14 +2,15 @@
 
 #include <string>
 #include <map>
+#include "Uri/Uri.hpp"
 #include "Protocol.hpp"
 #include "Http/HeaderValue/HeaderValue.hpp"
 
 struct RequestLine
 {
-  Method      method;
-  std::string	requestTarget;
-  Version     version;
+  Method  method;
+  Uri     requestTarget;
+  Version version;
 
   RequestLine();
 };
