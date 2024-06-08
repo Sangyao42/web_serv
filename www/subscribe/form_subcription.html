@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscribe</title>
+</head>
+<body>
+    <form id="subscribe" method="post" onsubmit="handleSubscription(event)">
+        <div>
+          <label for="email">Enter your email: </label>
+          <input type="email" name="email" id="email" required />
+        </div>
+        <div>
+          <input type="submit" value="Subscribe!" />
+        </div>
+      </form>
+</body>
+<script>
+    function handleSubscription(event)
+    {
+      event.preventDefault();
+
+      const formData = new FormData(document.getElementById("subscribe"));
+ 
+      fetch("http://localhost:8080/subscribe/subscribe.php", {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok " + response.statusText);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log("Response:", data);
+        })
+      .catch(error => {
+        console.log("Error:", error);
+      })
+    }
+</script>
+</html>
