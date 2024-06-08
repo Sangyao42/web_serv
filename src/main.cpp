@@ -274,7 +274,8 @@ int main(int argc, char **argv)
 							std::string chunk = clt->client_socket->req_buf.substr(0, chunk_size);
 							if (!is_exceed_max_body_size)
 							{
-								ctl->req.body.append(chunk);
+								if (consume_body)
+									ctl->req.body.append(chunk);
 							}
 							clt->client_socket->req_buf.erase(0, chunk_size);
 						} while (chunk_size > 0);

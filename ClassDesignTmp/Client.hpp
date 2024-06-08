@@ -35,6 +35,7 @@ struct Client
 	std::string cgi_content_type;
 	std::string cgi_content_length;
 	//START: request status before processing
+	int content_length;
 	bool continue_reading;
 	bool exceed_max_body_size;
 	bool is_chunked;
