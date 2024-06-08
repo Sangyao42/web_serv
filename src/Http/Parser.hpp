@@ -128,19 +128,13 @@ namespace http_parser
     return temporary::arena.allocate<T>(); 
   }
 
-  enum ParseOutputStatus
-  {
-    kParseFailure,
-    kParseSuccess
-  };
-
   struct ParseOutput
   {
-    ParseOutputStatus status;
-    int               parsed_length;
     PTNode*           result;
+    int               length;
 
     ParseOutput();
+    bool  is_valid() const;
   };
 
   ///////////////////////////////////////////

@@ -246,7 +246,12 @@ namespace http_parser
   ///////////////////////////////////////////
 
   ParseOutput::ParseOutput()
-    : status(kParseFailure), parsed_length(0), result(NULL) {}
+    : result(NULL), length(0) {}
+
+  bool  ParseOutput::is_valid() const
+  {
+    return result != NULL;
+  }
 
   static int ConsumeByCharacter(Input* input, char character)
   {
@@ -339,7 +344,6 @@ namespace http_parser
         token->type = kToken;
         token->content = content;
 
-        output.status = kParseSuccess;
         output.parsed_length = content.length;
         output.result = token;
       }
@@ -381,7 +385,6 @@ namespace http_parser
           quoted_string->type = kQuotedString;
           quoted_string->content = content;
 
-          output.status = kParseSuccess;
           output.parsed_length = content.length;
           output.result = quoted_string;
         }
@@ -417,14 +420,12 @@ namespace http_parser
             }
           }
           if (parsed_length == 0)
+          ArenaSnapshot snapshot = temporary::arena.snapshot();
+          ParseOutput parse_output = ConsumeByParserFunction(&input, &ParseComment);
+          if (parse_output.is_valid())
           {
-            ArenaSnapshot snapshot = temporary::arena.snapshot();
-            ParseOutput parse_output = ConsumeByParserFunction(&input, &ParseComment);
-            if (parse_output.status == kParseSuccess)
-            {
-              parsed_length = parse_output.parsed_length;
-              temporary::arena.rollback(snapshot);
-            }
+            parsed_length = parse_output.length;
+            temporary::arena.rollback(snapshot);
           }
           content.length += parsed_length;
         }
@@ -435,7 +436,6 @@ namespace http_parser
           PTNodeComment*  comment = PTNodeCreate<PTNodeComment>();
           comment->type = kComment;
 
-          output.status = kParseSuccess;
           output.parsed_length = content.length;
           output.result = comment;
         }
@@ -450,25 +450,24 @@ namespace http_parser
 
     ArenaSnapshot snapshot = temporary::arena.snapshot();
     ParseOutput name_parse_output = ConsumeByParserFunction(&input, &ParseToken);
-    if (name_parse_output.status == kParseSuccess)
+    if (name_parse_output.is_valid())
     {
       int parsed_length = ConsumeByCharacter(&input, '=');
       if (parsed_length > 0)
       {
         ParseOutput value_parse_output = ConsumeByParserFunction(&input, &ParseToken);
-        if (value_parse_output.status != kParseSuccess)
+        if (value_parse_output.is_valid())
         {
           value_parse_output = ConsumeByParserFunction(&input, &ParseQuotedString);
         }
-        if (value_parse_output.parsed_length > 0)
+        if (value_parse_output.length > 0)
         {
           PTNodeParameter*  parameter = PTNodeCreate<PTNodeParameter>();
           parameter->type = kParameter;
           parameter->name = static_cast<PTNodeToken*>(name_parse_output.result);
           parameter->value_header = value_parse_output.result;
 
-          output.status = kParseSuccess;
-          output.parsed_length = name_parse_output.parsed_length + parsed_length + value_parse_output.parsed_length;
+          output.length = name_parse_output.length + parsed_length + value_parse_output.length;
           output.result = parameter;
         }
         else
@@ -495,7 +494,7 @@ namespace http_parser
       {
         int parsed_length_3 = ConsumeByScanFunction(&input, &ScanOptionalWhitespace).length;
         ParseOutput parameter_parse_output = ConsumeByParserFunction(&input, &ParseParameter);
-        if (parameter_parse_output.status == kParseSuccess)
+        if (parameter_parse_output.is_valid())
         {
           parsed_length += parsed_length_1 + parsed_length_2 + parsed_length_3 + parameter_parse_output.parsed_length;
           children.push_back(static_cast<PTNodeParameter*>(parameter_parse_output.result));
@@ -510,9 +509,8 @@ namespace http_parser
       PTNodeParameters* parameters = PTNodeCreate<PTNodeParameters>();
       parameters->type = kParameters;
       parameters->children = children;
-
-      output.status = kParseSuccess;
-      output.parsed_length = parsed_length;
+      
+      output.length = parsed_length;
       output.result = parameters;
     }
     return output;
@@ -691,7 +689,6 @@ namespace http_parser
       path_abempty->type = kPathAbempty;
       path_abempty->content = content;
 
-      output.status = kParseSuccess;
       output.parsed_length = content.length;
       output.result = path_abempty;
     }
@@ -723,8 +720,7 @@ namespace http_parser
       path_absolute->type = kPathAbsolute;
       path_absolute->content = content;
 
-      output.status = kParseSuccess;
-      output.parsed_length = content.length;
+      output.length = content.length;
       output.result = path_absolute;
     }
     return output;
@@ -746,8 +742,7 @@ namespace http_parser
         path_noscheme->type = kPathNoScheme;
         path_noscheme->content = StringSlice(input_start, parsed_result.length + parsed_result_2.length);;
 
-        output.status = kParseSuccess;
-        output.parsed_length = path_noscheme->content.length;
+        output.length = path_noscheme->content.length;
         output.result = path_noscheme;
       }
     }
@@ -770,8 +765,7 @@ namespace http_parser
         path_rootless->type = kPathRootless;
         path_rootless->content = StringSlice(input_start, parsed_result.length + parsed_result_2.length);;
 
-        output.status = kParseSuccess;
-        output.parsed_length = path_rootless->content.length;
+        output.length = path_rootless->content.length;
         output.result = path_rootless;
       }
     }
@@ -781,8 +775,8 @@ namespace http_parser
   ParseOutput  ParsePathEmpty(Input)
   {
     ParseOutput output;
-    output.status = kParseSuccess;
-    output.parsed_length = 0;
+    
+    output.length = 0;
     output.result = static_cast<PTNode*>(PTNodeCreate<PTNodePathEmpty>());
     output.result->type = kPathEmpty;
     return output;
@@ -878,7 +872,7 @@ namespace http_parser
     }
     ArenaSnapshot snapshot = temporary::arena.snapshot();
     if (!(amount_of_optional_h16 == 6 &&
-            (ConsumeByParserFunction(&input, &ParseIpv4Address).status == kParseSuccess)) &&
+            ConsumeByParserFunction(&input, &ParseIpv4Address).is_valid()) &&
          (amount_of_optional_h16 != 8))
     {
       temporary::arena.rollback(snapshot);
@@ -899,7 +893,7 @@ namespace http_parser
       bool  should_scan_h16 = true;
       if ((max_amount_of_h16 - amount_of_h16) >= 2)
       {
-        if(ConsumeByParserFunction(&input, &ParseIpv4Address).status == kParseSuccess)
+        if(ConsumeByParserFunction(&input, &ParseIpv4Address).is_valid())
           should_scan_h16 = false;
         temporary::arena.rollback(snapshot);
       }
@@ -913,8 +907,7 @@ namespace http_parser
     ipv6_address->type = kIpv6Address;
     ipv6_address->content = StringSlice(input_start, input.bytes - input_start);
 
-    output.status = kParseSuccess;
-    output.parsed_length = ipv6_address->content.length;
+    output.length = ipv6_address->content.length;
     output.result = ipv6_address;
     return output;
   }
@@ -955,8 +948,8 @@ namespace http_parser
     ipv_future_address->type = kIpvFutureAddress;
     ipv_future_address->content = StringSlice(input_start, input.bytes - input_start);
 
-    output.status = kParseSuccess;
-    output.parsed_length = ipv_future_address->content.length;
+    
+    output.length = ipv_future_address->content.length;
     output.result = ipv_future_address;
     return output;
   }
@@ -989,8 +982,7 @@ namespace http_parser
     ipv4_address->type = kIpv4Address;
     ipv4_address->content = StringSlice(input_start, parsed_octet_1.length + parsed_octet_2.length + parsed_octet_3.length + parsed_octet_4.length + 3); // 3 is the length of the 3 dots.
 
-    output.status = kParseSuccess;
-    output.parsed_length = ipv4_address->content.length;
+    output.length = ipv4_address->content.length;
     output.result = ipv4_address;
     return output;
   }
@@ -1010,9 +1002,8 @@ namespace http_parser
     PTNodeRegName* reg_name = PTNodeCreate<PTNodeRegName>(); 
     reg_name->type = kRegName;
     reg_name->content = StringSlice(input_start, input.bytes - input_start);
-
-    output.status = kParseSuccess;
-    output.parsed_length = reg_name->content.length;
+    
+    output.length = reg_name->content.length;
     output.result = reg_name;
 
     return output;
@@ -1041,9 +1032,8 @@ namespace http_parser
     PTNodeUriScheme* scheme = PTNodeCreate<PTNodeUriScheme>(); 
     scheme->type = kUriScheme;
     scheme->content = StringSlice(input_start, input.bytes - input_start);
-
-    output.status = kParseSuccess;
-    output.parsed_length = scheme->content.length;
+    
+    output.length = scheme->content.length;
     output.result = scheme;
     return output;
   }
@@ -1059,10 +1049,10 @@ namespace http_parser
       if (ConsumeByCharacter(&input_tmp, '[') == 1)
       {
         parsed_address = ConsumeByParserFunction(&input_tmp, &ParseIpv6Address);
-        if (parsed_address.status != kParseSuccess)
+        if (!parsed_address.is_valid())
           parsed_address = ConsumeByParserFunction(&input_tmp, &ParseIpvFutureAddress);
 
-        if (parsed_address.status == kParseSuccess)
+        if (parsed_address.is_valid())
         {
           if (ConsumeByCharacter(&input_tmp, ']') == 0)
             parsed_address = ParseOutput();
@@ -1071,19 +1061,18 @@ namespace http_parser
         }
       }
     }
-    if (parsed_address.status != kParseSuccess)
+    if (!parsed_address.is_valid())
       parsed_address = ConsumeByParserFunction(&input, &ParseIpv4Address);
-    if (parsed_address.status != kParseSuccess)
+    if (!parsed_address.is_valid())
       parsed_address = ConsumeByParserFunction(&input, &ParseRegName);
 
-    if (parsed_address.status == kParseSuccess)
+    if (parsed_address.is_valid())
     {
       PTNodeUriHost* host = PTNodeCreate<PTNodeUriHost>(); 
       host->type = kUriHost;
       host->address_header = parsed_address.result;
-
-      output.status = kParseSuccess;
-      output.parsed_length = input.bytes - input_start;
+      
+      output.length = input.bytes - input_start;
       output.result = host;
     }
     return output;
@@ -1105,8 +1094,7 @@ namespace http_parser
     port->type = kUriPort;
     port->number = number;
 
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    output.length = input.bytes - input_start;
     output.result = port;
     return output;
   }
@@ -1125,8 +1113,7 @@ namespace http_parser
     query->type = kUriQuery;
     query->content = StringSlice(input_start, input.bytes - input_start);
 
-    output.status = kParseSuccess;
-    output.parsed_length = query->content.length;
+    output.length = query->content.length;
     output.result = query;
     return output;
   }
@@ -1145,9 +1132,8 @@ namespace http_parser
     PTNodeUriUserInfo* user_info = PTNodeCreate<PTNodeUriUserInfo>(); 
     user_info->type = kUriUserInfo;
     user_info->content = StringSlice(input_start, input.bytes - input_start);
-
-    output.status = kParseSuccess;
-    output.parsed_length = user_info->content.length;
+    
+    output.length = user_info->content.length;
     output.result = user_info;
     return output;
   }
@@ -1164,7 +1150,7 @@ namespace http_parser
     {
       Input input_tmp = input;
       ParseOutput parsed_user_info = ConsumeByParserFunction(&input_tmp, &ParseUriUserInfo);
-      if (parsed_user_info.status == kParseSuccess)
+      if (parsed_user_info.is_valid())
       {
         if (ConsumeByCharacter(&input_tmp, '@'))
         {
@@ -1176,7 +1162,7 @@ namespace http_parser
       }
     }
     ParseOutput parsed_host = ConsumeByParserFunction(&input, &ParseUriHost);
-    if (parsed_host.status == kParseSuccess)
+    if (parsed_host.is_valid())
       host = static_cast<PTNodeUriHost*>(parsed_host.result);
     else
     {
@@ -1188,7 +1174,7 @@ namespace http_parser
       if (ConsumeByCharacter(&input_tmp, ':'))
       {
         ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriQuery);
-        if (parsed_query.status == kParseSuccess)
+        if (parsed_query.is_valid())
         {
           query = static_cast<PTNodeUriQuery*>(parsed_query.result);
           input = input_tmp;
@@ -1201,8 +1187,7 @@ namespace http_parser
     authority->host = host;
     authority->query = query;
 
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    output.length = input.bytes - input_start;
     output.result = authority;
     return output;
   }
@@ -1220,9 +1205,8 @@ namespace http_parser
     PTNodeUriFragment* fragment = PTNodeCreate<PTNodeUriFragment>(); 
     fragment->type = kUriFragment;
     fragment->content = StringSlice(input_start, input.bytes - input_start);
-
-    output.status = kParseSuccess;
-    output.parsed_length = fragment->content.length;
+    
+    output.length = fragment->content.length;
     output.result = fragment;
     return output;
   }
@@ -1239,13 +1223,13 @@ namespace http_parser
     ArenaSnapshot snapshot = temporary::arena.snapshot();
     {
       ParseOutput parsed_authority = ConsumeByParserFunction(&input, &ParseUriAuthority);
-      if (parsed_authority.status != kParseSuccess)
+      if (!parsed_authority.is_valid())
         return output;
       authority = static_cast<PTNodeUriAuthority*>(parsed_authority.result);
     }
     {
       ParseOutput parsed_path_abempty = ConsumeByParserFunction(&input, &ParsePathAbEmpty);
-      if (parsed_path_abempty.status != kParseSuccess)
+      if (!parsed_path_abempty.is_valid())
       {
         temporary::arena.rollback(snapshot);
         return output;
@@ -1257,9 +1241,8 @@ namespace http_parser
     reference_network_path->type = kUriReferenceNetworkPath;
     reference_network_path->authority = authority;
     reference_network_path->path = path;
-
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    
+    output.length = input.bytes - input_start;
     output.result = reference_network_path;
     return output;
   }
@@ -1276,7 +1259,7 @@ namespace http_parser
     ArenaSnapshot snapshot = temporary::arena.snapshot();
     {
       ParseOutput parsed_scheme = ConsumeByParserFunction(&input, &ParseUriScheme);
-      if (parsed_scheme.status == kParseSuccess)
+      if (parsed_scheme.is_valid())
         scheme = static_cast<PTNodeUriScheme*>(parsed_scheme.result);
       else
         return output;
@@ -1288,22 +1271,22 @@ namespace http_parser
     }
     {
       ParseOutput parsed_path_header = ConsumeByParserFunction(&input, &ParseUriReferenceNetworkPath);
-      if (parsed_path_header.status == kParseSuccess)
+      if (parsed_path_header.is_valid())
         path_header = parsed_path_header.result;
       else
       {
         parsed_path_header = ConsumeByParserFunction(&input, &ParsePathAbsolute);
-        if (parsed_path_header.status == kParseSuccess)
+        if (parsed_path_header.is_valid())
           path_header = parsed_path_header.result;
         else
         {
           parsed_path_header = ConsumeByParserFunction(&input, &ParsePathRootless);
-          if (parsed_path_header.status == kParseSuccess)
+          if (parsed_path_header.is_valid())
             path_header = parsed_path_header.result;
           else
           {
             parsed_path_header = ConsumeByParserFunction(&input, &ParsePathEmpty);
-            if (parsed_path_header.status == kParseSuccess)
+            if (parsed_path_header.is_valid())
               path_header = parsed_path_header.result;
             else
             {
@@ -1319,7 +1302,7 @@ namespace http_parser
       if (ConsumeByCharacter(&input_tmp, '?') == 1)
       {
         ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriQuery);
-        if (parsed_query.status == kParseSuccess)
+        if (parsed_query.is_valid())
         {
           query = static_cast<PTNodeUriQuery*>(parsed_query.result);
           input = input_tmp;
@@ -1331,7 +1314,7 @@ namespace http_parser
       if (ConsumeByCharacter(&input_tmp, '#') == 1)
       {
         ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriFragment);
-        if (parsed_query.status == kParseSuccess)
+        if (parsed_query.is_valid())
         {
           fragment = static_cast<PTNodeUriFragment*>(parsed_query.result);
           input = input_tmp;
@@ -1346,8 +1329,7 @@ namespace http_parser
     uri->query = query;
     uri->fragment = fragment;
 
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    output.length = input.bytes - input_start;
     output.result = uri;
     return output;
   }
@@ -1363,7 +1345,7 @@ namespace http_parser
     ArenaSnapshot snapshot = temporary::arena.snapshot();
     {
       ParseOutput parsed_scheme = ConsumeByParserFunction(&input, &ParseUriScheme);
-      if (parsed_scheme.status == kParseSuccess)
+      if (parsed_scheme.is_valid())
         scheme = static_cast<PTNodeUriScheme*>(parsed_scheme.result);
       else
         return output;
@@ -1375,22 +1357,22 @@ namespace http_parser
     }
     {
       ParseOutput parsed_path_header = ConsumeByParserFunction(&input, &ParseUriReferenceNetworkPath);
-      if (parsed_path_header.status == kParseSuccess)
+      if (parsed_path_header.is_valid())
         path_header = parsed_path_header.result;
       else
       {
         parsed_path_header = ConsumeByParserFunction(&input, &ParsePathAbsolute);
-        if (parsed_path_header.status == kParseSuccess)
+        if (parsed_path_header.is_valid())
           path_header = parsed_path_header.result;
         else
         {
           parsed_path_header = ConsumeByParserFunction(&input, &ParsePathRootless);
-          if (parsed_path_header.status == kParseSuccess)
+          if (parsed_path_header.is_valid())
             path_header = parsed_path_header.result;
           else
           {
             parsed_path_header = ConsumeByParserFunction(&input, &ParsePathEmpty);
-            if (parsed_path_header.status == kParseSuccess)
+            if (parsed_path_header.is_valid())
               path_header = parsed_path_header.result;
             else
             {
@@ -1406,7 +1388,7 @@ namespace http_parser
       if (ConsumeByCharacter(&input_tmp, '?') == 1)
       {
         ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriQuery);
-        if (parsed_query.status == kParseSuccess)
+        if (parsed_query.is_valid())
         {
           query = static_cast<PTNodeUriQuery*>(parsed_query.result);
           input = input_tmp;
@@ -1419,8 +1401,7 @@ namespace http_parser
     url_absolute->path_header = path_header;
     url_absolute->query = query;
 
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    output.length = input.bytes - input_start;
     output.result = url_absolute;
     return output;
   }
@@ -1435,22 +1416,22 @@ namespace http_parser
 
     {
       ParseOutput parsed_path_header = ConsumeByParserFunction(&input, &ParseUriReferenceNetworkPath);
-      if (parsed_path_header.status == kParseSuccess)
+      if (parsed_path_header.is_valid())
         path_header = parsed_path_header.result;
       else
       {
         parsed_path_header = ConsumeByParserFunction(&input, &ParsePathAbsolute);
-        if (parsed_path_header.status == kParseSuccess)
+        if (parsed_path_header.is_valid())
           path_header = parsed_path_header.result;
         else
         {
           parsed_path_header = ConsumeByParserFunction(&input, &ParsePathNoScheme);
-          if (parsed_path_header.status == kParseSuccess)
+          if (parsed_path_header.is_valid())
             path_header = parsed_path_header.result;
           else
           {
             parsed_path_header = ConsumeByParserFunction(&input, &ParsePathEmpty);
-            if (parsed_path_header.status == kParseSuccess)
+            if (parsed_path_header.is_valid())
               path_header = parsed_path_header.result;
             else
               return output;
@@ -1463,7 +1444,7 @@ namespace http_parser
       if (ConsumeByCharacter(&input_tmp, '?') == 1)
       {
         ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriQuery);
-        if (parsed_query.status == kParseSuccess)
+        if (parsed_query.is_valid())
         {
           query = static_cast<PTNodeUriQuery*>(parsed_query.result);
           input = input_tmp;
@@ -1475,7 +1456,7 @@ namespace http_parser
       if (ConsumeByCharacter(&input_tmp, '#') == 1)
       {
         ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriFragment);
-        if (parsed_query.status == kParseSuccess)
+        if (parsed_query.is_valid())
         {
           fragment = static_cast<PTNodeUriFragment*>(parsed_query.result);
           input = input_tmp;
@@ -1489,8 +1470,7 @@ namespace http_parser
     uri_reference_relative->query = query;
     uri_reference_relative->fragment = fragment;
 
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    output.length = input.bytes - input_start;
     output.result = uri_reference_relative;
     return output;
   }
@@ -1502,12 +1482,12 @@ namespace http_parser
     PTNode* uri_header = NULL;
 
     ParseOutput parsed_uri_header = ConsumeByParserFunction(&input, &ParseUri);
-    if (parsed_uri_header.status == kParseSuccess)
+    if (parsed_uri_header.is_valid())
       uri_header = parsed_uri_header.result;
     else
     {
       parsed_uri_header = ConsumeByParserFunction(&input, &ParseUriReferenceRelative);
-      if (parsed_uri_header.status == kParseSuccess)
+      if (parsed_uri_header.is_valid())
         uri_header = parsed_uri_header.result;
       else
         return output;
@@ -1517,8 +1497,7 @@ namespace http_parser
     uri_reference->type = kUriReference;
     uri_reference->uri_header = uri_header;
 
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    output.length = input.bytes - input_start;
     output.result = uri_reference;
     return output;
   }
@@ -1567,8 +1546,7 @@ namespace http_parser
       http_version->type = kHttpVersion;
       http_version->content = StringSlice(input_start, input.bytes - input_start);
 
-      output.status = kParseSuccess;
-      output.parsed_length = input.bytes - input_start;
+      output.length = input.bytes - input_start;
       output.result = http_version;
     }
     return output;
@@ -1592,8 +1570,7 @@ namespace http_parser
       method->type = kMethod;
       method->content = StringSlice(input_start, input.bytes - input_start);
 
-      output.status = kParseSuccess;
-      output.parsed_length = input.bytes - input_start;
+      output.length = input.bytes - input_start;
       output.result = method;
     }
     return output;
@@ -1608,7 +1585,7 @@ namespace http_parser
 
     {
       ParseOutput parsed_absolute_path = ConsumeByParserFunction(&input, &ParsePathAbsolute);
-      if (parsed_absolute_path.status == kParseSuccess)
+      if (parsed_absolute_path.is_valid())
         absolute_path = static_cast<PTNodePathAbsolute*>(parsed_absolute_path.result);
       else
         return output;
@@ -1618,7 +1595,7 @@ namespace http_parser
       if (ConsumeByCharacter(&input_tmp, '?') == 1)
       {
         ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriQuery);
-        if (parsed_query.status == kParseSuccess)
+        if (parsed_query.is_valid())
         {
           query = static_cast<PTNodeUriQuery*>(parsed_query.result);
           input = input_tmp;
@@ -1631,8 +1608,7 @@ namespace http_parser
     request_target_origin_form->absolute_path = absolute_path;
     request_target_origin_form->query = query;
 
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    output.length = input.bytes - input_start;
     output.result = request_target_origin_form;
     return output;
   }
@@ -1647,7 +1623,7 @@ namespace http_parser
     ArenaSnapshot snapshot = temporary::arena.snapshot();
     {
       ParseOutput parsed_host = ConsumeByParserFunction(&input, &ParseUriHost);
-      if (parsed_host.status == kParseSuccess)
+      if (parsed_host.is_valid())
         host = static_cast<PTNodeUriHost*>(parsed_host.result);
       else
         return output;
@@ -1659,7 +1635,7 @@ namespace http_parser
     }
     {
       ParseOutput parsed_host = ConsumeByParserFunction(&input, &ParseUriPort);
-      if (parsed_host.status == kParseSuccess)
+      if (parsed_host.is_valid())
         port = static_cast<PTNodeUriPort*>(parsed_host.result);
       else
       {
@@ -1673,8 +1649,7 @@ namespace http_parser
     request_target_authority_form->host = host;
     request_target_authority_form->port = port;
 
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    output.length = input.bytes - input_start;
     output.result = request_target_authority_form;
     return output;
   }
@@ -1689,8 +1664,7 @@ namespace http_parser
       PTNodeRequestTargetAsteriskForm*  request_target_asterisk_form = PTNodeCreate<PTNodeRequestTargetAsteriskForm>();
       request_target_asterisk_form->type = kRequestAsteriskForm;
 
-      output.status = kParseSuccess;
-      output.parsed_length = input.bytes - input_start;
+      output.length = input.bytes - input_start;
       output.result = request_target_asterisk_form;
     }
     return output;
@@ -1707,7 +1681,7 @@ namespace http_parser
     ArenaSnapshot snapshot = temporary::arena.snapshot();
     {
       ParseOutput parsed_method = ConsumeByParserFunction(&input, &ParseMethod);
-      if (parsed_method.status == kParseSuccess)
+      if (parsed_method.is_valid())
         method = static_cast<PTNodeMethod*>(parsed_method.result);
       else
         return output;
@@ -1719,22 +1693,22 @@ namespace http_parser
     }
     {
       ParseOutput parsed_request_target = ConsumeByParserFunction(&input, &ParseRequestTargetOriginForm);
-      if (parsed_request_target.status == kParseSuccess)
+      if (parsed_request_target.is_valid())
         request_target_header = parsed_request_target.result;
       else
       {
         parsed_request_target = ConsumeByParserFunction(&input, &ParseUriAbsolute);
-        if (parsed_request_target.status == kParseSuccess)
+        if (parsed_request_target.is_valid())
           request_target_header = parsed_request_target.result;
         else
         {
           parsed_request_target = ConsumeByParserFunction(&input, &ParseRequestTargetAuthorityForm);
-          if (parsed_request_target.status == kParseSuccess)
+          if (parsed_request_target.is_valid())
             request_target_header = parsed_request_target.result;
           else
           {
             parsed_request_target = ConsumeByParserFunction(&input, &ParseRequestTargetAsteriskForm);
-            if (parsed_request_target.status == kParseSuccess)
+            if (parsed_request_target.is_valid())
               request_target_header = parsed_request_target.result;
             else
             {
@@ -1752,7 +1726,7 @@ namespace http_parser
     }
     {
       ParseOutput parsed_http_version = ConsumeByParserFunction(&input, &ParseHttpVersion);
-      if (parsed_http_version.status == kParseSuccess)
+      if (parsed_http_version.is_valid())
         version = static_cast<PTNodeHttpVersion*>(parsed_http_version.result);
       else
       {
@@ -1766,9 +1740,8 @@ namespace http_parser
     request_line->method = method;
     request_line->request_target_header = request_target_header;
     request_line->version = version;
-
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    
+    output.length = input.bytes - input_start;
     output.result = request_line;
     return output;
   }
@@ -1797,9 +1770,8 @@ namespace http_parser
       PTNodeReasonPhrase*  reason_phrase = PTNodeCreate<PTNodeReasonPhrase>();
       reason_phrase->type = kStatusReasonPhrase;
       reason_phrase->content = StringSlice(input_start, input.bytes - input_start);
-
-      output.status = kParseSuccess;
-      output.parsed_length = input.bytes - input_start;
+      
+      output.length = input.bytes - input_start;
       output.result = reason_phrase;
     }
     return output;
@@ -1823,9 +1795,8 @@ namespace http_parser
       PTNodeStatusCode*  status_code = PTNodeCreate<PTNodeStatusCode>();
       status_code->type = kStatusCode;
       status_code->number  = number;
-
-      output.status = kParseSuccess;
-      output.parsed_length = input.bytes - input_start;
+      
+      output.length = input.bytes - input_start;
       output.result = status_code;
     }
     return output;
@@ -1842,7 +1813,7 @@ namespace http_parser
     ArenaSnapshot snapshot = temporary::arena.snapshot();
     {
       ParseOutput parsed_http_version = ConsumeByParserFunction(&input, &ParseHttpVersion);
-      if (parsed_http_version.status == kParseSuccess)
+      if (parsed_http_version.is_valid())
         http_version = static_cast<PTNodeHttpVersion*>(parsed_http_version.result);
       else
         return output;
@@ -1854,7 +1825,7 @@ namespace http_parser
     }
     {
       ParseOutput parsed_status_code = ConsumeByParserFunction(&input, &ParseStatusCode);
-      if (parsed_status_code.status == kParseSuccess)
+      if (parsed_status_code.is_valid())
         status_code = static_cast<PTNodeStatusCode*>(parsed_status_code.result);
       else
       {
@@ -1869,7 +1840,7 @@ namespace http_parser
     }
     {
       ParseOutput parsed_reason_phrase = ConsumeByParserFunction(&input, &ParseReasonPhrase);
-      if (parsed_reason_phrase.status == kParseSuccess)
+      if (parsed_reason_phrase.is_valid())
         reason_phrase = static_cast<PTNodeReasonPhrase*>(parsed_reason_phrase.result);
     }
     PTNodeStatusLine*  status_line = PTNodeCreate<PTNodeStatusLine>();
@@ -1877,9 +1848,8 @@ namespace http_parser
     status_line->http_version = http_version;
     status_line->status_code = status_code;
     status_line->reason_phrase = reason_phrase;
-
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    
+    output.length = input.bytes - input_start;
     output.result = status_line;
     return output;
   }
@@ -1937,9 +1907,8 @@ namespace http_parser
     PTNodeFieldValue*  field_value = PTNodeCreate<PTNodeFieldValue>();
     field_value->type = kFieldValue;
     field_value->content = StringSlice(value_start, value_end - value_start);
-
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    
+    output.length = input.bytes - input_start;
     output.result = field_value;
     return output;
   }
@@ -1954,7 +1923,7 @@ namespace http_parser
     ArenaSnapshot snapshot = temporary::arena.snapshot();
     {
       ParseOutput parsed_field_name = ConsumeByParserFunction(&input, &ParseToken);
-      if (parsed_field_name.status == kParseSuccess)
+      if (parsed_field_name.is_valid())
         name = static_cast<PTNodeToken*>(parsed_field_name.result);
       else
         return output;
@@ -1967,7 +1936,7 @@ namespace http_parser
     ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
     {
       ParseOutput parsed_field_value = ConsumeByParserFunction(&input, &ParseFieldValue);
-      if (parsed_field_value.status == kParseSuccess)
+      if (parsed_field_value.is_valid())
         value = static_cast<PTNodeFieldValue*>(parsed_field_value.result);
       else
       {
@@ -1982,8 +1951,7 @@ namespace http_parser
     field_line->name = name;
     field_line->value = value;
 
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    output.length = input.bytes - input_start;
     output.result = field_line;
     return output;
   }
@@ -1998,7 +1966,7 @@ namespace http_parser
     {
       ArenaSnapshot snapshot = temporary::arena.snapshot();
       ParseOutput parsed_field = ConsumeByParserFunction(&input, &ParseFieldLine);
-      if (parsed_field.status == kParseSuccess)
+      if (parsed_field.is_valid())
       {
         if (ConsumeByScanFunction(&input, &ScanNewLine).is_valid())
           fields.push_back(static_cast<PTNodeFieldLine*>(parsed_field.result));
@@ -2015,9 +1983,8 @@ namespace http_parser
     PTNodeFields*  node_fields = PTNodeCreate<PTNodeFields>();
     node_fields->type = kFields;
     node_fields->fields = fields;
-
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    
+    output.length = input.bytes - input_start;
     output.result = node_fields;
     return output;
   }
@@ -2034,7 +2001,7 @@ namespace http_parser
     ArenaSnapshot snapshot = temporary::arena.snapshot();
     {
       ParseOutput parsed_main_type = ConsumeByParserFunction(&input, &ParseToken);
-      if (parsed_main_type.status != kParseSuccess)
+      if (!parsed_main_type.is_valid())
         return output;
     }
     if (ConsumeByCharacter(&input, '/') == 0)
@@ -2044,7 +2011,7 @@ namespace http_parser
     }
     {
       ParseOutput parsed_sub_type = ConsumeByParserFunction(&input, &ParseToken);
-      if (parsed_sub_type.status != kParseSuccess)
+      if (!parsed_sub_type.is_valid())
       {
         temporary::arena.rollback(snapshot);
         return output;
@@ -2055,7 +2022,7 @@ namespace http_parser
     PTNodeParameters* parameters = NULL;
     {
       ParseOutput parsed_parameters = ConsumeByParserFunction(&input, &ParseParameters);
-      if (parsed_parameters.status == kParseSuccess)
+      if (parsed_parameters.is_valid())
         parameters = static_cast<PTNodeParameters*>(parsed_parameters.result);
       else
         return output;
@@ -2066,8 +2033,7 @@ namespace http_parser
     content_type->content = StringSlice(input_start, content_end - input_start);
     content_type->parameters = parameters;
 
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    output.length = input.bytes - input_start;
     output.result = content_type;
     return output;
   }
@@ -2089,8 +2055,7 @@ namespace http_parser
       content_length->type = kFieldContentLength;
       content_length->number = number;
 
-      output.status = kParseSuccess;
-      output.parsed_length = input.bytes - input_start;
+      output.length = input.bytes - input_start;
       output.result = content_length;
     }
     return output;
@@ -2104,7 +2069,7 @@ namespace http_parser
 
     {
       ParseOutput parsed_connection_option = ConsumeByParserFunction(&input, &ParseToken);
-      if (parsed_connection_option.status == kParseSuccess)
+      if (parsed_connection_option.is_valid())
         options.push_back(static_cast<PTNodeToken*>(parsed_connection_option.result));
       else
       {
@@ -2116,7 +2081,7 @@ namespace http_parser
               !ConsumeByScanFunction(&input_tmp, &ScanOptionalWhitespace).is_valid())
             break;
           parsed_connection_option = ConsumeByParserFunction(&input_tmp, &ParseToken);
-          if (parsed_connection_option.status == kParseSuccess)
+          if (parsed_connection_option.is_valid())
           {
             options.push_back(static_cast<PTNodeToken*>(parsed_connection_option.result));
             input = input_tmp;
@@ -2129,9 +2094,8 @@ namespace http_parser
     PTNodeFieldConnection*  connection = PTNodeCreate<PTNodeFieldConnection>();
     connection->type = kFieldConnection;
     connection->options = options;
-
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    
+    output.length = input.bytes - input_start;
     output.result = connection;
     return output;
   }
@@ -2142,10 +2106,11 @@ namespace http_parser
     const char* input_start = input.bytes;
     PTNodeUriHost*  uri_host;
     PTNodeUriPort*  port;
+    PTNodeUriPort*  port = NULL;
 
     {
       ParseOutput parsed_uri_host = ConsumeByParserFunction(&input, &ParseUriHost);
-      if (parsed_uri_host.status == kParseSuccess)
+      if (parsed_uri_host.is_valid())
         uri_host = static_cast<PTNodeUriHost*>(parsed_uri_host.result);
       else
         return output;
@@ -2154,7 +2119,7 @@ namespace http_parser
     if (ConsumeByCharacter(&input_tmp, ':'))
     {
       ParseOutput parsed_port = ConsumeByParserFunction(&input_tmp, &ParseUriPort);
-      if (parsed_port.status == kParseSuccess)
+      if (parsed_port.is_valid())
       {
         port = static_cast<PTNodeUriPort*>(parsed_port.result);
         input = input_tmp;
@@ -2165,9 +2130,8 @@ namespace http_parser
     host->type = kFieldHost;
     host->host = uri_host;
     host->port = port;
-
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    
+    output.length = input.bytes - input_start;
     output.result = host;
     return output;
   }
@@ -2179,27 +2143,27 @@ namespace http_parser
     PTNode* uri_header = NULL;
     {
       ParseOutput parsed_uri_header = ConsumeByParserFunction(&input, &ParseUriAbsolute);
-      if (parsed_uri_header.status == kParseSuccess)
+      if (parsed_uri_header.is_valid())
         uri_header = parsed_uri_header.result;
       else
       {
         parsed_uri_header = ConsumeByParserFunction(&input, &ParseUriReferenceNetworkPath);
-        if (parsed_uri_header.status == kParseSuccess)
+        if (parsed_uri_header.is_valid())
           uri_header = parsed_uri_header.result;
         else
         {
           parsed_uri_header = ConsumeByParserFunction(&input, &ParsePathAbsolute);
-          if (parsed_uri_header.status == kParseSuccess)
+          if (parsed_uri_header.is_valid())
             uri_header = parsed_uri_header.result;
           else
           {
             parsed_uri_header = ConsumeByParserFunction(&input, &ParsePathNoScheme);
-            if (parsed_uri_header.status == kParseSuccess)
+            if (parsed_uri_header.is_valid())
               uri_header = parsed_uri_header.result;
             else
             {
               parsed_uri_header = ConsumeByParserFunction(&input, &ParsePathEmpty);
-              if (parsed_uri_header.status == kParseSuccess)
+              if (parsed_uri_header.is_valid())
                 uri_header = parsed_uri_header.result;
               else
                 return output;
@@ -2213,8 +2177,7 @@ namespace http_parser
     referer->type = kFieldReferer;
     referer->uri_header = uri_header;
 
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    output.length = input.bytes - input_start;
     output.result = referer;
     return output;
   }
@@ -2281,8 +2244,7 @@ namespace http_parser
     transfer_encoding->type = kFieldTransferEncoding;
     transfer_encoding->codings = codings;
 
-    output.status = kParseSuccess;
-    output.parsed_length = input.bytes - input_start;
+    output.length = input.bytes - input_start;
     output.result = transfer_encoding;
     return output;
   }
