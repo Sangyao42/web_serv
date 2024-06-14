@@ -1,13 +1,15 @@
 #include "Client.hpp"
 
+#include <string.h>
+
 bool process::file::ModifyFile(struct Client *clt)
 {
-	std::ofstream file(clt->path);
+	std::ofstream file(clt->path.c_str());
 	if (!file.is_open())
 	{
 		return false;
 	}
-	file << clt->req->getRequestBody();
+	file << clt->req.getRequestBody();
 	if (file.good())
 	{
 		file.close();
@@ -33,18 +35,18 @@ bool process::file::UploadFile(struct Client *clt)
 	if (pos != std::string::npos && file_path[pos + 1] == '/')
 	{
 		file_path += ".";
-		HeaderString *content_type = dynamic_cast<HeaderString *>(clt->req->returnValueAsPointer("Content-Type"));
+		HeaderString *content_type = dynamic_cast<HeaderString *>(clt->req.returnValueAsPointer("Content-Type"));
 		file_path += GenerateFileExtension(content_type->content(), clt->config->query->mime_types);
 	}
 
 	//create file and all the directories in the path
 	if (!CreateDirRecurs(file_path))
 		return false;
-	std::ofstream file(file_path);
+	std::ofstream file(file_path.c_str());
 	if (!file.is_open())
 		return false;
 	//write to file
-	file << clt->req->getRequestBody();
+	file << clt->req.getRequestBody();
 	if (!file.good())
 	{
 		file.close();
@@ -57,6 +59,7 @@ bool process::file::UploadFile(struct Client *clt)
 	// size_t root_pos = file_path.find(clt->config->query->root) + clt->config->query->root.size() - 1;
 	// clt->location_created = file_path.substr(root_pos);
 	clt->location_created = file_path;
+	return true;
 }
 
 bool process::file::DeleteFile(struct Client *clt)
@@ -69,7 +72,8 @@ bool process::file::DeleteFile(struct Client *clt)
 //helper functions
 std::string process::file::GenerateFileName(std::string path)
 {
-	std::time_t	time = std::time(nullptr);
+	(void) path;
+	std::time_t	time = std::time(NULL);
 	char time_buf[80];
 	std::strftime(time_buf, 80, "%Y-%m-%dT%H-%M-%SZ", std::gmtime(&time));
 	return (std::string(time_buf));

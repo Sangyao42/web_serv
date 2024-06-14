@@ -5,7 +5,7 @@ void	res_builder::AddLocationHeader(struct Client *clt)
 	std::string file_path = clt->location_created;
 	size_t root_pos = file_path.find(clt->config->query->root) + clt->config->query->root.size() - 1;
 	std::string location = file_path.substr(root_pos);
-	clt->res->addNewPair("Location", new HeaderString(location));
+	clt->res.addNewPair("Location", new HeaderString(location));
 }
 
 std::string	res_builder::MethodToString(enum directive::Method method)
@@ -30,7 +30,7 @@ void	res_builder::AddAllowHeader(struct Client *clt)
 	for (int i = 1; i < 8; i *= 2)
 		if (allowed_methods & i)
 			allows.push_back(MethodToString((enum directive::Method) i));
-	clt->res->addNewPair("Allow", new HeaderStringVector(allows));
+	clt->res.addNewPair("Allow", new HeaderStringVector(allows));
 }
 
 void	res_builder::AddAcceptHeader(struct Client *clt)
@@ -40,34 +40,34 @@ void	res_builder::AddAcceptHeader(struct Client *clt)
 	std::map<directive::MimeTypes::Extension, directive::MimeTypes::MimeType>::iterator	it;
 	for (it = mime_types.begin(); it != mime_types.end(); ++it)
 		accepts.push_back(it->second);
-	clt->res->addNewPair("Accept", new HeaderStringVector(accepts));
+	clt->res.addNewPair("Accept", new HeaderStringVector(accepts));
 }
 
 void	res_builder::BuildContentHeadersCGI(struct Client *clt)
 {
 	// add content-length header
-	clt->res->addNewPair("Content-Length", new HeaderInt(static_cast<int>(strtol(clt->cgi_content_length.c_str(), NULL, 10))));
+	clt->res.addNewPair("Content-Length", new HeaderInt(static_cast<int>(strtol(clt->cgi_content_length.c_str(), NULL, 10))));
 
 	// add content-type header
-	clt->res->addNewPair("Content-Type", new HeaderString(clt->cgi_content_type));
+	clt->res.addNewPair("Content-Type", new HeaderString(clt->cgi_content_type));
 }
 
 void	res_builder::BuildContentHeaders(struct Client *clt, std::string extension, std::string path)
 {
 	// add content-length header
-	clt->res->addNewPair("Content-Length", new HeaderInt(clt->res->getResponseBody().size()));
+	clt->res.addNewPair("Content-Length", new HeaderInt(clt->res.getResponseBody().size()));
 
 	// add content-type header
 	Maybe<directive::MimeTypes::MimeType> type = clt->config->query->mime_types->query(extension);
 	if (type.is_ok())
-		clt->res->addNewPair("Content-Type", new HeaderString(type.value()));
+		clt->res.addNewPair("Content-Type", new HeaderString(type.value()));
 
 	// add last-modified header
 	struct stat	file_stat;
 	if (!path.empty() && stat(path.c_str(), &file_stat) == 0)
 	{
 		std::string last_modified = GetTimeGMT((time_t) file_stat.st_mtime);
-		clt->res->addNewPair("Last-Modified", new HeaderString(last_modified));
+		clt->res.addNewPair("Last-Modified", new HeaderString(last_modified));
 	}
 }
 
@@ -106,11 +106,11 @@ std::string	res_builder::GetTimeGMT()
 
 void	res_builder::BuildBasicHeaders(Response *res)
 {
-	res->addNewPair("Server", new HeaderString("Webserv"));
-	res->addNewPair("Date", new HeaderString(GetTimeGMT()));
+	res.addNewPair("Server", new HeaderString("Webserv"));
+	res.addNewPair("Date", new HeaderString(GetTimeGMT()));
 }
 
-void	res_builder::BuildStatusLine(enum status_code status_code, std::string &response)
+void	res_builder::BuildStatusLine(StatusCode status_code, std::string &response)
 {
 	response = "";
 	response += "HTTP/1.1 ";
@@ -131,11 +131,11 @@ enum ResponseError	res_builder::ReadFileToBody(const std::string &path, Response
 	if (file.fail())
 	 return (kFileStreamError);
 
-	res->setResponseBody(ss.str());
+	res.setResponseBody(ss.str());
 	return (kNoError);
 }
 
-const std::string	&res_builder::StatusCodeAsString(enum status_code code)
+const std::string	&res_builder::StatusCodeAsString(StatusCode code)
 {
 	switch (code)
 	{
@@ -187,4 +187,3 @@ const std::string	&res_builder::StatusCodeAsString(enum status_code code)
 		 return (""); // Error
 	}
 }
- 

@@ -1,13 +1,15 @@
 #include "Request.hpp"
 
 Request::Request()
-: method_(kGet),
+: 	HTTPMessage(),
+	method_(kGet),
 	requestTarget_(),
 	version_(kStandard),
 	requestBody_() {}
 
 Request::Request(const Request &obj)
-: method_(obj.method_),
+:	HTTPMessage(obj),
+	method_(obj.method_),
 	requestTarget_(obj.requestTarget_),
 	version_(obj.version_),
 	requestBody_(obj.requestBody_) {}
@@ -20,6 +22,7 @@ Request &Request::operator=(const Request &obj)
 	requestTarget_ = obj.requestTarget_;
 	version_ = obj.version_;
 	requestBody_ = obj.requestBody_;
+	return (*this);
 }
 
 const Method	&Request::getMethod() const
@@ -29,7 +32,7 @@ const Method	&Request::getMethod() const
 
 const struct Uri	&Request::getRequestTarget() const
 {
-	return (requestTarget_)
+	return (requestTarget_);
 }
 
 const Version	&Request::getVersion() const

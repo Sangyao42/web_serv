@@ -10,7 +10,6 @@ HTTPMessage::HTTPMessage(const HTTPMessage &obj)
 	{
 		addNewPair(it->first, it->second->clone());
 	}
-	body_size_chunked_ = obj.body_size_chunked_;
 }
 
 HTTPMessage::~HTTPMessage()
@@ -28,7 +27,7 @@ HTTPMessage &HTTPMessage::operator=(const HTTPMessage &obj)
 	{
 		addNewPair(it->first, it->second->clone());
 	}
-	body_size_chunked_ = obj.body_size_chunked_;
+	return (*this);
 }
 
 void	HTTPMessage::addNewPair(std::string key, HeaderValue *value)
@@ -65,7 +64,7 @@ HeaderValue	*HTTPMessage::returnValueAsClonedPointer(std::string key) const
 	return (NULL); // key not found
 }
 
-const std::string	&HTTPMessage::returnMapAsString()
+std::string	HTTPMessage::returnMapAsString()
 {
 	// for generation of headers in response
 

@@ -23,7 +23,7 @@ enum Version
 	kBad // 400 Bad Request
 };
 
-enum status_code
+enum StatusCode
 {
 	k000 = 0, // default value
 	k200 = 200,

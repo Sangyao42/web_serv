@@ -8,7 +8,7 @@
 #include "HeaderValue/HeaderString.hpp"
 #include "HeaderValue/HeaderInt.hpp"
 #include "HeaderValue/HeaderStringVector.hpp"
-#include "Uri.hpp"
+#include "Uri/Uri.hpp"
 
 typedef std::pair<std::string, HeaderValue *>	HeaderPair;
 typedef std::map<std::string, HeaderValue *>	HeaderMap;
@@ -28,7 +28,6 @@ class HTTPMessage
 		HTTPMessage &operator=(const HTTPMessage &obj);
 
 		std::map<std::string, HeaderValue *>	headers_;
-		int	body_size_chunked_ = -1; // TODO: save body size after request parsing or optionally after response parsing
 
 		void	addNewPair(std::string key, HeaderValue *value);
 		void	addNewPair(HeaderPair pair);
@@ -36,8 +35,8 @@ class HTTPMessage
 		HeaderValue	*returnValueAsPointer(std::string key) const; // memory managed by this class
 		HeaderValue	*returnValueAsClonedPointer(std::string key) const; // should be freed elsewhere
 		HeaderPair	returnClonedPair(std::string key) const; // should be freed elsewhere
-		const std::string	&returnMapAsString();
+		std::string	returnMapAsString();
 
-	protected:
+	public:
 		void	cleanHeaderMap();
 };

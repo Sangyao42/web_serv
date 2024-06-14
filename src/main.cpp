@@ -8,6 +8,7 @@
 #include <string.h>
 #include <cerrno>
 #include <cassert>
+#include <signal.h>
 
 #include <vector>
 
@@ -57,7 +58,7 @@ int main(int argc, char **argv)
 {
 	(void) argc;
 	(void) argv;
-	// int server_running = 1;
+
 	if (signal(SIGINT, SignalHandler) == SIG_ERR)
 	{
 		std::cerr << "signal: " << strerror(errno) << std::endl;
@@ -78,7 +79,7 @@ int main(int argc, char **argv)
 
 	int max_clients = ws_database.worker_connections();
 	int client_count = 0;
-	enum SocketError err = sm.set_servers(ws_database.all_server_sockets());
+	SocketError err = sm.set_servers(ws_database.all_server_sockets());
 	if (err != kNoError)
 		return (err);
 	int server_socket_count = pollfds::AddServerFd(pfds, sm.get_servers());
@@ -90,7 +91,8 @@ int main(int argc, char **argv)
 		{
 			std::cerr << "poll: " << strerror(errno) << std::endl;
 			//TODO: error handling
-			return (kPollError);
+			err = kPollError;
+			break;
 		}
 		//check events for server sockets
 		for (int i = 0; i < server_socket_count; i++)
@@ -108,10 +110,10 @@ int main(int argc, char **argv)
 						//add client to pollfd
 						pollfds::AddClientFd(pfds, client_socket_fd);
 						client_count++;
-						//TODO: add client to clients vector ???
+						//add client to clients vector
 						struct Client client;
 						struct ClientSocket *client_socket = sm.get_one_client(client_socket_fd);
-						InitClient(&client, client_socket);
+						client_lifespan::InitClient(client, client_socket);
 						clients.push_back(client);
 					}
 				}
@@ -120,16 +122,16 @@ int main(int argc, char **argv)
 		//check events for client sockets
 		for (unsigned long i = server_socket_count; i < pfds.size(); i++)
 		{
-			//TODO: get the client struct by checking the pfds[i].fd
-			struct Client *clt = GetClientBySocket(&clients, pfds[i].fd);
+			//get the client struct by checking the pfds[i].fd
+			struct Client *clt = client_lifespan::GetClientByFd(clients, pfds[i].fd);
 			//check if client socket is timeout
 			bool timeout = sm.is_timeout(pfds[i].fd);
 			if ((pfds[i].revents & POLLERR))
 			{
 				std::cout << "poll error" << std::endl;
 				close(pfds[i].fd);
-				//TODO: delete client to clients vector
-				DeleteClientFromVector(&clients, pfds[i].fd);
+				//delete client from clients vector
+				client_lifespan::DeleteClientFromVector(clients, pfds[i].fd);
 				sm.delete_client_socket(pfds[i].fd);
 				pollfds::DeleteClientFd(pfds, i);
 				client_count--;
@@ -139,8 +141,7 @@ int main(int argc, char **argv)
 			{
 				std::cout << "poll hup" << std::endl;
 				close(pfds[i].fd);
-				//TODO: delete client to clients vector
-				DeleteClientFromVector(&clients, pfds[i].fd);
+				client_lifespan::DeleteClientFromVector(clients, pfds[i].fd);
 				sm.delete_client_socket(pfds[i].fd);
 				pollfds::DeleteClientFd(pfds, i);
 				client_count--;
@@ -152,8 +153,7 @@ int main(int argc, char **argv)
 				{
 					std::cout << "timeout" << std::endl;
 					close(pfds[i].fd);
-					//TODO: delete client to clients vector
-					DeleteClientFromVector(&clients, pfds[i].fd);
+					client_lifespan::DeleteClientFromVector(clients, pfds[i].fd);
 					sm.delete_client_socket(pfds[i].fd);
 					pollfds::DeleteClientFd(pfds, i);
 					client_count--;
@@ -165,10 +165,10 @@ int main(int argc, char **argv)
 			{
 				if (timeout == true)
 				{
-					//TODO: generate 408 Request Timeout and build std::string response in client
+					// generate 408 Request Timeout and build std::string response in client
 					// set 408 in client struct and process::ProcessRequest()
 					// client_lifespan::UpdateStatusCode(clt, k408);
-					clt.status_code = k408;
+					clt->status_code = k408;
 					std::cout << "timeout" << std::endl;
 					pfds[i].events = POLLOUT;
 					clt->keepAlive = false;
@@ -181,8 +181,7 @@ int main(int argc, char **argv)
 				if (recv_len <= 0)
 				{
 					std::cout << "recv_len <= 0" << std::endl;
-					//TODO: delete client to clients vector
-					DeleteClientFromVector(&clients, pfds[i].fd);
+					client_lifespan::DeleteClientFromVector(clients, pfds[i].fd);
 					close(pfds[i].fd);
 					pollfds::DeleteClientFd(pfds, i);
 					// sm.delete_client_socket(pfds[i].fd); Already done in recv_append()
@@ -207,7 +206,7 @@ int main(int argc, char **argv)
 					//parse request
 					if (!clt->continue_reading)
 					{
-						if (!clt->req->has_start_line())
+						if (!clt->req.has_start_line())
 						{
 							std::pair<ParseMetaData, RequestLine> start_line = ParseRequestLine(clt->client_socket->req_buf);
 							if (start_line.first.parse_error_flags == ParseError::kSyntax)
@@ -224,11 +223,11 @@ int main(int argc, char **argv)
 								if (start_line.first.parse_error_flags != ParseError::kNone)
 									clt->consume_body = false;
 								clt->status_code = ParserErrorToStatusCode(start_line.first.parse_error_flags);
-								clt->req->set_start_line(start_line.second);
+								clt->req.set_start_line(start_line.second);
 								clt->client_socket->req_buf.erase(0, start_line.first.parse_length);
 							}
 						}
-						if (!clt->req->has_headers())
+						if (!clt->req.has_headers())
 						{
 							std::pair<ParseMetaData, RequestLine> start_line = ParseRequestheaders(clt->client_socket->req_buf);
 							if (start_line.first.parse_error_flags != ParseError::kSyntax)
@@ -244,7 +243,7 @@ int main(int argc, char **argv)
 							{
 								if (start_line.first.parse_error_flags != ParseError::kNone)
 									clt->consume_body = false;
-								clt->req->set_headers(start_line.second);
+								clt->req.set_headers(start_line.second);
 								clt->client_socket->req_buf.erase(0, start_line.first.parse_length);
 							}
 						}
@@ -275,7 +274,7 @@ int main(int argc, char **argv)
 								chunk_size = chunk_size_line.second;
 								clt->client_socket->req_buf.erase(0, chunk_size_line.first.parse_length);
 							}
-							if ((clt->req.body.size() + chunk_size) > clt->max_body_size)
+							if ((clt->req.requestBody_.size() + chunk_size) > clt->max_body_size)
 							{
 								clt->exceed_max_body_size = true;
 							}
@@ -295,7 +294,7 @@ int main(int argc, char **argv)
 							if (!clt->exceed_max_body_size)
 							{
 								if (clt->consume_body)
-									ctl->req.body.append(chunk);
+									clt->req.requestBody_.append(chunk);
 							}
 							clt->client_socket->req_buf.erase(0, chunk_size);
 						} while (chunk_size > 0);
@@ -311,10 +310,10 @@ int main(int argc, char **argv)
 						if (!CheckCrlf(clt->client_socket->req_buf))
 						{
 							clt->status_code = k400;
-							clt->keelAlive = false;
+							clt->keepAlive = false;
 							process::ProcessRequest(clt);
 							pfds[i].events = POLLOUT;
-							continue
+							continue;
 						}
 						clt->client_socket->req_buf.erase(0, 2);
 						if (clt->continue_reading)
@@ -331,8 +330,8 @@ int main(int argc, char **argv)
 					{
 						if (!clt->continue_reading)
 						{
-							HeaderInt *content_length = dynamic_cast<HeaderInt *> (clt->req->returnValueAsPointer("Content-Length"));
-							if (content_length && content_length.content() > clt->max_body_size)
+							HeaderInt *content_length = dynamic_cast<HeaderInt *> (clt->req.returnValueAsPointer("Content-Length"));
+							if (content_length && content_length->content() > (int)clt->max_body_size)
 							{
 								clt->exceed_max_body_size = true;
 								clt->status_code = k413;
@@ -342,17 +341,17 @@ int main(int argc, char **argv)
 								continue;
 							}
 							if (content_length)
-								clt->content_length = content_length.content();
+								clt->content_length = content_length->content();
 						}
 						clt->continue_reading = false;
-						if (clt->content_length > len(clt->client_socket->req_buf))
+						if (clt->content_length > clt->client_socket->req_buf.length())
 						{
 							clt->continue_reading = true;
 							continue;
 						}
-						if (consume_body)
+						if (clt->consume_body)
 						{
-							clt->req.body = clt->client_socket->req_buf.substr(0, clt->content_length);
+							clt->req.requestBody_ = clt->client_socket->req_buf.substr(0, clt->content_length);
 						}
 						clt->client_socket->req_buf.erase(0, clt->content_length);
 						process::ProcessRequest(clt);
@@ -369,24 +368,24 @@ int main(int argc, char **argv)
 				if (send_len == -1)
 				{
 					close(pfds[i].fd);
-					//TODO: delete client from clients vector
-					DeleteClientFromVector(&clients, pfds[i].fd);
+					//delete client from clients vector
+					client_lifespan::DeleteClientFromVector(clients, pfds[i].fd);
 					pollfds::DeleteClientFd(pfds, i);
 					sm.delete_client_socket(pfds[i].fd);
 					client_count--;
 				}
 				else
 				{
-					// TODO :if keeplive is false
-					// 				close(pfds[i].fd);
+					// if keeplive is false
+					// close(pfds[i].fd);
+					// delete client from clients vector
 					// sm.delete_client_socket(pfds[i].fd);
 					// pollfds::DeleteClientFd(pfds, i);
 					// client_count--;
-					//TODO: delete client from clients vector
-					if (IsClientAlive(clt) == false)
+					if (client_lifespan::IsClientAlive(clt) == false)
 					{
 						close(pfds[i].fd);
-						DeleteClientFromVector(&clients, pfds[i].fd);
+						client_lifespan::DeleteClientFromVector(clients, pfds[i].fd);
 						sm.delete_client_socket(pfds[i].fd);
 						pollfds::DeleteClientFd(pfds, i);
 						client_count--;
@@ -399,13 +398,20 @@ int main(int argc, char **argv)
 						//set first_recv_time to to Maybe<time_t> init_time, which is_ok_ = false; and value does not matter
 						//set timeout to false
 						sm.set_time_assets(pfds[i].fd);
-						//TODO: reset Client struct for new request
-						ResetClient(&clients);
+						//reset Client struct for new request
+						client_lifespan::ResetClient(*clt);
 					}
 				}
 			}
 		}
 	}
-	//TODO: cleanup: close all sockets, clean vector of pollfds
-
+	// cleanup: close all client sockets, clean vector of pollfds
+	for (unsigned long i = server_socket_count; i < pfds.size(); i++)
+	{
+		close(pfds[i].fd);
+	}
+	// pfds.clear();
+	// clients.clear();
+	std::cout << "server stopped" << std::endl;
+	return (err);
 }

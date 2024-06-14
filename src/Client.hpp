@@ -14,8 +14,9 @@
 #include "Request.hpp"
 #include "Response.hpp"
 #include "Protocol.hpp"
-#include "SocketManager.hpp"
+#include "socket_manager/SocketManager.hpp"
 #include "Configuration.hpp"
+#include "constants.hpp"
 
 typedef std::string DName; // for dirent/autoindex
 typedef	unsigned char DType;
@@ -25,7 +26,7 @@ typedef DSet::iterator DSetIt;
 
 enum ResponseError
 {
-	kNoError,
+	kResponseNoError,
 	kFileOpenError,
 	kFilestreamError
 };
@@ -62,13 +63,13 @@ namespace client_lifespan
 	void	ResetClient(struct Client &client);
 
 	//update functions
-	void	UpdateStatusCode(struct Client &clt, status_code statuscode);
+	// void	UpdateStatusCode(struct Client &clt, StatusCode statuscode);
 	void	CheckHeaderBeforeProcess(struct Client *clt);
-	bool	IsClientAlive(struct Client &clt);
+	bool	IsClientAlive(struct Client *clt);
 
 	//helper functions
 	struct Client	*GetClientByFd(std::vector<struct Client> &clients, int client_fd);
-};
+}
 
 namespace process
 {
@@ -134,7 +135,7 @@ namespace res_builder
 
 	// error page related helper functions
 	void	BuildErrorHeaders(struct Client *clt);
-	const std::string &BuildErrorPage(enum status_code code);
+	const std::string &BuildErrorPage(StatusCode code);
 
 	// redirect related helper functions
 	void	BuildRedirectResponseBody(struct Client *clt);
@@ -158,7 +159,7 @@ namespace res_builder
 	std::string	GetTimeGMT();
 	std::string GetTimeGMT(time_t raw_time);
 	void	BuildBasicHeaders(Response *res);
-	void	BuildStatusLine(enum status_code status_code, std::string &response);
+	void	BuildStatusLine(StatusCode status_code, std::string &response);
 	enum ResponseError	ReadFileToBody(const std::string &path, Response *res);
-	const std::string	&StatusCodeAsString(enum status_code code);
+	const std::string	&StatusCodeAsString(StatusCode code);
 }

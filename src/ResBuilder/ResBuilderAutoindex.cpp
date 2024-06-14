@@ -99,13 +99,13 @@ void	res_builder::GenerateAutoindexResponse(struct Client *clt)
 		return ;
 	}
 
-	clt->res->setResponseBody(html);
+	clt->res.setResponseBody(html);
 
 	// build content headers
 	BuildContentHeaders(clt, "html", "");
 
 	// add headers to the response
-	std::string	headers = clt->res->returnMapAsString();
+	std::string	headers = clt->res.returnMapAsString();
 	if (headers.empty()) // stream error occurred
 	{
 		ServerError500(clt);
@@ -114,5 +114,5 @@ void	res_builder::GenerateAutoindexResponse(struct Client *clt)
 	response += headers;
 
 	// add body to response
-	response += clt->res->getResponseBody();
+	response += clt->res.getResponseBody();
 }

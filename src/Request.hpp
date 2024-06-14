@@ -21,7 +21,7 @@ class Request : public HTTPMessage
 		void	setVersion(const Version &version);
 		void	setRequestBody(const std::string &requestBody);
 
-	private:
+	public:
 		Method	method_;
 		struct Uri	requestTarget_;
 		Version	version_;

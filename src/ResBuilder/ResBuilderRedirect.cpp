@@ -24,13 +24,13 @@ void	res_builder::BuildRedirectResponseBody(struct Client *clt)
 		body += "</html>\r\n";
 	}
 
-	clt->res->setResponseBody(body);
+	clt->res.setResponseBody(body);
 }
 
 void	res_builder::GenerateRedirectResponse(struct Client *clt)
 {
 	const directive::Return *redirect = clt->config->query->redirect;
-	clt->status_code = (enum status_code) redirect->status_code();
+	clt->status_code = (StatusCode) redirect->status_code();
 
 	assert(clt->status_code == k301 || clt->status_code == k307 &&  "Invalid status code for redirect");
 
@@ -42,14 +42,14 @@ void	res_builder::GenerateRedirectResponse(struct Client *clt)
 	BuildBasicHeaders(clt->res);
 
 	std::string location = clt->config->query->redirect->get_path();
-	clt->res->addNewPair("Location", new HeaderString(location));
+	clt->res.addNewPair("Location", new HeaderString(location));
 
 	// build the body and content headers
 	BuildRedirectResponseBody(clt);
 	BuildContentHeaders(clt, "html", "");
 
 	// add headers to the response
-	std::string	headers = clt->res->returnMapAsString();
+	std::string	headers = clt->res.returnMapAsString();
 	if (headers.empty()) // stream error occurred
 	{
 		ServerError500(clt);
@@ -58,6 +58,6 @@ void	res_builder::GenerateRedirectResponse(struct Client *clt)
 	response += headers;
 
 	// add body to response
-	response += clt->res->getResponseBody();
+	response += clt->res.getResponseBody();
 }
 

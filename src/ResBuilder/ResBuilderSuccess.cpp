@@ -34,7 +34,7 @@ void	res_builder::BuildPostResponseBody(struct Client *clt)
 		body += "</html>\r\n";
 	}
 
-	clt->res->setResponseBody(body);
+	clt->res.setResponseBody(body);
 }
 
 void	res_builder::GenerateSuccessResponse(struct Client *clt)
@@ -53,7 +53,7 @@ void	res_builder::GenerateSuccessResponse(struct Client *clt)
 	}
 	else
 	{
-		if (clt->req->getMethod() == kGet) // it is not a cgi request
+		if (clt->req.getMethod() == kGet) // it is not a cgi request
 		{
 			if (ReadFileToBody(clt->path, clt->res) != kNoError)
 			{
@@ -62,7 +62,7 @@ void	res_builder::GenerateSuccessResponse(struct Client *clt)
 			}
 			BuildContentHeaders(clt, process::GetResContentType(clt->path), clt->path);
 		}
-		else if (clt->req->getMethod() == kPost) // it is not a cgi request
+		else if (clt->req.getMethod() == kPost) // it is not a cgi request
 		{
 			AddAllowHeader(clt);
 			AddLocationHeader(clt);
@@ -70,11 +70,11 @@ void	res_builder::GenerateSuccessResponse(struct Client *clt)
 			BuildContentHeaders(clt, "html", "");
 		}
 		else
-			assert(clt->req->getMethod() == kDelete && "Invalid method");
+			assert(clt->req.getMethod() == kDelete && "Invalid method");
 	}
 
 	// add headers to the response
-	std::string	headers = clt->res->returnMapAsString();
+	std::string	headers = clt->res.returnMapAsString();
 	if (headers.empty()) // stream error occurred
 	{
 		ServerError500(clt);
@@ -83,6 +83,6 @@ void	res_builder::GenerateSuccessResponse(struct Client *clt)
 	response += headers;
 
 	// add body to response
-	if (!clt->res->getResponseBody().empty())
-		response += clt->res->getResponseBody();
+	if (!clt->res.getResponseBody().empty())
+		response += clt->res.getResponseBody();
 }

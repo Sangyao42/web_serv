@@ -2,11 +2,12 @@
 
 #include <sys/wait.h>
 #include <cassert>
+#include <stdlib.h>
 
 void	cgi::ProcessGetRequestCgi(struct Client *clt)
 {
 	int	cgi_input[2], cgi_output[2];
-	int pipes = SetPipes(cgi_input, cgi_output, clt->req->getMethod()); //For CGI GET request, only cgi_output[2] is needed
+	int pipes = SetPipes(cgi_input, cgi_output, clt->req.getMethod()); //For CGI GET request, only cgi_output[2] is needed
 	if (pipes < 0)
 	{
 		clt->status_code = k500;
@@ -15,21 +16,21 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 	int pid = fork();
 	if (pid < 0)
 	{
-		close(cgi_output[PipeEnd::kRead]);
-		close(cgi_output[PipeEnd::kWrite]);
+		close(cgi_output[kRead]);
+		close(cgi_output[kWrite]);
 		clt->status_code = k500;
 		return (res_builder::GenerateErrorResponse(clt));
 	}
 	if (pid == 0)
 	{
 		//child process
-		close(cgi_output[PipeEnd::kRead]);
-		dup2(cgi_output[PipeEnd::kWrite], STDOUT_FILENO);
+		close(cgi_output[kRead]);
+		dup2(cgi_output[kWrite], STDOUT_FILENO);
 		assert(!clt->cgi_argv.empty() && "ProcessGetRequestCgi: clt->cgi_argv is NULL");
 		if (access(clt->cgi_argv[0].c_str(), F_OK | X_OK) != 0 || \
 		access(clt->cgi_argv[1].c_str(), F_OK | R_OK) != 0)
 		{
-			close(cgi_output[PipeEnd::kWrite]);
+			close(cgi_output[kWrite]);
 			exit(1);
 		}
 		SetCgiEnv(clt);
@@ -39,25 +40,25 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 		char** cgi_env = StringVecToTwoDimArray(cstrings_env, clt->cgi_env);
 		if (cgi_argv == NULL || cgi_env == NULL)
 		{
-			close(cgi_output[PipeEnd::kWrite]);
+			close(cgi_output[kWrite]);
 			exit(1);
 		}
 		execve(cgi_argv[0], cgi_argv, cgi_env);
 		std::cerr << "Error: execve" << std::endl;
-		close(cgi_output[PipeEnd::kWrite]);
+		close(cgi_output[kWrite]);
 		exit(1);
 	}
 	//parent process
 	std::string response_tmp;
-	close(cgi_output[PipeEnd::kWrite]);
+	close(cgi_output[kWrite]);
 	int wstats;
 	waitpid(pid, &wstats, 0);
 	if (WIFEXITED(wstats) && WEXITSTATUS(wstats) == 0)
 	{
-		int read_byte = ReadAll(cgi_output[PipeEnd::kRead], response_tmp);
-		close(cgi_output[PipeEnd::kRead]);
+		int read_byte = ReadAll(cgi_output[kRead], response_tmp);
+		close(cgi_output[kRead]);
 		assert(read_byte != 0 && "ReadAll: read byte is 0");
-		if (read < 0)
+		if (read_byte < 0)
 		{
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -88,14 +89,14 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 			// TODO: generate the response body with content type and content length
 			clt->cgi_content_type = cgi_output.content_type;
 			clt->cgi_content_length = cgi_output.content_body.size();
-			clt->res->setResponseBody(cgi_output.content_body);
+			clt->res.setResponseBody(cgi_output.content_body);
 			clt->status_code = k200;
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
 	}
 	else
 	{
-		close(cgi_output[PipeEnd::kRead]);
+		close(cgi_output[kRead]);
 		clt->status_code = k500;
 		return (res_builder::GenerateErrorResponse(clt));
 	}
@@ -104,7 +105,7 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 void	cgi::ProcessPostRequestCgi(struct Client *clt)
 {
 	int	cgi_input[2], cgi_output[2];
-	int pipes = SetPipes(cgi_input, cgi_output, clt->req->getMethod()); //For CGI GET request, only cgi_output[2] is needed
+	int pipes = SetPipes(cgi_input, cgi_output, clt->req.getMethod()); //For CGI GET request, only cgi_output[2] is needed
 	if (pipes < 0)
 	{
 		clt->status_code = k500;
@@ -113,25 +114,25 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 	int pid = fork();
 	if (pid < 0)
 	{
-		close(cgi_input[PipeEnd::kRead]);
-		close(cgi_input[PipeEnd::kWrite]);
-		close(cgi_output[PipeEnd::kRead]);
-		close(cgi_output[PipeEnd::kWrite]);
+		close(cgi_input[kRead]);
+		close(cgi_input[kWrite]);
+		close(cgi_output[kRead]);
+		close(cgi_output[kWrite]);
 		clt->status_code = k500;
 		return (res_builder::GenerateErrorResponse(clt));
 	}
 	if (pid == 0)
 	{
 		//child process
-		close(cgi_output[PipeEnd::kRead]);
-		dup2(cgi_output[PipeEnd::kWrite], STDOUT_FILENO);
-		close(cgi_input[PipeEnd::kWrite]);
-		dup2(cgi_input[PipeEnd::kRead], STDIN_FILENO);
+		close(cgi_output[kRead]);
+		dup2(cgi_output[kWrite], STDOUT_FILENO);
+		close(cgi_input[kWrite]);
+		dup2(cgi_input[kRead], STDIN_FILENO);
 		if (access(clt->cgi_argv[0].c_str(), F_OK | X_OK) != 0 || \
 		access(clt->cgi_argv[1].c_str(), F_OK | R_OK) != 0)
 		{
-			close(cgi_input[PipeEnd::kRead]);
-			close(cgi_output[PipeEnd::kWrite]);
+			close(cgi_input[kRead]);
+			close(cgi_output[kWrite]);
 			exit(1);
 		}
 		SetCgiEnv(clt);
@@ -141,44 +142,44 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 		char** cgi_env = StringVecToTwoDimArray(cstrings_env, clt->cgi_env);
 		if (cgi_argv == NULL || cgi_env == NULL)
 		{
-			close(cgi_input[PipeEnd::kRead]);
-			close(cgi_output[PipeEnd::kWrite]);
+			close(cgi_input[kRead]);
+			close(cgi_output[kWrite]);
 			exit(1);
 		}
 		execve(cgi_argv[0], cgi_argv, cgi_env);
 		std::cerr << "Error: execve" << std::endl;
-		close(cgi_input[PipeEnd::kRead]);
-		close(cgi_output[PipeEnd::kWrite]);
+		close(cgi_input[kRead]);
+		close(cgi_output[kWrite]);
 		exit(1);
 	}
 	//parent process
 	//write to child process
-	close(cgi_input[PipeEnd::kRead]);
-	int content_size = clt->req->getRequestBody().size();
-	char *content_str = const_cast<char *>(clt->req->getRequestBody().c_str());
-	int write_byte = WriteAll(cgi_input[PipeEnd::kWrite], content_str, content_size);
+	close(cgi_input[kRead]);
+	int content_size = clt->req.getRequestBody().size();
+	char *content_str = const_cast<char *>(clt->req.getRequestBody().c_str());
+	int write_byte = WriteAll(cgi_input[kWrite], content_str, content_size);
 	assert (write_byte != 0 && "WriteAll: write byte is 0");
 	if (write_byte < 0 && write_byte != content_size)
 	{
-		close(cgi_input[PipeEnd::kWrite]);
-		close(cgi_output[PipeEnd::kRead]);
-		close(cgi_output[PipeEnd::kWrite]);
+		close(cgi_input[kWrite]);
+		close(cgi_output[kRead]);
+		close(cgi_output[kWrite]);
 		clt->status_code = k500;
 		return (res_builder::GenerateErrorResponse(clt));
 	}
-	close(cgi_input[PipeEnd::kWrite]);
+	close(cgi_input[kWrite]);
 
 	//read from child process
 	std::string response_tmp;
-	close(cgi_output[PipeEnd::kWrite]);
+	close(cgi_output[kWrite]);
 	int wstats;
 	waitpid(pid, &wstats, 0);
 	if (WIFEXITED(wstats) && WEXITSTATUS(wstats) == 0)
 	{
-		int read_byte = ReadAll(cgi_output[PipeEnd::kRead], response_tmp);
-		close(cgi_output[PipeEnd::kRead]);
+		int read_byte = ReadAll(cgi_output[kRead], response_tmp);
+		close(cgi_output[kRead]);
 		assert(read_byte != 0 && "ReadAll: read byte is 0");
-		if (read < 0)
+		if (read_byte < 0)
 		{
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -209,14 +210,14 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 			// TODO: generate the response body with content type and content length
 			clt->cgi_content_type = cgi_output.content_type;
 			clt->cgi_content_length = cgi_output.content_body.size();
-			clt->res->setResponseBody(cgi_output.content_body);
+			clt->res.setResponseBody(cgi_output.content_body);
 			clt->status_code = k200;
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
 	}
 	else
 	{
-		close(cgi_output[PipeEnd::kRead]);
+		close(cgi_output[kRead]);
 		clt->status_code = k500;
 		return (res_builder::GenerateErrorResponse(clt));
 	}
@@ -233,11 +234,12 @@ int cgi::SetPipes(int *cgi_input, int *cgi_output, const Method method)
 	{
 		if (pipe(cgi_input) < 0)
 		{
-			close(cgi_output[PipeEnd::kRead]);
-			close(cgi_output[PipeEnd::kWrite]);
+			close(cgi_output[kRead]);
+			close(cgi_output[kWrite]);
 			return (-1);
 		}
 	}
+	return (0);
 }
 
 #define stringify(name) #name
@@ -250,12 +252,12 @@ void	cgi::SetCgiEnv(struct Client *clt)
 
 	//construct method
 	// char* convert_enum_to_string[] = {stringify(Monday), stringify(Tuesday), stringify(Wednesday), stringify(Thursday)};
-	// std::string method = convert_enum_to_string[clt->req->getMethod()];
+	// std::string method = convert_enum_to_string[clt->req.getMethod()];
 	// clt->cgi_env.push_back("REQUEST_METHOD=" + method);
-	clt->cgi_env.push_back("REQUEST_METHOD=" + clt->req->getMethod());
+	clt->cgi_env.push_back("REQUEST_METHOD=" + clt->req.getMethod());
 
 	//construct query_string
-	uri::Query query = clt->req->getRequestTarget().query;
+	uri::Query query = clt->req.getRequestTarget().query;
 	std::string query_string;
 	for (size_t i = 0; i < query.size(); ++i)
 	{
@@ -267,7 +269,7 @@ void	cgi::SetCgiEnv(struct Client *clt)
 	clt->cgi_env.push_back("QUERY_STRING=" + query_string);
 
 	//construct content_length
-	HeaderInt *content_length = dynamic_cast<HeaderInt *>(clt->req->returnValueAsPointer("Content-Length"));
+	HeaderInt *content_length = dynamic_cast<HeaderInt *>(clt->req.returnValueAsPointer("Content-Length"));
 	std::ostringstream content_length_str;
 	content_length->toStringStream(content_length_str);
 	if (content_length && content_length_str.good())
@@ -276,14 +278,14 @@ void	cgi::SetCgiEnv(struct Client *clt)
 		clt->cgi_env.push_back("CONTENT_LENGTH=");
 
 	//construct content_type
-	HeaderString *content_type = dynamic_cast<HeaderString *>(clt->req->returnValueAsPointer("Content-Type"));
+	HeaderString *content_type = dynamic_cast<HeaderString *>(clt->req.returnValueAsPointer("Content-Type"));
 	if (content_type)
 		clt->cgi_env.push_back("CONTENT_TYPE=" + content_type->content());
 	else
 		clt->cgi_env.push_back("CONTENT_TYPE=");
 
 	//construct request_uri
-	clt->cgi_env.push_back("REQUEST_URI=" + clt->req->getRequestTarget().path);
+	clt->cgi_env.push_back("REQUEST_URI=" + clt->req.getRequestTarget().path);
 
 	//construct document_uri // ? what is this? Probably for POST request with Location header ?
 

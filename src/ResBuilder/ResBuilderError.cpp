@@ -9,10 +9,10 @@ void	res_builder::BuildErrorHeaders(struct Client *clt)
 			AddAllowHeader(clt);
 			break ;
 		case k408:
-			clt->res->addNewPair("Connection", new HeaderString("close"));
+			clt->res.addNewPair("Connection", new HeaderString("close"));
 			break ;
 		case k413:
-			clt->res->addNewPair("Connection", new HeaderString("close"));
+			clt->res.addNewPair("Connection", new HeaderString("close"));
 			break ;
 		case k415:
 			AddAcceptHeader(clt);
@@ -22,7 +22,7 @@ void	res_builder::BuildErrorHeaders(struct Client *clt)
 	}
 }
 
-const std::string &res_builder::BuildErrorPage(enum status_code status_code)
+const std::string &res_builder::BuildErrorPage(StatusCode status_code)
 {
 	std::string response;
 
@@ -82,12 +82,12 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 	}
 	else
 	{
-		clt->res->setResponseBody(BuildErrorPage(clt->status_code));
+		clt->res.setResponseBody(BuildErrorPage(clt->status_code));
 		BuildContentHeaders(clt, "html", "");
 	}
 
 	// add headers to the response
-	std::string	headers = clt->res->returnMapAsString();
+	std::string	headers = clt->res.returnMapAsString();
 	if (headers.empty()) // stream error occurred
 	{
 		ServerError500(clt);
@@ -96,5 +96,5 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 	response += headers;
 
 	// add body to response
-	response += clt->res->getResponseBody();
+	response += clt->res.getResponseBody();
 }

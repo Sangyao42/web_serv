@@ -16,7 +16,7 @@ void	process::ProcessRequest(struct Client *clt)
 	if (clt->status_code != k000)
 		return (res_builder::GenerateErrorResponse(clt)); // there is an existing error
 
-	HeaderString	*connection = dynamic_cast<HeaderString *> (clt->req->returnValueAsPointer("Connection"));
+	HeaderString	*connection = dynamic_cast<HeaderString *> (clt->req.returnValueAsPointer("Connection"));
 	if (connection && connection->content() == "close")
 		clt->keepAlive = false;
 
@@ -24,7 +24,7 @@ void	process::ProcessRequest(struct Client *clt)
 	if (clt->config->query->redirect)
 		return (res_builder::GenerateRedirectResponse(clt));
 
-	switch(clt->req->getMethod())
+	switch(clt->req.getMethod())
 	{
 		case kGet:
 			return (process::ProcessGetRequest(clt));
@@ -46,7 +46,7 @@ void	process::ProcessGetRequest(struct Client *clt)
 		if (process::IsCgi(clt->cgi_argv, clt->path, location)) //check file extension and get the cgi path inside IsCgi
 			return (cgi::ProcessGetRequestCgi(clt));
 		std::string content_type = process::GetReqExtension(clt->path);
-		// if (!content_type.empty()  && !process::IsAcceptable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
+		// if (!content_type.empty()  && !process::IsAcceptable(content_type, clt->req.returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
 		// {
 		// 	clt->status_code = k406;
 		// 	return (res_builder::GenerateErrorResponse(clt));
@@ -78,7 +78,7 @@ void	process::ProcessGetRequest(struct Client *clt)
 		// if (process::IsCgi(clt->cgi_argv, clt->path, location))
 		// 	return (ProcessGetRequestCgi(clt));
 		// std::string content_type = process::GetReqExtension(index_path);
-		// if (!content_type.empty() && !process::IsAcceptable(content_type, clt->req->returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
+		// if (!content_type.empty() && !process::IsAcceptable(content_type, clt->req.returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
 		// {
 		// 	clt->status_code = k406;
 		// 	return (res_builder::GenerateErrorResponse(clt));
@@ -102,7 +102,7 @@ void	process::ProcessPostRequest(struct Client *clt)
 {
 	cache::LocationQuery	*location= clt->config->query;
 
-	HeaderString	*req_content_type = dynamic_cast<HeaderString *>(clt->req->returnValueAsPointer("Content-Type"));
+	HeaderString	*req_content_type = dynamic_cast<HeaderString *>(clt->req.returnValueAsPointer("Content-Type"));
 	if (req_content_type && !IsSupportedMediaType(req_content_type->content(), location->mime_types)) // checkt content type from request with MIME type
 	{
 		clt->status_code = k415;
