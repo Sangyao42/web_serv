@@ -33,7 +33,10 @@ HeaderInt	*HeaderInt::clone() const
 	return (new HeaderInt(*this));
 }
 
-void	HeaderInt::toStringStream(std::ostringstream &oss)
+std::string HeaderInt::to_string() const
 {
-	oss << content_;
+  char  buff[12];
+	std::snprintf(buff, 12, "%d", content_);
+  return std::string(buff);
 }
+

@@ -19,7 +19,7 @@ class HeaderStringVector : public HeaderValue
 		const ValueType	&type() const;
 		const StringVector &content() const;
 		HeaderStringVector	*clone() const;
-		void	toStringStream(std::ostringstream& oss);
+    std::string to_string() const;
 
 		void	addString(const std::string &str);
 		void	addString(const char *str);

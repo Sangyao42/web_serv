@@ -73,7 +73,7 @@ std::string	HTTPMessage::returnMapAsString()
 
 	for (it = headers_.begin(); it != headers_.end(); ++it)
 	{
-		oss << it->first << ": " << it->second << "\r\n";
+		oss << it->first << ": " << it->second->to_string() << "\r\n";
 	}
 	oss << "\r\n";
 
