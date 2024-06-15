@@ -16,6 +16,6 @@ struct Uri
   std::string     scheme;
   uri::Authority  authority;
   std::string     path;
-  uri::Query      query;
+  std::string     query;
   std::string     fragment;
 };
