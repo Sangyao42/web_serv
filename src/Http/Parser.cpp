@@ -830,11 +830,11 @@ namespace http_parser
 
     if (input.length >= 3)
     {
-      output.bytes = input.bytes;
       if (*input.bytes == '%' &&
           IsHexDigit(*(input.bytes + 1)) &&
           IsHexDigit(*(input.bytes + 2)))
       {
+        output.bytes = input.bytes;
         output.length = 3;
       }
     }
