@@ -28,7 +28,7 @@ enum ResponseError
 {
 	kResponseNoError,
 	kFileOpenError,
-	kFilestreamError
+	kFileStreamError
 };
 
 struct Client
@@ -135,7 +135,7 @@ namespace res_builder
 
 	// error page related helper functions
 	void	BuildErrorHeaders(struct Client *clt);
-	const std::string &BuildErrorPage(StatusCode code);
+	std::string BuildErrorPage(StatusCode code);
 
 	// redirect related helper functions
 	void	BuildRedirectResponseBody(struct Client *clt);
@@ -161,5 +161,5 @@ namespace res_builder
 	void	BuildBasicHeaders(Response *res);
 	void	BuildStatusLine(StatusCode status_code, std::string &response);
 	enum ResponseError	ReadFileToBody(const std::string &path, Response *res);
-	const std::string	&StatusCodeAsString(StatusCode code);
+	std::string	StatusCodeAsString(StatusCode code);
 }

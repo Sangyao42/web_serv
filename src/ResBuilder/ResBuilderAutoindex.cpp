@@ -38,17 +38,17 @@ std::string res_builder::BuildAutoindexHTML(DSet files, std::string path)
 	// add icons and links for directories and files
 	for (it = ++(files.begin()); it != files.end(); ++it)
 	{
-	for (it = ++(files.begin()); it != files.end(); ++it)
-	{
-        html += "<li><a href=\"";
-        html += it->second;
-		if (it->first == DT_DIR)
-            html += "\"><i class=\"fa-regular fa-folder\"></i>";
-        else
-            html += "\"><i class=\"fa-regular fa-file\"></i>";
-        html += it->second;
-        html += "</a></li>\r\n";
-	}
+    for (it = ++(files.begin()); it != files.end(); ++it)
+    {
+      html += "<li><a href=\"";
+      html += it->second;
+      if (it->first == DT_DIR)
+        html += "\"><i class=\"fa-regular fa-folder\"></i>";
+      else
+        html += "\"><i class=\"fa-regular fa-file\"></i>";
+      html += it->second;
+      html += "</a></li>\r\n";
+    }
 	}
 	html += "</ul>\r\n";
 	html += "</body>\r\n";
@@ -64,7 +64,7 @@ void	res_builder::GenerateAutoindexResponse(struct Client *clt)
 	BuildStatusLine(clt->status_code, response);
 
 	// build basic headers
-	BuildBasicHeaders(clt->res);
+	BuildBasicHeaders(&clt->res);
 
 	// build autoindex body
 	struct dirent *dirent;

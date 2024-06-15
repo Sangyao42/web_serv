@@ -1,4 +1,5 @@
 #include "HeaderStringVector.hpp"
+#include <cassert>
 
 HeaderStringVector::HeaderStringVector()
 : type_(kStringVector), content_(StringVector()) {}
@@ -19,6 +20,7 @@ HeaderStringVector &HeaderStringVector::operator=(const HeaderStringVector &obj)
 	content_.clear();
 	type_ = obj.type_;
 	content_ = obj.content_;
+  return *this;
 }
 
 const HeaderStringVector::ValueType	&HeaderStringVector::type() const

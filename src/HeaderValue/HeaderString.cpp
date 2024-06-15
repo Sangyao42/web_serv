@@ -15,6 +15,7 @@ HeaderString &HeaderString::operator=(const HeaderString &obj)
 {
 	type_ = obj.type_;
 	content_ = obj. content_;
+  return *this;
 }
 
 const HeaderString::ValueType	&HeaderString::type() const
@@ -36,3 +37,4 @@ void	HeaderString::toStringStream(std::ostringstream &oss)
 {
 	oss << content_;
 }
+

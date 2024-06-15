@@ -37,15 +37,21 @@ MAIN_SRC:= \
 	constants.cpp \
 	Cgi.cpp \
 	ClientLifespan.cpp \
-	Configuration.cpp \
 	FileManipulation.cpp \
 	HTTPMessage.cpp \
 	Process.cpp \
 	Request.cpp \
 	Response.cpp
 
+ARENA_SRC:= \
+	Arenas.cpp \
+	Arena/Arena.cpp
+
 URI_SRC:= \
 	Uri/Authority.cpp
+
+HTTP_SRC:= \
+	Http/Parser.cpp
 
 CONFIGURATION_SRC:= \
 	Configuration.cpp \
@@ -84,7 +90,7 @@ RESBUILDER_SRC:= \
 	ResBuilder/ResBuilderSuccess.cpp \
 	ResBuilder/ResBuilderUtils.cpp
 
-SRC:= $(MAIN_SRC) $(URI_SRC) $(CONFIGURATION_SRC) $(MISC_SRC) $(SOCKETMANAGER_SRC)
+SRC:= $(MAIN_SRC) $(ARENA_SRC) $(URI_SRC) $(HTTP_SRC) $(CONFIGURATION_SRC) $(MISC_SRC) $(SOCKETMANAGER_SRC) $(HEADERVALUE_SRC) $(RESBUILDER_SRC)
 
 ####################################
 ######     Library files     #######

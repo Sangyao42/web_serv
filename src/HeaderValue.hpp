@@ -10,7 +10,7 @@
 class HeaderValue
 {
 	public:
-		virtual ~HeaderValue();
+		virtual ~HeaderValue() {};
 
 		enum ValueType
 		{

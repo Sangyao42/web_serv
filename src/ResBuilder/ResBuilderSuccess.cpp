@@ -1,4 +1,5 @@
 #include "Client.hpp"
+#include <cassert>
 
 void	res_builder::BuildPostResponseBody(struct Client *clt)
 {
@@ -44,7 +45,7 @@ void	res_builder::GenerateSuccessResponse(struct Client *clt)
 	BuildStatusLine(clt->status_code, response);
 
 	// build basic headers
-	BuildBasicHeaders(clt->res);
+	BuildBasicHeaders(&clt->res);
 
 	// build the body and content headers
 	if (!clt->cgi_argv.empty())
@@ -55,12 +56,12 @@ void	res_builder::GenerateSuccessResponse(struct Client *clt)
 	{
 		if (clt->req.getMethod() == kGet) // it is not a cgi request
 		{
-			if (ReadFileToBody(clt->path, clt->res) != kNoError)
+			if (ReadFileToBody(clt->path, &clt->res) != kResponseNoError)
 			{
 				ServerError500(clt);
 				return ;
 			}
-			BuildContentHeaders(clt, process::GetResContentType(clt->path), clt->path);
+			BuildContentHeaders(clt, process::GetReqExtension(clt->path), clt->path);
 		}
 		else if (clt->req.getMethod() == kPost) // it is not a cgi request
 		{
@@ -86,3 +87,4 @@ void	res_builder::GenerateSuccessResponse(struct Client *clt)
 	if (!clt->res.getResponseBody().empty())
 		response += clt->res.getResponseBody();
 }
+
