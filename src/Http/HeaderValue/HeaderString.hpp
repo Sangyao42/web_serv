@@ -13,11 +13,10 @@ class HeaderString : public HeaderValue
 		HeaderString &operator=(const HeaderString &obj);
 
 		ValueType	type() const;
-
-		const std::string &content() const;
 		std::string valueAsString();
 
+		std::string& content();
+
 	private:
-		ValueType	type_;
 		std::string content_;
 };
