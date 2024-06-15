@@ -11,7 +11,7 @@ void	process::ProcessRequest(struct Client *clt)
 	// 	clt->status_code = k500;
 	// 	return (res_builder::GenerateErrorResponse(clt));
 	// }
-	assert(clt && clt->client_socket && clt->req && clt->res && "Client or client_socket or req or res is null");
+	assert(clt && clt->client_socket && "client_socket is null");
 
 	if (clt->status_code != k000)
 		return (res_builder::GenerateErrorResponse(clt)); // there is an existing error
