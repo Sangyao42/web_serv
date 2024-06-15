@@ -336,7 +336,7 @@ int main(int argc, char **argv)
 					{
 						if (!clt->continue_reading)
 						{
-							HeaderInt *content_length = dynamic_cast<HeaderInt *> (clt->req.returnValueAsPointer("Content-Length"));
+							HeaderInt *content_length = static_cast<HeaderInt *> (clt->req.returnValueAsPointer("Content-Length"));
 							if (content_length && content_length->content() > (int)clt->max_body_size)
 							{
 								clt->exceed_max_body_size = true;

@@ -16,7 +16,7 @@ void	process::ProcessRequest(struct Client *clt)
 	if (clt->status_code != k000)
 		return (res_builder::GenerateErrorResponse(clt)); // there is an existing error
 
-	HeaderString	*connection = dynamic_cast<HeaderString *> (clt->req.returnValueAsPointer("Connection"));
+	HeaderString	*connection = static_cast<HeaderString *> (clt->req.returnValueAsPointer("Connection"));
 	if (connection && connection->content() == "close")
 		clt->keepAlive = false;
 
@@ -102,7 +102,7 @@ void	process::ProcessPostRequest(struct Client *clt)
 {
 	cache::LocationQuery	*location= clt->config.query;
 
-	HeaderString	*req_content_type = dynamic_cast<HeaderString *>(clt->req.returnValueAsPointer("Content-Type"));
+	HeaderString	*req_content_type = static_cast<HeaderString *>(clt->req.returnValueAsPointer("Content-Type"));
 	if (req_content_type && !IsSupportedMediaType(req_content_type->content(), location->mime_types)) // checkt content type from request with MIME type
 	{
 		clt->status_code = k415;

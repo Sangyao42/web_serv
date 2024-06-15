@@ -274,7 +274,7 @@ void	cgi::SetCgiEnv(struct Client *clt)
 	clt->cgi_env.push_back("QUERY_STRING=" + clt->req.getRequestTarget().query);
 
 	//construct content_length
-	HeaderInt *content_length = dynamic_cast<HeaderInt *>(clt->req.returnValueAsPointer("Content-Length"));
+	HeaderInt *content_length = static_cast<HeaderInt *>(clt->req.returnValueAsPointer("Content-Length"));
 	std::ostringstream content_length_str;
 	content_length->toStringStream(content_length_str);
 	if (content_length && content_length_str.good())
@@ -283,7 +283,7 @@ void	cgi::SetCgiEnv(struct Client *clt)
 		clt->cgi_env.push_back("CONTENT_LENGTH=");
 
 	//construct content_type
-	HeaderString *content_type = dynamic_cast<HeaderString *>(clt->req.returnValueAsPointer("Content-Type"));
+	HeaderString *content_type = static_cast<HeaderString *>(clt->req.returnValueAsPointer("Content-Type"));
 	if (content_type)
 		clt->cgi_env.push_back("CONTENT_TYPE=" + content_type->content());
 	else

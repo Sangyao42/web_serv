@@ -79,13 +79,13 @@ bool client_lifespan::IsClientAlive(struct Client *clt)
 void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 {
 	// check if is_chunked
-	HeaderString	*transfer_encoding = dynamic_cast<HeaderString *> (clt->req.returnValueAsPointer("Transfer-Encoding"));
+	HeaderString	*transfer_encoding = static_cast<HeaderString *> (clt->req.returnValueAsPointer("Transfer-Encoding"));
 	if (transfer_encoding && transfer_encoding->content() == "chunked")
 	{
 		clt->is_chunked = true;
 	}
 
-	HeaderString	*Host = dynamic_cast<HeaderString *> (clt->req.returnValueAsPointer("Host"));
+	HeaderString	*Host = static_cast<HeaderString *> (clt->req.returnValueAsPointer("Host"));
 	// query configuration
 	clt->config = ws_database.query(clt->client_socket->socket, \
 		(Host ? Host->content() : ""), clt->req.getRequestTarget().path);
