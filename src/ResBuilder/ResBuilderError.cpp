@@ -22,7 +22,7 @@ void	res_builder::BuildErrorHeaders(struct Client *clt)
 	}
 }
 
-const std::string &res_builder::BuildErrorPage(StatusCode status_code)
+std::string res_builder::BuildErrorPage(StatusCode status_code)
 {
 	std::string response;
 
@@ -49,14 +49,14 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 	BuildStatusLine(clt->status_code, response);
 
 	// build basic and error headers
-	BuildBasicHeaders(clt->res); // add basic headers
+	BuildBasicHeaders(&clt->res); // add basic headers
 	BuildErrorHeaders(clt); // add additional headers according to the error code
 
 	// build the body
 
 	// first search for error pages in the configuration
 	// if not found, generate a default error page
-	std::vector<const directive::ErrorPage *>	errorPages = clt->config->query->error_pages;
+	std::vector<const directive::ErrorPage *>	errorPages = clt->config.query->error_pages;
 	std::vector<const directive::ErrorPage *>::const_iterator	it;
 
 	Maybe<std::string> result;
@@ -72,13 +72,13 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 	if (it != errorPages.end())
 	{
 		pathErrorPage = (*it)->file_path();
-		if (ReadFileToBody(pathErrorPage, clt->res) != kNoError);
+		if (ReadFileToBody(pathErrorPage, &clt->res) != kResponseNoError)
 		{
 			ServerError500(clt);
 			return ;
 		}
 		// build content headers
-		BuildContentHeaders(clt, process::GetResContentType(pathErrorPage), pathErrorPage);
+		BuildContentHeaders(clt, process::GetReqExtension(pathErrorPage), pathErrorPage);
 	}
 	else
 	{

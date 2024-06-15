@@ -15,6 +15,7 @@ HeaderInt &HeaderInt::operator=(const HeaderInt &obj)
 {
 	type_ = obj.type_;
 	content_ = obj.content_;
+  return *this;
 }
 
 const HeaderInt::ValueType	&HeaderInt::type() const

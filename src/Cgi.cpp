@@ -251,13 +251,18 @@ void	cgi::SetCgiEnv(struct Client *clt)
 	//server_addr, server_port, server_protocol, server_name
 
 	//construct method
-	// char* convert_enum_to_string[] = {stringify(Monday), stringify(Tuesday), stringify(Wednesday), stringify(Thursday)};
-	// std::string method = convert_enum_to_string[clt->req.getMethod()];
-	// clt->cgi_env.push_back("REQUEST_METHOD=" + method);
-	clt->cgi_env.push_back("REQUEST_METHOD=" + clt->req.getMethod());
+	std::string method;
+  switch (clt->req.getMethod())
+  {
+  case kGet: method = "GET"; break;
+  case kPost: method = "POST"; break;
+  case kDelete: method = "DELETE"; break;
+  default: {}
+  };
+	clt->cgi_env.push_back("REQUEST_METHOD=" + method);
+	// clt->cgi_env.push_back("REQUEST_METHOD=" + clt->req.getMethod());
 
 	//construct query_string
-	uri::Query query = clt->req.getRequestTarget().query;
 	// std::string query_string;
 	// for (size_t i = 0; i < query.size(); ++i)
 	// {

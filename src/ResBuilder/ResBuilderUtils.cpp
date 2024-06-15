@@ -3,7 +3,7 @@
 void	res_builder::AddLocationHeader(struct Client *clt)
 {
 	std::string file_path = clt->location_created;
-	size_t root_pos = file_path.find(clt->config->query->root) + clt->config->query->root.size() - 1;
+	size_t root_pos = file_path.find(clt->config.query->root) + clt->config.query->root.size() - 1;
 	std::string location = file_path.substr(root_pos);
 	clt->res.addNewPair("Location", new HeaderString(location));
 }
@@ -26,7 +26,7 @@ std::string	res_builder::MethodToString(enum directive::Method method)
 void	res_builder::AddAllowHeader(struct Client *clt)
 {
 	StringVector	allows;
-	directive::Methods	allowed_methods = clt->config->query->allowed_methods;
+	directive::Methods	allowed_methods = clt->config.query->allowed_methods;
 	for (int i = 1; i < 8; i *= 2)
 		if (allowed_methods & i)
 			allows.push_back(MethodToString((enum directive::Method) i));
@@ -36,7 +36,7 @@ void	res_builder::AddAllowHeader(struct Client *clt)
 void	res_builder::AddAcceptHeader(struct Client *clt)
 {
 	StringVector	accepts;
-	std::map<directive::MimeTypes::Extension, directive::MimeTypes::MimeType>	mime_types = clt->config->query->mime_types->get();
+	std::map<directive::MimeTypes::Extension, directive::MimeTypes::MimeType>	mime_types = clt->config.query->mime_types->get();
 	std::map<directive::MimeTypes::Extension, directive::MimeTypes::MimeType>::iterator	it;
 	for (it = mime_types.begin(); it != mime_types.end(); ++it)
 		accepts.push_back(it->second);
@@ -58,7 +58,7 @@ void	res_builder::BuildContentHeaders(struct Client *clt, std::string extension,
 	clt->res.addNewPair("Content-Length", new HeaderInt(clt->res.getResponseBody().size()));
 
 	// add content-type header
-	Maybe<directive::MimeTypes::MimeType> type = clt->config->query->mime_types->query(extension);
+	Maybe<directive::MimeTypes::MimeType> type = clt->config.query->mime_types->query(extension);
 	if (type.is_ok())
 		clt->res.addNewPair("Content-Type", new HeaderString(type.value()));
 
@@ -74,8 +74,7 @@ void	res_builder::BuildContentHeaders(struct Client *clt, std::string extension,
 void	res_builder::ServerError500(struct Client *clt)
 {
 	clt->status_code = k500;
-	delete clt->res;
-	clt->res = new Response();
+	clt->res = Response();
 	GenerateErrorResponse(clt);
 	return ;
 }
@@ -106,8 +105,8 @@ std::string	res_builder::GetTimeGMT()
 
 void	res_builder::BuildBasicHeaders(Response *res)
 {
-	res.addNewPair("Server", new HeaderString("Webserv"));
-	res.addNewPair("Date", new HeaderString(GetTimeGMT()));
+	res->addNewPair("Server", new HeaderString("Webserv"));
+	res->addNewPair("Date", new HeaderString(GetTimeGMT()));
 }
 
 void	res_builder::BuildStatusLine(StatusCode status_code, std::string &response)
@@ -131,11 +130,11 @@ enum ResponseError	res_builder::ReadFileToBody(const std::string &path, Response
 	if (file.fail())
 	 return (kFileStreamError);
 
-	res.setResponseBody(ss.str());
-	return (kNoError);
+	res->setResponseBody(ss.str());
+	return (kResponseNoError);
 }
 
-const std::string	&res_builder::StatusCodeAsString(StatusCode code)
+std::string	res_builder::StatusCodeAsString(StatusCode code)
 {
 	switch (code)
 	{
@@ -187,3 +186,4 @@ const std::string	&res_builder::StatusCodeAsString(StatusCode code)
 		 return (""); // Error
 	}
 }
+

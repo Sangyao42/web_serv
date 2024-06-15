@@ -1,4 +1,5 @@
 #include "Client.hpp"
+#include <cassert>
 
 void	res_builder::BuildRedirectResponseBody(struct Client *clt)
 {
@@ -29,7 +30,7 @@ void	res_builder::BuildRedirectResponseBody(struct Client *clt)
 
 void	res_builder::GenerateRedirectResponse(struct Client *clt)
 {
-	const directive::Return *redirect = clt->config->query->redirect;
+	const directive::Return *redirect = clt->config.query->redirect;
 	clt->status_code = (StatusCode) redirect->status_code();
 
 	assert(clt->status_code == k301 || clt->status_code == k307 &&  "Invalid status code for redirect");
@@ -39,9 +40,9 @@ void	res_builder::GenerateRedirectResponse(struct Client *clt)
 	BuildStatusLine(clt->status_code, response);
 
 	// build basic headers
-	BuildBasicHeaders(clt->res);
+	BuildBasicHeaders(&clt->res);
 
-	std::string location = clt->config->query->redirect->get_path();
+	std::string location = clt->config.query->redirect->get_path();
 	clt->res.addNewPair("Location", new HeaderString(location));
 
 	// build the body and content headers

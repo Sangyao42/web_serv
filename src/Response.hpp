@@ -18,3 +18,4 @@ class Response : public HTTPMessage
 	private:
 		std::string responseBody_;
 };
+

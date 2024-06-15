@@ -27,8 +27,6 @@ class HTTPMessage
 
 		HTTPMessage &operator=(const HTTPMessage &obj);
 
-		std::map<std::string, HeaderValue *>	headers_;
-
 		void	addNewPair(std::string key, HeaderValue *value);
 		void	addNewPair(HeaderPair pair);
 
@@ -36,7 +34,9 @@ class HTTPMessage
 		HeaderValue	*returnValueAsClonedPointer(std::string key) const; // should be freed elsewhere
 		HeaderPair	returnClonedPair(std::string key) const; // should be freed elsewhere
 		std::string	returnMapAsString();
+		void	cleanHeaderMap();
 
 	public:
-		void	cleanHeaderMap();
+		std::map<std::string, HeaderValue *>	headers_;
 };
+
