@@ -34,3 +34,17 @@ services:
         target: /web_serv
     depends_on:
       - web_serv
+
+  nginx:
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    image: mynginx
+    volumes:
+      - type: bind
+        source: www
+        target: /usr/share/nginx/html
+    ports:
+      - "8080:8080"
+    restart: on-failure

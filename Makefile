@@ -34,7 +34,15 @@ OBJS_DIR:= obj
 MAIN_SRC:= \
 	main.cpp \
 	Config2.cpp \
-	constants.cpp
+	constants.cpp \
+	Cgi.cpp \
+	ClientLifespan.cpp \
+	Configuration.cpp \
+	FileManipulation.cpp \
+	HTTPMessage.cpp \
+	Process.cpp \
+	Request.cpp \
+	Response.cpp
 
 ARENA_SRC:= \
 	Arenas.cpp \
@@ -74,7 +82,19 @@ MISC_SRC:= \
 SOCKETMANAGER_SRC:= \
 	socket_manager/SocketManager.cpp
 
-SRC:= $(MAIN_SRC) $(ARENA_SRC) $(URI_SRC) $(HTTP_SRC) $(CONFIGURATION_SRC) $(MISC_SRC) $(SOCKETMANAGER_SRC)
+HEADERVALUE_SRC:= \
+	HeaderValue/HeaderInt.cpp \
+	HeaderValue/HeaderString.cpp \
+	HeaderValue/HeaderStringVector.cpp
+
+RESBUILDER_SRC:= \
+	ResBuilder/ResBuilderAutoindex.cpp \
+	ResBuilder/ResBuilderError.cpp \
+	ResBuilder/ResBuilderRedirect.cpp \
+	ResBuilder/ResBuilderSuccess.cpp \
+	ResBuilder/ResBuilderUtils.cpp
+
+SRC:= $(MAIN_SRC) $(ARENA_SRC) $(URI_SRC) $(HTTP_SRC) $(CONFIGURATION_SRC) $(MISC_SRC) $(SOCKETMANAGER_SRC) $(HEADERVALUE_SRC) $(RESBUILDER_SRC)
 
 ####################################
 ######     Library files     #######
