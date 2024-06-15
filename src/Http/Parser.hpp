@@ -1,8 +1,42 @@
 #pragma once
 
 #include <string>
+#include <utility>
 
 #include "Arenas.hpp"
+#include "Request.hpp"
+
+typedef int ParseLength;
+#define ParseLengthInvalid -1
+
+enum  ParseError
+{
+  kNone,
+  kSyntaxError, // status 400 (close the socket)
+  kUnsupportedMethod, // status 501
+  kWrongMethod, // status 400
+  kUnsupportedRequestTarget, // status 501
+  kWrongRequestTarget, // status 400
+  kUnsupportedHttpVersion, // status 505
+  kUnsupportedIpAddress,   // status 505
+  kUnsupportedScheme, // status 505
+  kWrongHeader        // status 400
+};
+
+struct ParseMetaData
+{
+  int         parse_error_flags;
+  ParseLength parse_length;
+};
+
+namespace http_parser
+{
+struct PTNodeRequestLine;
+struct PTNodeFields;
+}
+
+enum ParseError ParseRequestLine(http_parser::PTNodeRequestLine* request_line, RequestLine* output);
+enum ParseError ParseRequestHeaders(http_parser::PTNodeFields* fields, HeaderMap* output);
 
 namespace http_parser
 {
@@ -386,7 +420,7 @@ namespace http_parser
 
   struct PTNodeMethod : public PTNode
   {
-    StringSlice content;
+    enum Method method; 
   };
 
   struct PTNodeRequestTargetOriginForm : public PTNode 
@@ -550,5 +584,21 @@ namespace http_parser
   partial-URI = relative-part [ "?" query ] */
   ParseOutput ParseFieldReferer(Input input);
 
+  /////////////////////////////////////////////////////
+  ///  fields used only in response (unimplemented) ///
+  /////////////////////////////////////////////////////
+
+  // Last-Modified = HTTP-date
+  ParseOutput ParseFieldLastModified(Input input);
+
+  // Allow = [ method *( OWS "," OWS method ) ]
+  ParseOutput ParseFieldAllow(Input input);
+
+  // Location = URI-reference
+  ParseOutput ParseFieldLocation(Input input);
+
+  /* Server              = product *( RWS ( product / comment ) )
+  product = token [ "/" product-version ] */
+  ParseOutput ParseFieldServer(Input input);
 } // namespace http_parser
 

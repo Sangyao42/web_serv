@@ -1,6 +1,227 @@
 #include "Parser.hpp"
 
 #include <cstring>
+#include "Arena/Arena.hpp"
+#include "HeaderValue/HeaderString.hpp"
+#include "Http/Protocol.hpp"
+#include "Http/Request.hpp"
+
+enum ParseError ParseUriAuthority(http_parser::PTNodeUriAuthority* authority, struct uri::Authority* output)
+{
+  enum ParseError error = kNone;
+
+  switch (authority->host->address_header->type)
+  {
+  case http_parser::kIpv6Address:
+  {
+    output->host.type = uri::Host::IPV6;
+    output->host.value = authority->host->ipv6_address->content.to_string();
+  } break;
+  case http_parser::kIpv4Address:
+  {
+    output->host.type = uri::Host::IPV4;
+    output->host.value = authority->host->ipv4_address->content.to_string();
+  } break;
+  case http_parser::kRegName:
+  {
+    output->host.type = uri::Host::REGNAME;
+    output->host.value = authority->host->reg_name->content.to_string();
+  } break;
+  case http_parser::kIpvFutureAddress:
+  default:
+  {
+    error = kUnsupportedIpAddress;
+  } break;
+  }
+  if (authority->port && authority->port->content.is_valid())
+    output->port = authority->port->content.to_string();
+  return error;
+}
+
+enum ParseError ParseRequestLine(http_parser::PTNodeRequestLine* request_line, RequestLine* output)
+{
+  if (!request_line)
+    return kSyntaxError;
+  enum ParseError error = kNone;
+  assert((request_line->type == http_parser::kRequestLine) && "Parse result should be a request line");
+
+  switch (request_line->method->method)
+  {
+  case kGet:
+  case kPost:
+  case kDelete:
+  {
+    output->method = request_line->method->method;
+  } break;
+  case kUnmatched:
+  {
+    error = kUnsupportedMethod;
+  } break;
+  case kWrong:
+  {
+    error = kWrongMethod;
+  } break;
+  }
+  switch(request_line->request_target_header->type)
+  {
+  case http_parser::kRequestTargetOriginForm:
+  {
+    http_parser::PTNodeRequestTargetOriginForm* origin_form = request_line->request_target_origin_form;
+    output->request_target.path = origin_form->absolute_path->content.to_string();
+    if (origin_form->query && origin_form->query->content.is_valid())
+      output->request_target.query = origin_form->query->content.to_string();
+  } break;
+  case http_parser::kUriAbsolute:
+  {
+    http_parser::PTNodeUriAbsolute* uri_absolute = request_line->request_target_absolute_form;
+    if (uri_absolute->scheme->content.bytes && (uri_absolute->scheme->content.match("http") == 4))
+      output->request_target.scheme = "http";
+    else
+    {
+      error = kUnsupportedScheme;
+      break;
+    }
+    if (uri_absolute->query && uri_absolute->query->content.bytes)
+      output->request_target.query = uri_absolute->query->content.to_string();
+    switch (uri_absolute->path_header->type)
+    {
+      case http_parser::kUriReferenceNetworkPath:
+      {
+        error = ParseUriAuthority(uri_absolute->network_path_reference->authority, &output->request_target.authority);
+        if (error)
+          break;
+        output->request_target.path = uri_absolute->network_path_reference->path->content.to_string();
+      } break;
+      case http_parser::kUriAbsolute:
+      {
+        output->request_target.path = uri_absolute->path_absolute->content.to_string();
+      } break;
+      case http_parser::kPathRootless:
+      {
+        output->request_target.path = uri_absolute->path_rootless->content.to_string();
+      } break;
+      case http_parser::kPathEmpty:
+      default:
+      {}
+    }
+  } break;
+  case http_parser::kRequestTargetAuthorityForm:
+  case http_parser::kRequestAsteriskForm:
+  {
+    error = kUnsupportedRequestTarget;
+  } break;
+  default:
+  {
+    error = kWrongRequestTarget;
+  }
+  }
+  {
+    http_parser::PTNodeHttpVersion* version = request_line->version;
+    if(version->content.match("HTTP/0.9") == 8)
+      output->version = kCompatible;
+    else if(version->content.match("HTTP/1.0") == 8)
+      output->version = kCompatible;
+    else if(version->content.match("HTTP/1.1") == 8)
+      output->version = kStandard;
+    else if(version->content.match("HTTP/2.0") == 8)
+      output->version = kCompatible;
+    else
+      error = kUnsupportedHttpVersion;
+  }
+  return error;
+}
+
+enum ParseError ParseRequestHeaders(http_parser::PTNodeFields* fields, HeaderMap* output)
+{
+  enum ParseError error = kNone;
+
+  (void) output;
+  for (temporary::vector<http_parser::PTNodeFieldLine*>::iterator it = fields->fields.begin(); it != fields->fields.end(); it++)
+  {
+    http_parser::PTNodeFieldLine* field_line = *it;
+    if (field_line->name->content.match("Content-Type") == 12)
+    {
+      http_parser::ParseOutput parsed_field = http_parser::ParseFieldContentType(field_line->value->content);
+      if (parsed_field.is_valid())
+      {
+
+      }
+      else
+      {
+        error = kWrongHeader;
+        break;
+      }
+    }
+    else if (field_line->name->content.match("Content-Length") == 14)
+    {
+      http_parser::ParseOutput parsed_field = http_parser::ParseFieldContentLength(field_line->value->content);
+      if (parsed_field.is_valid())
+      {
+
+      }
+      else
+      {
+        error = kWrongHeader;
+        break;
+      }
+
+    }
+    else if (field_line->name->content.match("Connection") == 10)
+    {
+      http_parser::ParseOutput parsed_field = http_parser::ParseFieldConnection(field_line->value->content);
+      if (parsed_field.is_valid())
+      {
+
+      }
+      else
+      {
+        error = kWrongHeader;
+        break;
+      }
+    }
+    else if (field_line->name->content.match("Host") == 4)
+    {
+      http_parser::ParseOutput parsed_field = http_parser::ParseFieldHost(field_line->value->content);
+      if (parsed_field.is_valid())
+      {
+
+      }
+      else
+      {
+        error = kWrongHeader;
+        break;
+      }
+    }
+    else if (field_line->name->content.match("Transfer-Encoding") == 17)
+    {
+      http_parser::ParseOutput parsed_field = http_parser::ParseFieldTransferEncoding(field_line->value->content);
+      if (parsed_field.is_valid())
+      {
+
+      }
+      else
+      {
+        error = kWrongHeader;
+        break;
+      }
+    }
+    else if (field_line->name->content.match("Referer") == 7)
+    {
+      http_parser::ParseOutput parsed_field = http_parser::ParseFieldReferer(field_line->value->content);
+      if (parsed_field.is_valid())
+      {
+
+      }
+      else
+      {
+        error = kWrongHeader;
+        break;
+      }
+    }
+    field_line++;
+  }
+  return error;
+}
 
 namespace http_parser
 {
@@ -1519,18 +1740,28 @@ namespace http_parser
     ParseOutput output;
     const char* input_start = input.bytes;
 
-    if ((ConsumeByCString(&input, "GET") == 3) ||
-        (ConsumeByCString(&input, "HEAD") == 4) ||
-        (ConsumeByCString(&input, "POST") == 4) ||
-        (ConsumeByCString(&input, "PUT") == 3) ||
-        (ConsumeByCString(&input, "DELETE") == 6) ||
-        (ConsumeByCString(&input, "CONNECT") == 7) ||
-        (ConsumeByCString(&input, "OPTIONS") == 7) ||
-        (ConsumeByCString(&input, "TRACE") == 5))
+    ArenaSnapshot snapshot = temporary::arena.snapshot();
+    ParseOutput parsed_token = ConsumeByParserFunction(&input, &ParseToken);
+    if (parsed_token.is_valid())
     {
+      enum Method method_name = kWrong;
+      StringSlice string = ((PTNodeToken*) parsed_token.result)->content;
+      if (string.match("GET") == 3)
+        method_name = kGet;
+      else if (string.match("POST") == 4)
+        method_name = kPost;
+      else if (string.match("DELETE") == 6)
+        method_name = kDelete;
+      else if ((string.match("HEAD") == 4) ||
+               (string.match("PUT") == 3) ||
+               (string.match("CONNECT") == 7) ||
+               (string.match("OPTIONS") == 7) ||
+               (string.match("TRACE") == 5))
+        method_name = kUnmatched;
+      temporary::arena.rollback(snapshot);
       PTNodeMethod*  method = PTNodeCreate<PTNodeMethod>();
       method->type = kMethod;
-      method->content = StringSlice(input_start, input.bytes - input_start);
+      method->method = method_name;
 
       output.length = input.bytes - input_start;
       output.result = method;
