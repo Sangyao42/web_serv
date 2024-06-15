@@ -85,10 +85,17 @@ void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 		clt->is_chunked = true;
 	}
 
-	HeaderString	*Host = static_cast<HeaderString *> (clt->req.returnValueAsPointer("Host"));
+	std::string requestline_host = clt->req.request_target_.authority.host.value;
+	if (requestline_host == "")
+	{
+		HeaderString	*header_host = static_cast<HeaderString *> (clt->req.returnValueAsPointer("Host"));
+		assert(header_host && "Host header is missing");
+		requestline_host = header_host->content();
+		assert((requestline_host != "") && "Host header is empty");
+	}
 	// query configuration
 	clt->config = ws_database.query(clt->client_socket->socket, \
-		(Host ? Host->content() : ""), clt->req.getRequestTarget().path);
+		requestline_host, clt->req.getRequestTarget().path);
 
 	assert(clt->config.query && "No configuration found for this request");
 
