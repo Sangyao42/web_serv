@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <utility>
 
 #include "Arenas.hpp"
 #include "Request.hpp"
@@ -13,21 +12,17 @@ enum  ParseError
 {
   kNone,
   kSyntaxError, // status 400 (close the socket)
-  kUnsupportedMethod, // status 501
   kWrongMethod, // status 400
-  kUnsupportedRequestTarget, // status 501
   kWrongRequestTarget, // status 400
+  kWrongHeader,        // status 400
+  kUnsupportedMethod, // status 501
+  kUnsupportedRequestTarget, // status 501
   kUnsupportedHttpVersion, // status 505
   kUnsupportedIpAddress,   // status 505
-  kUnsupportedScheme, // status 505
-  kWrongHeader        // status 400
+  kUnsupportedScheme // status 505
 };
 
-struct ParseMetaData
-{
-  int         parse_error_flags;
-  ParseLength parse_length;
-};
+StatusCode  ParseErrorToStatusCode(enum ParseError error);
 
 namespace http_parser
 {
@@ -35,8 +30,8 @@ struct PTNodeRequestLine;
 struct PTNodeFields;
 }
 
-enum ParseError ParseRequestLine(http_parser::PTNodeRequestLine* request_line, RequestLine* output);
-enum ParseError ParseRequestHeaders(http_parser::PTNodeFields* fields, HeaderMap* output);
+enum ParseError AnalysisRequestLine(http_parser::PTNodeRequestLine* request_line, RequestLine* output);
+enum ParseError AnalysisRequestHeaders(http_parser::PTNodeFields* fields, HeaderMap* output);
 
 namespace http_parser
 {
@@ -70,14 +65,14 @@ namespace http_parser
 
   struct StringSlice
   {
-    const char* bytes;
-    int         length;
+    const char*   bytes;
+    unsigned int  length;
 
     StringSlice();
-    StringSlice(const char* bytes, int length);
+    StringSlice(const char* bytes, unsigned int length);
     std::string to_string() const;
     bool  is_valid() const;
-    const char* consume(int amount = 1);
+    const char* consume(unsigned int amount = 1);
     int   match(const char* string);
   };
 

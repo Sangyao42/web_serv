@@ -2,6 +2,7 @@
 #include "socket_manager/SocketError.hpp"
 #include "Configuration.hpp"
 #include "Client.hpp"
+#include "Http/Parser.hpp"
 
 #include <poll.h>
 #include <unistd.h>
@@ -206,10 +207,11 @@ int main(int argc, char **argv)
 					//parse request
 					if (!clt->continue_reading)
 					{
-						if (!clt->req.has_start_line())
+            size_t  find_index = clt->client_socket->req_buf.find("\r\n");
+						if (find_index != std::string::npos)
 						{
-							std::pair<ParseMetaData, RequestLine> start_line = ParseRequestLine(clt->client_socket->req_buf);
-							if (start_line.first.parse_error_flags == ParseError::kSyntax)
+              http_parser::ParseOutput  parsed_request_line = http_parser::ParseRequestLine(http_parser::StringSlice(clt->client_socket->req_buf.c_str(), find_index + 2));
+							if (!parsed_request_line.is_valid())
 							{
 								//handle only syntax error
 								clt->status_code = k400;
@@ -220,17 +222,20 @@ int main(int argc, char **argv)
 							}
 							else
 							{
-								if (start_line.first.parse_error_flags != ParseError::kNone)
+                RequestLine request_line;
+                enum ParseError error = AnalysisRequestLine(static_cast<http_parser::PTNodeRequestLine*>(parsed_request_line.result), &request_line);
+								if (error != kNone) 
 									clt->consume_body = false;
-								clt->status_code = ParserErrorToStatusCode(start_line.first.parse_error_flags);
-								clt->req.set_start_line(start_line.second);
-								clt->client_socket->req_buf.erase(0, start_line.first.parse_length);
+								clt->status_code = ParseErrorToStatusCode(error);
+								clt->req.setRequestLine(request_line);
+								clt->client_socket->req_buf.erase(0, parsed_request_line.length);
 							}
 						}
-						if (!clt->req.has_headers())
+            find_index = clt->client_socket->req_buf.find("\r\n\r\n");
+						if (find_index != std::string::npos)
 						{
-							std::pair<ParseMetaData, RequestLine> start_line = ParseRequestheaders(clt->client_socket->req_buf);
-							if (start_line.first.parse_error_flags != ParseError::kSyntax)
+              http_parser::ParseOutput parsed_headers = ParseFields(http_parser::StringSlice(clt->client_socket->req_buf.c_str(), find_index + 4));
+							if (!parsed_headers.is_valid())
 							{
 								//handle only syntax error
 								clt->status_code = k400;
@@ -241,10 +246,11 @@ int main(int argc, char **argv)
 							}
 							else
 							{
-								if (start_line.first.parse_error_flags != ParseError::kNone)
+                enum ParseError error = AnalysisRequestHeaders(static_cast<http_parser::PTNodeFields*>(parsed_headers.result), &clt->req.headers_);
+								if (error != kNone) 
 									clt->consume_body = false;
-								clt->req.set_headers(start_line.second);
-								clt->client_socket->req_buf.erase(0, start_line.first.parse_length);
+                clt->status_code = ParseErrorToStatusCode(error);
+								clt->client_socket->req_buf.erase(0, parsed_headers.length);
 							}
 						}
 						client_lifespan::CheckHeaderBeforeProcess(clt);
@@ -252,79 +258,79 @@ int main(int argc, char **argv)
 					if (clt->is_chunked)
 					{
 						// find delimiter
-						int	chunk_size = 0;
-						clt->continue_reading = false;
-						bool syntax_error_during_unchunk = false;
-						do
-						{
-							std::pair<ParseMetaData, int> chunk_size_line = ParseChunkSizeLine(clt->client_socket->req_buf);
-							if (chunk_size_line.first.parse_error_flags == kNoCRLFFound)
-							{
-								clt->continue_reading = true;
-								break;
-							}
-							else if (chunk_size_line.first.parse_error_flags == kSyntaxError)
-							{
-								// handle syntax error
-								syntax_error_during_unchunk = true;
-								break;
-							}
-							else
-							{
-								chunk_size = chunk_size_line.second;
-								clt->client_socket->req_buf.erase(0, chunk_size_line.first.parse_length);
-							}
-							if ((clt->req.requestBody_.size() + chunk_size) > clt->max_body_size)
-							{
-								clt->exceed_max_body_size = true;
-							}
-							ParseMetaData = ParseChunkData(clt->client_socket->req_buf, chunk_size);
-							if (ParseMetaData.parse_error_flags == kNoCRLFFound)
-							{
-								clt->continue_reading = true;
-								break;
-							}
-							else if (ParseMetaData.parse_error_flags ==  kSyntaxError)
-							{
-								// handle syntax error
-								syntax_error_during_unchunk = true;
-								break;
-							}
-							std::string chunk = clt->client_socket->req_buf.substr(0, chunk_size);
-							if (!clt->exceed_max_body_size)
-							{
-								if (clt->consume_body)
-									clt->req.requestBody_.append(chunk);
-							}
-							clt->client_socket->req_buf.erase(0, chunk_size);
-						} while (chunk_size > 0);
-						if (syntax_error_during_unchunk) // when syntax error happens
-						{
-							clt->status_code = k400;
-							clt->keepAlive = false;
-							process::ProcessRequest(clt);
-							pfds[i].events = POLLOUT;
-							continue;
-						}
-						IgnoreEntityHeaders(clt->client_socket->req_buf);
-						if (!CheckCrlf(clt->client_socket->req_buf))
-						{
-							clt->status_code = k400;
-							clt->keepAlive = false;
-							process::ProcessRequest(clt);
-							pfds[i].events = POLLOUT;
-							continue;
-						}
-						clt->client_socket->req_buf.erase(0, 2);
-						if (clt->continue_reading)
-							continue;
-						if (clt->exceed_max_body_size)
-						{
-							clt->status_code = k413;
-							clt->keepAlive = false;
-						}
-						process::ProcessRequest(clt);
-						pfds[i].events = POLLOUT;
+						// int	chunk_size = 0;
+						// clt->continue_reading = false;
+						// bool syntax_error_during_unchunk = false;
+						// do
+						// {
+						// 	std::pair<ParseMetaData, int> chunk_size_line = ParseChunkSizeLine(clt->client_socket->req_buf);
+						// 	if (chunk_size_line.first.parse_error_flags == kNoCRLFFound)
+						// 	{
+						// 		clt->continue_reading = true;
+						// 		break;
+						// 	}
+						// 	else if (chunk_size_line.first.parse_error_flags == kSyntaxError)
+						// 	{
+						// 		// handle syntax error
+						// 		syntax_error_during_unchunk = true;
+						// 		break;
+						// 	}
+						// 	else
+						// 	{
+						// 		chunk_size = chunk_size_line.second;
+						// 		clt->client_socket->req_buf.erase(0, chunk_size_line.first.parse_length);
+						// 	}
+						// 	if ((clt->req.requestBody_.size() + chunk_size) > clt->max_body_size)
+						// 	{
+						// 		clt->exceed_max_body_size = true;
+						// 	}
+						// 	ParseMetaData = ParseChunkData(clt->client_socket->req_buf, chunk_size);
+						// 	if (ParseMetaData.parse_error_flags == kNoCRLFFound)
+						// 	{
+						// 		clt->continue_reading = true;
+						// 		break;
+						// 	}
+						// 	else if (ParseMetaData.parse_error_flags ==  kSyntaxError)
+						// 	{
+						// 		// handle syntax error
+						// 		syntax_error_during_unchunk = true;
+						// 		break;
+						// 	}
+						// 	std::string chunk = clt->client_socket->req_buf.substr(0, chunk_size);
+						// 	if (!clt->exceed_max_body_size)
+						// 	{
+						// 		if (clt->consume_body)
+						// 			clt->req.requestBody_.append(chunk);
+						// 	}
+						// 	clt->client_socket->req_buf.erase(0, chunk_size);
+						// } while (chunk_size > 0);
+						// if (syntax_error_during_unchunk) // when syntax error happens
+						// {
+						// 	clt->status_code = k400;
+						// 	clt->keepAlive = false;
+						// 	process::ProcessRequest(clt);
+						// 	pfds[i].events = POLLOUT;
+						// 	continue;
+						// }
+						// IgnoreEntityHeaders(clt->client_socket->req_buf);
+						// if (!CheckCrlf(clt->client_socket->req_buf))
+						// {
+						// 	clt->status_code = k400;
+						// 	clt->keepAlive = false;
+						// 	process::ProcessRequest(clt);
+						// 	pfds[i].events = POLLOUT;
+						// 	continue;
+						// }
+						// clt->client_socket->req_buf.erase(0, 2);
+						// if (clt->continue_reading)
+						// 	continue;
+						// if (clt->exceed_max_body_size)
+						// {
+						// 	clt->status_code = k413;
+						// 	clt->keepAlive = false;
+						// }
+						// process::ProcessRequest(clt);
+						// pfds[i].events = POLLOUT;
 					}
 					else
 					{

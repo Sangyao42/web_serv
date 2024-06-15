@@ -2,11 +2,41 @@
 
 #include <cstring>
 #include "Arena/Arena.hpp"
-#include "HeaderValue/HeaderString.hpp"
-#include "Http/Protocol.hpp"
-#include "Http/Request.hpp"
+#include "Request.hpp"
 
-enum ParseError ParseUriAuthority(http_parser::PTNodeUriAuthority* authority, struct uri::Authority* output)
+StatusCode  ParseErrorToStatusCode(enum ParseError error)
+{
+  StatusCode  status_code = k200;
+
+  switch (error)
+  {
+  case kNone:
+  {
+    status_code = k200;
+  } break;
+  case kSyntaxError:
+  case kWrongMethod:
+  case kWrongRequestTarget:
+  case kWrongHeader:
+  {
+    status_code = k400;
+  } break;
+  case kUnsupportedMethod:
+  case kUnsupportedRequestTarget:
+  {
+    status_code = k501;
+  } break;
+  case kUnsupportedHttpVersion:
+  case kUnsupportedIpAddress:
+  case kUnsupportedScheme:
+  {
+    status_code = k505;
+  } break;
+  }
+  return status_code;
+}
+
+enum ParseError AnalysisUriAuthority(http_parser::PTNodeUriAuthority* authority, struct uri::Authority* output)
 {
   enum ParseError error = kNone;
 
@@ -38,7 +68,7 @@ enum ParseError ParseUriAuthority(http_parser::PTNodeUriAuthority* authority, st
   return error;
 }
 
-enum ParseError ParseRequestLine(http_parser::PTNodeRequestLine* request_line, RequestLine* output)
+enum ParseError AnalysisRequestLine(http_parser::PTNodeRequestLine* request_line, RequestLine* output)
 {
   if (!request_line)
     return kSyntaxError;
@@ -87,7 +117,7 @@ enum ParseError ParseRequestLine(http_parser::PTNodeRequestLine* request_line, R
     {
       case http_parser::kUriReferenceNetworkPath:
       {
-        error = ParseUriAuthority(uri_absolute->network_path_reference->authority, &output->request_target.authority);
+        error = AnalysisUriAuthority(uri_absolute->network_path_reference->authority, &output->request_target.authority);
         if (error)
           break;
         output->request_target.path = uri_absolute->network_path_reference->path->content.to_string();
@@ -131,7 +161,7 @@ enum ParseError ParseRequestLine(http_parser::PTNodeRequestLine* request_line, R
   return error;
 }
 
-enum ParseError ParseRequestHeaders(http_parser::PTNodeFields* fields, HeaderMap* output)
+enum ParseError AnalysisRequestHeaders(http_parser::PTNodeFields* fields, HeaderMap* output)
 {
   enum ParseError error = kNone;
 
@@ -342,7 +372,7 @@ namespace http_parser
   StringSlice::StringSlice()
     : bytes(NULL), length(0) {}
 
-  StringSlice::StringSlice(const char* bytes, int length)
+  StringSlice::StringSlice(const char* bytes, unsigned int length)
     : bytes(bytes), length(length) {}
 
   std::string StringSlice::to_string() const
@@ -356,7 +386,7 @@ namespace http_parser
     return (bytes != NULL);
   }
 
-  const char* StringSlice::consume(int amount)
+  const char* StringSlice::consume(unsigned int amount)
   {
     const char* output = NULL;
     if (amount <= length)
@@ -372,7 +402,7 @@ namespace http_parser
   {
     int  matched_length = 0;
 
-    for (int i = 0; i < length; i++)
+    for (unsigned int i = 0; i < length; i++)
     {
       if (!*string || (bytes[i] != string[i]))
         break;
@@ -481,7 +511,7 @@ namespace http_parser
   static int ConsumeByCString(Input* input, const char* cstring)
   {
     int consumed_character = 0;
-    for (int i = 0; i < input->length; i++)
+    for (unsigned int i = 0; i < input->length; i++)
     {
       if (*cstring && (*cstring == input->bytes[i]))
       {

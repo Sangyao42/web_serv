@@ -37,7 +37,6 @@ MAIN_SRC:= \
 	constants.cpp \
 	Cgi.cpp \
 	ClientLifespan.cpp \
-	Configuration.cpp \
 	FileManipulation.cpp \
 	HTTPMessage.cpp \
 	Process.cpp \
@@ -46,16 +45,13 @@ MAIN_SRC:= \
 
 ARENA_SRC:= \
 	Arenas.cpp \
-	Arena/Arena.cpp \
-	Arena/main.cpp
+	Arena/Arena.cpp
 
 URI_SRC:= \
 	Uri/Authority.cpp
 
 HTTP_SRC:= \
-	Http/Request.cpp \
-	Http/Parser.cpp \
-	Http/HeaderValue/HeaderString.cpp
+	Http/Parser.cpp
 
 CONFIGURATION_SRC:= \
 	Configuration.cpp \
