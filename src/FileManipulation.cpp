@@ -36,7 +36,7 @@ bool process::file::UploadFile(struct Client *clt)
 	{
 		file_path += ".";
 		HeaderString *content_type = dynamic_cast<HeaderString *>(clt->req.returnValueAsPointer("Content-Type"));
-		file_path += GenerateFileExtension(content_type->content(), clt->config->query->mime_types);
+		file_path += GenerateFileExtension(content_type->content(), clt->config.query->mime_types);
 	}
 
 	//create file and all the directories in the path

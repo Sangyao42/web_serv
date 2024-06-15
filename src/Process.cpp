@@ -21,7 +21,7 @@ void	process::ProcessRequest(struct Client *clt)
 		clt->keepAlive = false;
 
 	//check redirect
-	if (clt->config->query->redirect)
+	if (clt->config.query->redirect)
 		return (res_builder::GenerateRedirectResponse(clt));
 
 	switch(clt->req.getMethod())
@@ -40,7 +40,7 @@ void	process::ProcessRequest(struct Client *clt)
 
 void	process::ProcessGetRequest(struct Client *clt)
 {
-	cache::LocationQuery	*location= clt->config->query;
+	cache::LocationQuery	*location= clt->config.query;
 	if (S_ISREG(clt->stat_buff.st_mode))
 	{
 		if (process::IsCgi(clt->cgi_argv, clt->path, location)) //check file extension and get the cgi path inside IsCgi
@@ -100,7 +100,7 @@ void	process::ProcessGetRequest(struct Client *clt)
 
 void	process::ProcessPostRequest(struct Client *clt)
 {
-	cache::LocationQuery	*location= clt->config->query;
+	cache::LocationQuery	*location= clt->config.query;
 
 	HeaderString	*req_content_type = dynamic_cast<HeaderString *>(clt->req.returnValueAsPointer("Content-Type"));
 	if (req_content_type && !IsSupportedMediaType(req_content_type->content(), location->mime_types)) // checkt content type from request with MIME type
@@ -176,7 +176,7 @@ void	process::ProcessPostRequest(struct Client *clt)
 
 void	process::ProcessDeleteRequest(struct Client *clt)
 {
-	cache::LocationQuery	*location= clt->config->query;
+	cache::LocationQuery	*location= clt->config.query;
 	if (IsCgi(clt->cgi_argv, clt->path, location))
 	{
 		clt->status_code = k405;

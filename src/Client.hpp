@@ -35,7 +35,7 @@ struct Client
 {
 	StatusCode	status_code;
 	struct ClientSocket	*client_socket;
-	const struct ConfigurationQueryResult	*config;
+	struct ConfigurationQueryResult	config;
 	struct stat	stat_buff;
 	std::string path;
 	std::vector<std::string> cgi_argv; //path to cgi executable and path to cgi script

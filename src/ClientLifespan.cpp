@@ -11,7 +11,8 @@ void	client_lifespan::InitClient(struct Client &client, struct ClientSocket *cli
 {
 	client.status_code = k000;
 	client.client_socket = client_socket;
-	client.config = NULL;
+	client.config.location_block = NULL;
+	client.config.query = NULL;
 	//???? do I need to set stat_buff to 0???
 	memset(&client.stat_buff, 0, sizeof(struct stat));
 	client.keepAlive = true;
@@ -29,7 +30,8 @@ void	client_lifespan::ResetClient(struct Client &client)
 {
 	client.status_code = k000;
 	client.client_socket->res_buf.clear();
-	client.config = NULL;
+	client.config.location_block = NULL;
+	client.config.query = NULL;
 	memset(&client.stat_buff, 0, sizeof(struct stat));
 	client.path.clear();
 	client.cgi_argv.clear();
@@ -85,13 +87,13 @@ void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 
 	HeaderString	*Host = dynamic_cast<HeaderString *> (clt->req.returnValueAsPointer("Host"));
 	// query configuration
-	clt->config = &ws_database.query(clt->client_socket->socket, \
+	clt->config = ws_database.query(clt->client_socket->socket, \
 		(Host ? Host->content() : ""), clt->req.getRequestTarget().path);
 
 	assert(clt->config && "No configuration found for this request");
 
-	assert(clt->config->query && "Location Block in Server block is empty"); //query gives the all the needed info related to server block and location block
-	cache::LocationQuery	*location= clt->config->query;
+	assert(clt->config.query && "Location Block in Server block is empty"); //query gives the all the needed info related to server block and location block
+	cache::LocationQuery	*location= clt->config.query;
 
 	clt->max_body_size = location->client_max_body_size;
 

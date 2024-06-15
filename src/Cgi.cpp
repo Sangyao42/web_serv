@@ -74,7 +74,7 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 			clt->status_code = k204;
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
-		if (!process:: IsSupportedMediaType(cgi_output.content_type, clt->config->query->mime_types)) //check the response content type with the MIME type
+		if (!process:: IsSupportedMediaType(cgi_output.content_type, clt->config.query->mime_types)) //check the response content type with the MIME type
 		{
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -195,7 +195,7 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 			clt->status_code = k204;
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
-		if (!process::IsSupportedMediaType(cgi_output.content_type, clt->config->query->mime_types)) //check the response content type with the MIME type
+		if (!process::IsSupportedMediaType(cgi_output.content_type, clt->config.query->mime_types)) //check the response content type with the MIME type
 		{
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -258,15 +258,15 @@ void	cgi::SetCgiEnv(struct Client *clt)
 
 	//construct query_string
 	uri::Query query = clt->req.getRequestTarget().query;
-	std::string query_string;
-	for (size_t i = 0; i < query.size(); ++i)
-	{
-		if (i == query.size() - 1)
-			query_string += query[i].first + "=" + query[i].second;
-		else
-			query_string += query[i].first + "=" + query[i].second + "&";
-	}
-	clt->cgi_env.push_back("QUERY_STRING=" + query_string);
+	// std::string query_string;
+	// for (size_t i = 0; i < query.size(); ++i)
+	// {
+	// 	if (i == query.size() - 1)
+	// 		query_string += query[i].first + "=" + query[i].second;
+	// 	else
+	// 		query_string += query[i].first + "=" + query[i].second + "&";
+	// }
+	clt->cgi_env.push_back("QUERY_STRING=" + clt->req.getRequestTarget().query);
 
 	//construct content_length
 	HeaderInt *content_length = dynamic_cast<HeaderInt *>(clt->req.returnValueAsPointer("Content-Length"));
@@ -290,11 +290,11 @@ void	cgi::SetCgiEnv(struct Client *clt)
 	//construct document_uri // ? what is this? Probably for POST request with Location header ?
 
 	//construct document_root
-	std::string document_root = clt->config->query->root;
+	std::string document_root = clt->config.query->root;
 	clt->cgi_env.push_back("DOCUMENT_ROOT=.." + document_root);
 
 	//construct script_name
-	size_t pos = clt->path.find(clt->config->query->root) + clt->config->query->root.size();
+	size_t pos = clt->path.find(clt->config.query->root) + clt->config.query->root.size();
 	std::string script_name = clt->path.substr(pos);
 	clt->cgi_env.push_back("SCRIPT_NAME=" + script_name);
 
