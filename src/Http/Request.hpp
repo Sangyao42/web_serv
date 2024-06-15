@@ -10,7 +10,7 @@
 struct RequestLine
 {
   Method  method;
-  Uri     requestTarget;
+  Uri     request_target;
   Version version;
 
   RequestLine();

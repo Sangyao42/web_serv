@@ -2,7 +2,7 @@
 
 RequestLine::RequestLine()
 : method(kGet),
-	requestTarget(),
+	request_target(),
 	version(kStandard) {}
 
 Request::~Request()
