@@ -94,7 +94,7 @@ void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 		assert((requestline_host != "") && "Host header is empty");
 	}
 	// query configuration
-	clt->config = ws_database.query(clt->client_socket->socket, \
+	clt->config = ws_database.query(clt->client_socket->server.socket, \
 		requestline_host, clt->req.getRequestTarget().path);
 
 	assert(clt->config.query && "No configuration found for this request");

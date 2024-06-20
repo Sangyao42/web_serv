@@ -18,6 +18,8 @@ StatusCode  ParseErrorToStatusCode(enum ParseError error)
   case kWrongMethod:
   case kWrongRequestTarget:
   case kWrongHeader:
+  case kNoHost:
+  case kDuplicatedHost:
   {
     status_code = k400;
   } break;
@@ -174,7 +176,10 @@ enum ParseError AnalysisRequestHeaders(http_parser::PTNodeFields* fields, Header
       http_parser::ParseOutput parsed_field = http_parser::ParseFieldContentType(field_line->value->content);
       if (parsed_field.is_valid())
       {
-
+        if (output->find("Content-Type") == output->end())
+        {
+          output->insert(std::make_pair("Content-Type", new HeaderString(static_cast<http_parser::PTNodeFieldContentType*>(parsed_field.result)->content.to_string())));
+        }
       }
       else
       {
@@ -187,21 +192,34 @@ enum ParseError AnalysisRequestHeaders(http_parser::PTNodeFields* fields, Header
       http_parser::ParseOutput parsed_field = http_parser::ParseFieldContentLength(field_line->value->content);
       if (parsed_field.is_valid())
       {
-
+        if (output->find("Content-Length") == output->end())
+        {
+          output->insert(std::make_pair("Content-Length", new HeaderInt(static_cast<http_parser::PTNodeFieldContentLength*>(parsed_field.result)->number)));
+        }
       }
       else
       {
         error = kWrongHeader;
         break;
       }
-
     }
     else if (field_line->name->content.match("Connection") == 10)
     {
       http_parser::ParseOutput parsed_field = http_parser::ParseFieldConnection(field_line->value->content);
       if (parsed_field.is_valid())
       {
-
+        if (output->find("Connection") == output->end())
+        {
+          http_parser::PTNodeFieldConnection* connection = static_cast<http_parser::PTNodeFieldConnection*>(parsed_field.result);
+          for (temporary::vector<http_parser::PTNodeToken*>::iterator it = connection->options.begin(); it != connection->options.end(); it++)
+          {
+            if ((*it)->content.match("close") == 5)
+            {
+              output->insert(std::make_pair("Connection", new HeaderString((*it)->content.to_string())));
+              break;
+            }
+          }
+        }
       }
       else
       {
@@ -214,7 +232,15 @@ enum ParseError AnalysisRequestHeaders(http_parser::PTNodeFields* fields, Header
       http_parser::ParseOutput parsed_field = http_parser::ParseFieldHost(field_line->value->content);
       if (parsed_field.is_valid())
       {
-
+        if (output->find("Host") == output->end())
+        {
+          output->insert(std::make_pair("Host", new HeaderString(static_cast<http_parser::PTNodeFieldHost*>(parsed_field.result)->host->reg_name->content.to_string())));
+        }
+        else
+        {
+          error = kDuplicatedHost;
+          break;
+        }
       }
       else
       {
@@ -227,20 +253,18 @@ enum ParseError AnalysisRequestHeaders(http_parser::PTNodeFields* fields, Header
       http_parser::ParseOutput parsed_field = http_parser::ParseFieldTransferEncoding(field_line->value->content);
       if (parsed_field.is_valid())
       {
-
-      }
-      else
-      {
-        error = kWrongHeader;
-        break;
-      }
-    }
-    else if (field_line->name->content.match("Referer") == 7)
-    {
-      http_parser::ParseOutput parsed_field = http_parser::ParseFieldReferer(field_line->value->content);
-      if (parsed_field.is_valid())
-      {
-
+        if (output->find("Transfer-Encoding") == output->end())
+        {
+          http_parser::PTNodeFieldTransferEncoding* transfer_encoding = static_cast<http_parser::PTNodeFieldTransferEncoding*>(parsed_field.result);
+          for (temporary::vector<http_parser::StringSlice>::iterator it = transfer_encoding->codings.begin(); it != transfer_encoding->codings.end(); it++)
+          {
+            if (it->match("chunked") == 7)
+            {
+              output->insert(std::make_pair("Transfer-Encoding", new HeaderString(it->to_string())));
+              break;
+            }
+          }
+        }
       }
       else
       {
@@ -249,6 +273,10 @@ enum ParseError AnalysisRequestHeaders(http_parser::PTNodeFields* fields, Header
       }
     }
     field_line++;
+  }
+  if (output->find("Host") == output->end())
+  {
+    error = kNoHost;
   }
   return error;
 }
@@ -802,11 +830,11 @@ namespace http_parser
 
     if (input.length >= 3)
     {
-      output.bytes = input.bytes;
       if (*input.bytes == '%' &&
           IsHexDigit(*(input.bytes + 1)) &&
           IsHexDigit(*(input.bytes + 2)))
       {
+        output.bytes = input.bytes;
         output.length = 3;
       }
     }

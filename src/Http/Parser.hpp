@@ -15,6 +15,8 @@ enum  ParseError
   kWrongMethod, // status 400
   kWrongRequestTarget, // status 400
   kWrongHeader,        // status 400
+  kNoHost, // status 400
+  kDuplicatedHost, // status 400
   kUnsupportedMethod, // status 501
   kUnsupportedRequestTarget, // status 501
   kUnsupportedHttpVersion, // status 505

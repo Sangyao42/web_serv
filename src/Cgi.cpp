@@ -276,7 +276,7 @@ void	cgi::SetCgiEnv(struct Client *clt)
 	//construct content_length
 	HeaderInt *content_length = static_cast<HeaderInt *>(clt->req.returnValueAsPointer("Content-Length"));
 	std::ostringstream content_length_str;
-	content_length->toStringStream(content_length_str);
+	content_length_str << content_length->to_string();
 	if (content_length && content_length_str.good())
 		clt->cgi_env.push_back("CONTENT_LENGTH=" + content_length_str.str());
 	else

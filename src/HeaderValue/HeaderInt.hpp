@@ -15,7 +15,7 @@ class HeaderInt : public HeaderValue
 		const ValueType	&type() const;
 		const int &content() const;
 		HeaderInt	*clone() const;
-		void	toStringStream(std::ostringstream& oss);
+    std::string to_string() const;
 
 	private:
 		ValueType	type_;

@@ -38,14 +38,16 @@ HeaderStringVector	*HeaderStringVector::clone() const
 	return (new HeaderStringVector(*this));
 }
 
-void	HeaderStringVector::toStringStream(std::ostringstream &oss)
+std::string HeaderStringVector::to_string() const
 {
-	for (StringVectorIt it = content_.begin(); it != content_.end(); ++it)
+  std::string result;
+	for (std::vector<std::string>::const_iterator it = content_.begin(); it != content_.end(); ++it)
 	{
-		oss << *it;
+		result += *it;
 		if (it + 1 != content_.end())
-			oss << ", ";
+			result += ", ";
 	}
+  return result;
 }
 
 void	HeaderStringVector::addString(const std::string &str)
