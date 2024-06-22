@@ -217,6 +217,7 @@ int main(int argc, char **argv)
             size_t  find_index = clt->client_socket->req_buf.find("\r\n");
 						if (find_index != std::string::npos)
 						{
+              temporary::arena.clear();
               http_parser::ParseOutput  parsed_request_line = http_parser::ParseRequestLine(http_parser::StringSlice(clt->client_socket->req_buf.c_str(), find_index + 2));
 							if (!parsed_request_line.is_valid())
 							{
@@ -252,6 +253,7 @@ int main(int argc, char **argv)
             			find_index = clt->client_socket->req_buf.find("\r\n\r\n");
 						if (find_index != std::string::npos)
 						{
+              temporary::arena.clear();
               http_parser::ParseOutput parsed_headers = ParseFields(http_parser::StringSlice(clt->client_socket->req_buf.c_str(), find_index + 4));
 							if (!parsed_headers.is_valid())
 							{
