@@ -68,7 +68,10 @@ void	process::ProcessGetRequest(struct Client *clt)
 		// if (index_path == "")
 		// {
 			if (location->autoindex == true)
+			{
+				clt->status_code = k200;
 				return (res_builder::GenerateAutoindexResponse(clt));
+			}
 			else
 			{
 				clt->status_code = k403; // I chose 403 over 404
@@ -213,6 +216,9 @@ std::string process::GetExactPath(const std::string root, std::string match_path
 	// 	exact_path += "/";
 	std::string exact_path = root;
 	exact_path += uri.path;
+	//Test: exact path
+	std::cout << "Test: exact path" << exact_path << std::endl;
+	//end of Test
 	return (exact_path);
 }
 
