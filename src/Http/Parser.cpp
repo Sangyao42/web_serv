@@ -298,11 +298,6 @@ namespace http_parser
     return (character == '0' || character == '1');
   }
 
-  bool  IsChar(char character)
-  {
-    return (character > 0 && character <= 127);
-  }
-
   bool  IsCarriageReturn(char character)
   {
     return (character == '\r');
@@ -771,7 +766,7 @@ namespace http_parser
       PTNodeParameters* parameters = PTNodeCreate<PTNodeParameters>();
       parameters->type = kParameters;
       parameters->children = children;
-      
+
       output.length = parsed_length;
       output.result = parameters;
     }
@@ -808,7 +803,7 @@ namespace http_parser
   ScanOutput  ScanPathChar(Input input)
   {
     ScanOutput  output;
-    if (input.length > 0 && 
+    if (input.length > 0 &&
         (IsUnreservered(*input.bytes) ||
         IsSubDelims(*input.bytes) ||
         *input.bytes == ':' ||
@@ -1019,7 +1014,7 @@ namespace http_parser
   ParseOutput  ParsePathEmpty(Input)
   {
     ParseOutput output;
-    
+
     output.length = 0;
     output.result = static_cast<PTNode*>(PTNodeCreate<PTNodePathEmpty>());
     output.result->type = kPathEmpty;
@@ -1145,7 +1140,7 @@ namespace http_parser
           return output;
       }
     }
-    PTNodeIpv6Address* ipv6_address = PTNodeCreate<PTNodeIpv6Address>(); 
+    PTNodeIpv6Address* ipv6_address = PTNodeCreate<PTNodeIpv6Address>();
     ipv6_address->type = kIpv6Address;
     ipv6_address->content = StringSlice(input_start, input.bytes - input_start);
 
@@ -1186,10 +1181,10 @@ namespace http_parser
     if (amount_2 < 1)
       return output;
 
-    PTNodeIpvFutureAddress* ipv_future_address = PTNodeCreate<PTNodeIpvFutureAddress>(); 
+    PTNodeIpvFutureAddress* ipv_future_address = PTNodeCreate<PTNodeIpvFutureAddress>();
     ipv_future_address->type = kIpvFutureAddress;
     ipv_future_address->content = StringSlice(input_start, input.bytes - input_start);
-    
+
     output.length = ipv_future_address->content.length;
     output.result = ipv_future_address;
     return output;
@@ -1219,7 +1214,7 @@ namespace http_parser
     if (!parsed_octet_4.is_valid())
       return output;
 
-    PTNodeIpv4Address* ipv4_address = PTNodeCreate<PTNodeIpv4Address>(); 
+    PTNodeIpv4Address* ipv4_address = PTNodeCreate<PTNodeIpv4Address>();
     ipv4_address->type = kIpv4Address;
     ipv4_address->content = StringSlice(input_start, parsed_octet_1.length + parsed_octet_2.length + parsed_octet_3.length + parsed_octet_4.length + 3); // 3 is the length of the 3 dots.
 
@@ -1240,10 +1235,10 @@ namespace http_parser
           (ConsumeByUnitFunction(&input, &IsSubDelims) != 1))
         break;
     }
-    PTNodeRegName* reg_name = PTNodeCreate<PTNodeRegName>(); 
+    PTNodeRegName* reg_name = PTNodeCreate<PTNodeRegName>();
     reg_name->type = kRegName;
     reg_name->content = StringSlice(input_start, input.bytes - input_start);
-    
+
     output.length = reg_name->content.length;
     output.result = reg_name;
 
@@ -1270,10 +1265,10 @@ namespace http_parser
       else
         input.consume();
     }
-    PTNodeUriScheme* scheme = PTNodeCreate<PTNodeUriScheme>(); 
+    PTNodeUriScheme* scheme = PTNodeCreate<PTNodeUriScheme>();
     scheme->type = kUriScheme;
     scheme->content = StringSlice(input_start, input.bytes - input_start);
-    
+
     output.length = scheme->content.length;
     output.result = scheme;
     return output;
@@ -1309,10 +1304,10 @@ namespace http_parser
 
     if (parsed_address.is_valid())
     {
-      PTNodeUriHost* host = PTNodeCreate<PTNodeUriHost>(); 
+      PTNodeUriHost* host = PTNodeCreate<PTNodeUriHost>();
       host->type = kUriHost;
       host->address_header = parsed_address.result;
-      
+
       output.length = input.bytes - input_start;
       output.result = host;
     }
@@ -1329,7 +1324,7 @@ namespace http_parser
       input.consume();
     }
 
-    PTNodeUriPort* port = PTNodeCreate<PTNodeUriPort>(); 
+    PTNodeUriPort* port = PTNodeCreate<PTNodeUriPort>();
     port->type = kUriPort;
     port->content = StringSlice(input_start, input.bytes - input_start);
 
@@ -1348,7 +1343,7 @@ namespace http_parser
            ConsumeByCharacter(&input, '?'))
       ;
 
-    PTNodeUriQuery* query = PTNodeCreate<PTNodeUriQuery>(); 
+    PTNodeUriQuery* query = PTNodeCreate<PTNodeUriQuery>();
     query->type = kUriQuery;
     query->content = StringSlice(input_start, input.bytes - input_start);
 
@@ -1368,10 +1363,10 @@ namespace http_parser
            ConsumeByCharacter(&input, ';'))
       ;
 
-    PTNodeUriUserInfo* user_info = PTNodeCreate<PTNodeUriUserInfo>(); 
+    PTNodeUriUserInfo* user_info = PTNodeCreate<PTNodeUriUserInfo>();
     user_info->type = kUriUserInfo;
     user_info->content = StringSlice(input_start, input.bytes - input_start);
-    
+
     output.length = user_info->content.length;
     output.result = user_info;
     return output;
@@ -1420,7 +1415,7 @@ namespace http_parser
         }
       }
     }
-    PTNodeUriAuthority* authority = PTNodeCreate<PTNodeUriAuthority>(); 
+    PTNodeUriAuthority* authority = PTNodeCreate<PTNodeUriAuthority>();
     authority->type = kUriAuthority;
     authority->user_info = user_info;
     authority->host = host;
@@ -1441,10 +1436,10 @@ namespace http_parser
            ConsumeByCharacter(&input, '?'))
       ;
 
-    PTNodeUriFragment* fragment = PTNodeCreate<PTNodeUriFragment>(); 
+    PTNodeUriFragment* fragment = PTNodeCreate<PTNodeUriFragment>();
     fragment->type = kUriFragment;
     fragment->content = StringSlice(input_start, input.bytes - input_start);
-    
+
     output.length = fragment->content.length;
     output.result = fragment;
     return output;
@@ -1476,11 +1471,11 @@ namespace http_parser
       path = static_cast<PTNodePathAbEmpty*>(parsed_path_abempty.result);
     }
 
-    PTNodeUriReferenceNetworkPath* reference_network_path = PTNodeCreate<PTNodeUriReferenceNetworkPath>(); 
+    PTNodeUriReferenceNetworkPath* reference_network_path = PTNodeCreate<PTNodeUriReferenceNetworkPath>();
     reference_network_path->type = kUriReferenceNetworkPath;
     reference_network_path->authority = authority;
     reference_network_path->path = path;
-    
+
     output.length = input.bytes - input_start;
     output.result = reference_network_path;
     return output;
@@ -1561,7 +1556,7 @@ namespace http_parser
       }
     }
 
-    PTNodeUri* uri = PTNodeCreate<PTNodeUri>(); 
+    PTNodeUri* uri = PTNodeCreate<PTNodeUri>();
     uri->type = kUri;
     uri->scheme = scheme;
     uri->path_header = path_header;
@@ -1634,7 +1629,7 @@ namespace http_parser
         }
       }
     }
-    PTNodeUriAbsolute* url_absolute = PTNodeCreate<PTNodeUriAbsolute>(); 
+    PTNodeUriAbsolute* url_absolute = PTNodeCreate<PTNodeUriAbsolute>();
     url_absolute->type = kUriAbsolute;
     url_absolute->scheme = scheme;
     url_absolute->path_header = path_header;
@@ -1703,7 +1698,7 @@ namespace http_parser
       }
     }
 
-    PTNodeUriReferenceRelative* uri_reference_relative = PTNodeCreate<PTNodeUriReferenceRelative>(); 
+    PTNodeUriReferenceRelative* uri_reference_relative = PTNodeCreate<PTNodeUriReferenceRelative>();
     uri_reference_relative->type = kUriReferenceRelative;
     uri_reference_relative->path_header = path_header;
     uri_reference_relative->query = query;
@@ -1732,7 +1727,7 @@ namespace http_parser
         return output;
     }
 
-    PTNodeUriReference* uri_reference = PTNodeCreate<PTNodeUriReference>(); 
+    PTNodeUriReference* uri_reference = PTNodeCreate<PTNodeUriReference>();
     uri_reference->type = kUriReference;
     uri_reference->uri_header = uri_header;
 
@@ -1991,7 +1986,7 @@ namespace http_parser
     request_line->method = method;
     request_line->request_target_header = request_target_header;
     request_line->version = version;
-    
+
     output.length = input.bytes - input_start;
     output.result = request_line;
     return output;
@@ -2021,7 +2016,7 @@ namespace http_parser
       PTNodeReasonPhrase*  reason_phrase = PTNodeCreate<PTNodeReasonPhrase>();
       reason_phrase->type = kStatusReasonPhrase;
       reason_phrase->content = StringSlice(input_start, input.bytes - input_start);
-      
+
       output.length = input.bytes - input_start;
       output.result = reason_phrase;
     }
@@ -2046,7 +2041,7 @@ namespace http_parser
       PTNodeStatusCode*  status_code = PTNodeCreate<PTNodeStatusCode>();
       status_code->type = kStatusCode;
       status_code->number  = number;
-      
+
       output.length = input.bytes - input_start;
       output.result = status_code;
     }
@@ -2099,7 +2094,7 @@ namespace http_parser
     status_line->http_version = http_version;
     status_line->status_code = status_code;
     status_line->reason_phrase = reason_phrase;
-    
+
     output.length = input.bytes - input_start;
     output.result = status_line;
     return output;
@@ -2132,7 +2127,7 @@ namespace http_parser
               IsVisibleCharacter(*input_tmp.bytes) ||
               IsOpaqueText(*input_tmp.bytes))
           {
-             input_tmp.consume(); 
+             input_tmp.consume();
              amount++;
           }
           else
@@ -2158,7 +2153,7 @@ namespace http_parser
     PTNodeFieldValue*  field_value = PTNodeCreate<PTNodeFieldValue>();
     field_value->type = kFieldValue;
     field_value->content = StringSlice(value_start, value_end - value_start);
-    
+
     output.length = input.bytes - input_start;
     output.result = field_value;
     return output;
@@ -2234,7 +2229,7 @@ namespace http_parser
     PTNodeFields*  node_fields = PTNodeCreate<PTNodeFields>();
     node_fields->type = kFields;
     node_fields->fields = fields;
-    
+
     output.length = input.bytes - input_start;
     output.result = node_fields;
     return output;
@@ -2345,7 +2340,7 @@ namespace http_parser
     PTNodeFieldConnection*  connection = PTNodeCreate<PTNodeFieldConnection>();
     connection->type = kFieldConnection;
     connection->options = options;
-    
+
     output.length = input.bytes - input_start;
     output.result = connection;
     return output;
@@ -2380,7 +2375,7 @@ namespace http_parser
     host->type = kFieldHost;
     host->host = uri_host;
     host->port = port;
-    
+
     output.length = input.bytes - input_start;
     output.result = host;
     return output;

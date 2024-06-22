@@ -1,4 +1,5 @@
 #include "HeaderInt.hpp"
+#include <cstdio>
 
 HeaderInt::HeaderInt()
 : type_(kInt), content_(-1) {}
@@ -35,8 +36,24 @@ HeaderInt	*HeaderInt::clone() const
 
 std::string HeaderInt::to_string() const
 {
-  char  buff[12];
-	std::snprintf(buff, 12, "%d", content_);
-  return std::string(buff);
+	char  buff[12];
+	// std::snprintf(buff, 12, "%d", content_);
+	int int_len = 0;
+	int tmp = content_;
+	if (tmp == 0)
+		int_len = 1;
+	while (tmp)
+	{
+		tmp = tmp / 10;
+		int_len++;
+	}
+	long new_n = static_cast<long>(content_);
+	buff[int_len] = '\0';
+	while (int_len)
+	{
+		buff[--int_len] = new_n % 10 + '0';
+		new_n = new_n / 10;
+	}
+	return std::string(buff);
 }
 

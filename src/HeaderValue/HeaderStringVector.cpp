@@ -1,4 +1,5 @@
 #include "HeaderStringVector.hpp"
+#include <algorithm>
 #include <cassert>
 
 HeaderStringVector::HeaderStringVector()

@@ -1,5 +1,7 @@
 #include "Client.hpp"
 
+#include <cstdlib>
+
 void	res_builder::AddLocationHeader(struct Client *clt)
 {
 	std::string file_path = clt->location_created;
@@ -119,7 +121,7 @@ void	res_builder::BuildStatusLine(StatusCode status_code, std::string &response)
 
 enum ResponseError	res_builder::ReadFileToBody(const std::string &path, Response *res)
 {
-	std::ifstream	file(path);
+	std::ifstream	file(path.c_str(), std::ifstream::in);
 	std::stringstream	ss;
 
 	if (!file)
