@@ -69,12 +69,12 @@ void  Config2(directive::MainBlock& main)
     }
     {
       directive::ServerName*  server_name = new directive::ServerName();
-      server_name->add("hi.com");
+      server_name->add("localhost");
       server->add_directive(server_name);
     }
     {
       directive::Root*  root = new directive::Root();
-      root->set("/var/www/original");
+      root->set("./www");
       server->add_directive(root);
     }
 
