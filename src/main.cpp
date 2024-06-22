@@ -228,7 +228,7 @@ int main(int argc, char **argv)
 									clt->consume_body = false;
 								clt->status_code = ParseErrorToStatusCode(error);
 								clt->req.setRequestLine(request_line);
-								clt->client_socket->req_buf.erase(0, parsed_request_line.length);
+								clt->client_socket->req_buf.erase(0, parsed_request_line.length + 2);
 							}
 						}
             find_index = clt->client_socket->req_buf.find("\r\n\r\n");
@@ -250,7 +250,7 @@ int main(int argc, char **argv)
 								if (error != kNone) 
 									clt->consume_body = false;
                 clt->status_code = ParseErrorToStatusCode(error);
-								clt->client_socket->req_buf.erase(0, parsed_headers.length);
+								clt->client_socket->req_buf.erase(0, parsed_headers.length + 2);
 							}
 						}
 						client_lifespan::CheckHeaderBeforeProcess(clt);
