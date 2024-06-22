@@ -45,7 +45,7 @@ std::string res_builder::BuildErrorPage(StatusCode status_code)
 void	res_builder::GenerateErrorResponse(struct Client *clt)
 {
 	// build the status line
-	std::string response = clt->client_socket->res_buf;
+	std::string &response = clt->client_socket->res_buf;
 	BuildStatusLine(clt->status_code, response);
 
 	// build basic and error headers
