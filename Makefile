@@ -5,6 +5,13 @@
 CC:=c++
 CXXFLAGS= -std=c++98 -pedantic -Wall -Wextra -Werror -MMD -MP
 LDFLAGS= -std=c++98 -pedantic
+ifdef DEBUG
+	CXXFLAGS+= -g3 -DDEBUG=1
+	LDFLAGS+= -g3 
+else
+	CXXFLAGS+= -O2 -DNDEBUG
+endif
+
 ifdef FSANITIZE
 	CXXFLAGS+= -g3 -fsanitize=address -DDEBUG=1
 	LDFLAGS+= -g3 -fsanitize=address
