@@ -211,6 +211,12 @@ namespace http_parser
   ParseOutput  ParseParameter(Input input);
   ParseOutput  ParseParameters(Input input);
 
+  int ConsumeByCharacter(Input* input, char character);
+  int ConsumeByCString(Input* input, const char* cstring);
+  int ConsumeByUnitFunction(Input* input, bool (*func)(char));
+  ScanOutput  ConsumeByScanFunction(Input* input, ScanOutput (*func)(Input));
+  ParseOutput  ConsumeByParserFunction(Input* input, ParseOutput (*func)(Input));
+
   /////////////////////////////////////////
   ////////////////   path   ///////////////
   /////////////////////////////////////////

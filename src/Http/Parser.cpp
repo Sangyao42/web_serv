@@ -517,7 +517,7 @@ namespace http_parser
     return result_ptnode != NULL;
   }
 
-  static int ConsumeByCharacter(Input* input, char character)
+  int ConsumeByCharacter(Input* input, char character)
   {
     int consumed_character = 0;
     if (input->length > 0)
@@ -531,7 +531,7 @@ namespace http_parser
     return consumed_character;
   }
 
-  static int ConsumeByCString(Input* input, const char* cstring)
+  int ConsumeByCString(Input* input, const char* cstring)
   {
     int consumed_character = 0;
     for (unsigned int i = 0; i < input->length; i++)
@@ -551,7 +551,7 @@ namespace http_parser
     return consumed_character;
   }
 
-  static int ConsumeByUnitFunction(Input* input, bool (*func)(char))
+  int ConsumeByUnitFunction(Input* input, bool (*func)(char))
   {
     int consumed_character = 0;
     if (input->length > 0)
@@ -565,7 +565,7 @@ namespace http_parser
     return consumed_character;
   }
 
-  static ScanOutput  ConsumeByScanFunction(Input* input, ScanOutput (*func)(Input))
+  ScanOutput  ConsumeByScanFunction(Input* input, ScanOutput (*func)(Input))
   {
     ScanOutput  output = func(*input);
     if (output.is_valid())
@@ -575,7 +575,7 @@ namespace http_parser
     return output;
   }
 
-  static ParseOutput  ConsumeByParserFunction(Input* input, ParseOutput (*func)(Input))
+  ParseOutput  ConsumeByParserFunction(Input* input, ParseOutput (*func)(Input))
   {
     ParseOutput output = func(*input);
     if (output.is_valid())
