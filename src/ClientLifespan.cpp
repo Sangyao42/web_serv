@@ -47,6 +47,7 @@ void	client_lifespan::ResetClient(struct Client &client)
 	client.cgi_content_type.clear();
 	client.cgi_content_length.clear();
 	client.req.cleanHeaderMap();
+	client.res.cleanHeaderMap();
 	new (&client.req) Request();
 	new (&client.res) Response();
 }
