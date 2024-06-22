@@ -33,7 +33,7 @@ void	res_builder::GenerateRedirectResponse(struct Client *clt)
 	const directive::Return *redirect = clt->config.query->redirect;
 	clt->status_code = (StatusCode) redirect->status_code();
 
-	assert(clt->status_code == k301 || clt->status_code == k307 &&  "Invalid status code for redirect");
+	assert((clt->status_code == k301 || clt->status_code == k307) &&  "Invalid status code for redirect");
 
 	// build the status line
 	std::string &response = clt->client_socket->res_buf;
