@@ -42,9 +42,18 @@ namespace pollfds
 		pfds.push_back(pfd);
 	}
 
-	void DeleteClientFd(std::vector<struct pollfd> &pfds, int i)
+	void DeleteClientFd(std::vector<struct pollfd> &pfds, int client_fd)
 	{
-		pfds.erase(pfds.begin() + i);
+		// pfds.erase(pfds.begin() + i);
+		std::vector<struct pollfd>::iterator it;
+		for (it = pfds.begin(); it != pfds.end(); it++)
+		{
+			if (it->fd == client_fd)
+			{
+				pfds.erase(it);
+				break;
+			}
+		}
 	}
 }
 
@@ -125,6 +134,9 @@ int main(int argc, char **argv)
 		{
 			//get the client struct by checking the pfds[i].fd
 			struct Client *clt = client_lifespan::GetClientByFd(clients, pfds[i].fd);
+			//test heap use after free
+			assert(clt && "cannot get one client");
+			//end of test
 			//check if client socket is timeout
 			bool timeout = sm.is_timeout(pfds[i].fd);
 			if ((pfds[i].revents & POLLERR))
@@ -134,7 +146,7 @@ int main(int argc, char **argv)
 				//delete client from clients vector
 				client_lifespan::DeleteClientFromVector(clients, pfds[i].fd);
 				sm.delete_client_socket(pfds[i].fd);
-				pollfds::DeleteClientFd(pfds, i);
+				pollfds::DeleteClientFd(pfds, pfds[i].fd);
 				client_count--;
 				continue;
 			}
@@ -144,7 +156,7 @@ int main(int argc, char **argv)
 				close(pfds[i].fd);
 				client_lifespan::DeleteClientFromVector(clients, pfds[i].fd);
 				sm.delete_client_socket(pfds[i].fd);
-				pollfds::DeleteClientFd(pfds, i);
+				pollfds::DeleteClientFd(pfds, pfds[i].fd);
 				client_count--;
 				continue;
 			}
@@ -156,7 +168,7 @@ int main(int argc, char **argv)
 					close(pfds[i].fd);
 					client_lifespan::DeleteClientFromVector(clients, pfds[i].fd);
 					sm.delete_client_socket(pfds[i].fd);
-					pollfds::DeleteClientFd(pfds, i);
+					pollfds::DeleteClientFd(pfds, pfds[i].fd);
 					client_count--;
 				}
 				continue;
@@ -164,6 +176,7 @@ int main(int argc, char **argv)
 			//socket is ready for reading
 			else if (pfds[i].revents & POLLIN)
 			{
+				std::cout << "poll in" << std::endl;
 				if (timeout == true)
 				{
 					// generate 408 Request Timeout and build std::string response in client
@@ -184,7 +197,7 @@ int main(int argc, char **argv)
 					std::cout << "recv_len <= 0" << std::endl;
 					client_lifespan::DeleteClientFromVector(clients, pfds[i].fd);
 					close(pfds[i].fd);
-					pollfds::DeleteClientFd(pfds, i);
+					pollfds::DeleteClientFd(pfds, pfds[i].fd);
 					// sm.delete_client_socket(pfds[i].fd); Already done in recv_append()
 					client_count--;
 					continue;
@@ -376,7 +389,7 @@ int main(int argc, char **argv)
 					close(pfds[i].fd);
 					//delete client from clients vector
 					client_lifespan::DeleteClientFromVector(clients, pfds[i].fd);
-					pollfds::DeleteClientFd(pfds, i);
+					pollfds::DeleteClientFd(pfds, pfds[i].fd);
 					sm.delete_client_socket(pfds[i].fd);
 					client_count--;
 				}
@@ -386,14 +399,14 @@ int main(int argc, char **argv)
 					// close(pfds[i].fd);
 					// delete client from clients vector
 					// sm.delete_client_socket(pfds[i].fd);
-					// pollfds::DeleteClientFd(pfds, i);
+					// pollfds::DeleteClientFd(pfds, pfds[i].fd);
 					// client_count--;
 					if (client_lifespan::IsClientAlive(clt) == false)
 					{
 						close(pfds[i].fd);
 						client_lifespan::DeleteClientFromVector(clients, pfds[i].fd);
 						sm.delete_client_socket(pfds[i].fd);
-						pollfds::DeleteClientFd(pfds, i);
+						pollfds::DeleteClientFd(pfds, pfds[i].fd);
 						client_count--;
 					}
 					else
