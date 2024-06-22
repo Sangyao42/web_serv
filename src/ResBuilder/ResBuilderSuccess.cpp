@@ -41,7 +41,7 @@ void	res_builder::BuildPostResponseBody(struct Client *clt)
 void	res_builder::GenerateSuccessResponse(struct Client *clt)
 {
 	// build the status line
-	std::string response = clt->client_socket->res_buf;
+	std::string &response = clt->client_socket->res_buf;
 	BuildStatusLine(clt->status_code, response);
 
 	// build basic headers

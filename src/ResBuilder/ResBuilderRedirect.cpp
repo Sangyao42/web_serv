@@ -36,7 +36,7 @@ void	res_builder::GenerateRedirectResponse(struct Client *clt)
 	assert(clt->status_code == k301 || clt->status_code == k307 &&  "Invalid status code for redirect");
 
 	// build the status line
-	std::string response = clt->client_socket->res_buf;
+	std::string &response = clt->client_socket->res_buf;
 	BuildStatusLine(clt->status_code, response);
 
 	// build basic headers

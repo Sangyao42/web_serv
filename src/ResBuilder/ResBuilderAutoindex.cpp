@@ -60,7 +60,7 @@ std::string res_builder::BuildAutoindexHTML(DSet files, std::string path)
 void	res_builder::GenerateAutoindexResponse(struct Client *clt)
 {
 	// build the status line
-	std::string response = clt->client_socket->res_buf;
+	std::string &response = clt->client_socket->res_buf;
 	BuildStatusLine(clt->status_code, response);
 
 	// build basic headers
