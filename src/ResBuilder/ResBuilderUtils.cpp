@@ -60,9 +60,7 @@ void	res_builder::BuildContentHeaders(struct Client *clt, std::string extension,
 	clt->res.addNewPair("Content-Length", new HeaderInt(clt->res.getResponseBody().size()));
 
 	// add content-type header
-	Maybe<directive::MimeTypes::MimeType> type = clt->config.query->mime_types->query(extension);
-	if (type.is_ok())
-		clt->res.addNewPair("Content-Type", new HeaderString(type.value()));
+  clt->res.addNewPair("Content-Type", new HeaderString(extension));
 
 	// add last-modified header
 	struct stat	file_stat;

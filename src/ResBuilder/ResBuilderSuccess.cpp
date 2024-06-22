@@ -68,7 +68,7 @@ void	res_builder::GenerateSuccessResponse(struct Client *clt)
 			AddAllowHeader(clt);
 			AddLocationHeader(clt);
 			BuildPostResponseBody(clt);
-			BuildContentHeaders(clt, "html", "");
+			BuildContentHeaders(clt, "text/html", "");
 		}
 		else
 			assert(clt->req.getMethod() == kDelete && "Invalid method");

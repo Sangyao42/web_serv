@@ -99,7 +99,7 @@ void	res_builder::GenerateAutoindexResponse(struct Client *clt)
 	clt->res.setResponseBody(html);
 
 	// build content headers
-	BuildContentHeaders(clt, "html", "");
+	BuildContentHeaders(clt, "text/html", "");
 
 	// add headers to the response
 	std::string	headers = clt->res.returnMapAsString();

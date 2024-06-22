@@ -78,12 +78,12 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 			return ;
 		}
 		// build content headers
-		BuildContentHeaders(clt, process::GetReqExtension(pathErrorPage), pathErrorPage);
+		BuildContentHeaders(clt, "text/html", pathErrorPage);
 	}
 	else
 	{
 		clt->res.setResponseBody(BuildErrorPage(clt->status_code));
-		BuildContentHeaders(clt, "html", "");
+		BuildContentHeaders(clt, "text/html", "");
 	}
 
 	// add headers to the response

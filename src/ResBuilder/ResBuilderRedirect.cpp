@@ -47,7 +47,7 @@ void	res_builder::GenerateRedirectResponse(struct Client *clt)
 
 	// build the body and content headers
 	BuildRedirectResponseBody(clt);
-	BuildContentHeaders(clt, "html", "");
+	BuildContentHeaders(clt, "text/html", "");
 
 	// add headers to the response
 	std::string	headers = clt->res.returnMapAsString();
