@@ -6,13 +6,13 @@
 
 StatusCode  ParseErrorToStatusCode(enum ParseError error)
 {
-  StatusCode  status_code = k200;
+  StatusCode  status_code = k000;
 
   switch (error)
   {
   case kNone:
   {
-    status_code = k200;
+    status_code = k000;
   } break;
   case kSyntaxError:
   case kWrongMethod:
