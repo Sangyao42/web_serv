@@ -61,7 +61,22 @@ void	res_builder::GenerateSuccessResponse(struct Client *clt)
 				ServerError500(clt);
 				return ;
 			}
-			BuildContentHeaders(clt, process::GetReqExtension(clt->path), clt->path);
+			std::string extension = process::GetReqExtension(clt->path);
+			if (extension == "" || extension == "txt")
+				extension = "text/plain";
+			else if (extension == "html" || extension == "htm")
+				extension = "text/html";
+			else if (extension == "css")
+				extension = "text/css";
+			else if (extension == "js")
+				extension = "text/javascript";
+			else if (extension == "json")
+				extension = "application/json";
+			else if (extension == "png")
+				extension = "image/png";
+			else
+				extension = "application/octet-stream";
+			BuildContentHeaders(clt, extension, clt->path);
 		}
 		else if (clt->req.getMethod() == kPost) // it is not a cgi request
 		{
