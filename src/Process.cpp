@@ -68,7 +68,10 @@ void	process::ProcessGetRequest(struct Client *clt)
 		// if (index_path == "")
 		// {
 			if (location->autoindex == true)
+			{
+				clt->status_code = k200;
 				return (res_builder::GenerateAutoindexResponse(clt));
+			}
 			else
 			{
 				clt->status_code = k403; // I chose 403 over 404
