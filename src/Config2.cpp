@@ -89,6 +89,11 @@ void  Config2(directive::MainBlock& main)
         location->add_directive(root);
       }
     }
+    {
+      directive::Autoindex*  autoindex = new directive::Autoindex();
+      autoindex->set(true);
+      server->add_directive(autoindex);
+    }
   }
 
 //   // server 2
@@ -138,11 +143,11 @@ void  Config2(directive::MainBlock& main)
 //       server->add_directive(server_name);
 //     }
 
-//     {
-//       directive::Autoindex*  autoindex = new directive::Autoindex();
-//       autoindex->set(true);
-//       server->add_directive(autoindex);
-//     }
+    // {
+    //   directive::Autoindex*  autoindex = new directive::Autoindex();
+    //   autoindex->set(true);
+    //   server->add_directive(autoindex);
+    // }
 //   }
 
 //   // server 4

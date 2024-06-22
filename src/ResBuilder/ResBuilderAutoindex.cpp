@@ -36,8 +36,6 @@ std::string res_builder::BuildAutoindexHTML(DSet files, std::string path)
 	html += "<ul>";
 
 	// add icons and links for directories and files
-	for (it = ++(files.begin()); it != files.end(); ++it)
-	{
     for (it = ++(files.begin()); it != files.end(); ++it)
     {
       html += "<li><a href=\"";
@@ -48,7 +46,6 @@ std::string res_builder::BuildAutoindexHTML(DSet files, std::string path)
         html += "\"><i class=\"fa-regular fa-file\"></i>";
       html += it->second;
       html += "</a></li>\r\n";
-    }
 	}
 	html += "</ul>\r\n";
 	html += "</body>\r\n";
