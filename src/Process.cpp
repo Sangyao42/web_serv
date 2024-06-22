@@ -208,9 +208,10 @@ void	process::ProcessDeleteRequest(struct Client *clt)
 std::string process::GetExactPath(const std::string root, std::string match_path, const struct Uri uri)
 {
 	(void) match_path;
-	std::string exact_path = ".." + root;
+	// std::string exact_path = "." + root;
 	// if (uri.path[0] != '/')
 	// 	exact_path += "/";
+	std::string exact_path = root;
 	exact_path += uri.path;
 	return (exact_path);
 }

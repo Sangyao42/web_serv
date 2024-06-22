@@ -207,10 +207,10 @@ int main(int argc, char **argv)
 					//parse request
 					if (!clt->continue_reading)
 					{
-            size_t  find_index = clt->client_socket->req_buf.find("\r\n");
+            			size_t  find_index = clt->client_socket->req_buf.find("\r\n");
 						if (find_index != std::string::npos)
 						{
-              http_parser::ParseOutput  parsed_request_line = http_parser::ParseRequestLine(http_parser::StringSlice(clt->client_socket->req_buf.c_str(), find_index + 2));
+              				http_parser::ParseOutput  parsed_request_line = http_parser::ParseRequestLine(http_parser::StringSlice(clt->client_socket->req_buf.c_str(), find_index + 2));
 							if (!parsed_request_line.is_valid())
 							{
 								//handle only syntax error
@@ -222,19 +222,19 @@ int main(int argc, char **argv)
 							}
 							else
 							{
-                RequestLine request_line;
-                enum ParseError error = AnalysisRequestLine(static_cast<http_parser::PTNodeRequestLine*>(parsed_request_line.result), &request_line);
-								if (error != kNone) 
+                				RequestLine request_line;
+                				enum ParseError error = AnalysisRequestLine(static_cast<http_parser::PTNodeRequestLine*>(parsed_request_line.result), &request_line);
+								if (error != kNone)
 									clt->consume_body = false;
 								clt->status_code = ParseErrorToStatusCode(error);
 								clt->req.setRequestLine(request_line);
 								clt->client_socket->req_buf.erase(0, parsed_request_line.length + 2);
 							}
 						}
-            find_index = clt->client_socket->req_buf.find("\r\n\r\n");
+            			find_index = clt->client_socket->req_buf.find("\r\n\r\n");
 						if (find_index != std::string::npos)
 						{
-              http_parser::ParseOutput parsed_headers = ParseFields(http_parser::StringSlice(clt->client_socket->req_buf.c_str(), find_index + 4));
+              				http_parser::ParseOutput parsed_headers = ParseFields(http_parser::StringSlice(clt->client_socket->req_buf.c_str(), find_index + 4));
 							if (!parsed_headers.is_valid())
 							{
 								//handle only syntax error
@@ -246,8 +246,8 @@ int main(int argc, char **argv)
 							}
 							else
 							{
-                enum ParseError error = AnalysisRequestHeaders(static_cast<http_parser::PTNodeFields*>(parsed_headers.result), &clt->req.headers_);
-								if (error != kNone) 
+                				enum ParseError error = AnalysisRequestHeaders(static_cast<http_parser::PTNodeFields*>(parsed_headers.result), &clt->req.headers_);
+								if (error != kNone)
 									clt->consume_body = false;
                 clt->status_code = ParseErrorToStatusCode(error);
 								clt->client_socket->req_buf.erase(0, parsed_headers.length + 2);
