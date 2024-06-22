@@ -56,7 +56,7 @@ void	res_builder::GenerateErrorResponse(struct Client *clt)
 
 	// first search for error pages in the configuration
 	// if not found, generate a default error page
-	std::vector<const directive::ErrorPage *>	errorPages = clt->config.query->error_pages;
+	std::vector<const directive::ErrorPage *>	errorPages = clt->config.query ? clt->config.query->error_pages : std::vector<const directive::ErrorPage*>();
 	std::vector<const directive::ErrorPage *>::const_iterator	it;
 
 	Maybe<std::string> result;
