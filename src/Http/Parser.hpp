@@ -161,8 +161,12 @@ namespace http_parser
 
   struct ParseOutput
   {
-    PTNode*           result;
-    int               length;
+    union
+    {
+      void*       result;
+      PTNode*     result_ptnode;
+    };
+    unsigned int  length;
 
     ParseOutput();
     bool  is_valid() const;

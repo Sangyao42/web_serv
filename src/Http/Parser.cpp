@@ -178,7 +178,7 @@ enum ParseError AnalysisRequestHeaders(http_parser::PTNodeFields* fields, Header
       {
         if (output->find("Content-Type") == output->end())
         {
-          output->insert(std::make_pair("Content-Type", new HeaderString(static_cast<http_parser::PTNodeFieldContentType*>(parsed_field.result)->content.to_string())));
+          output->insert(std::make_pair("Content-Type", new HeaderString(static_cast<http_parser::PTNodeFieldContentType*>(parsed_field.result_ptnode)->content.to_string())));
         }
       }
       else
@@ -194,7 +194,7 @@ enum ParseError AnalysisRequestHeaders(http_parser::PTNodeFields* fields, Header
       {
         if (output->find("Content-Length") == output->end())
         {
-          output->insert(std::make_pair("Content-Length", new HeaderInt(static_cast<http_parser::PTNodeFieldContentLength*>(parsed_field.result)->number)));
+          output->insert(std::make_pair("Content-Length", new HeaderInt(static_cast<http_parser::PTNodeFieldContentLength*>(parsed_field.result_ptnode)->number)));
         }
       }
       else
@@ -210,7 +210,7 @@ enum ParseError AnalysisRequestHeaders(http_parser::PTNodeFields* fields, Header
       {
         if (output->find("Connection") == output->end())
         {
-          http_parser::PTNodeFieldConnection* connection = static_cast<http_parser::PTNodeFieldConnection*>(parsed_field.result);
+          http_parser::PTNodeFieldConnection* connection = static_cast<http_parser::PTNodeFieldConnection*>(parsed_field.result_ptnode);
           for (temporary::vector<http_parser::PTNodeToken*>::iterator it = connection->options.begin(); it != connection->options.end(); it++)
           {
             if ((*it)->content.match("close") == 5)
@@ -234,7 +234,7 @@ enum ParseError AnalysisRequestHeaders(http_parser::PTNodeFields* fields, Header
       {
         if (output->find("Host") == output->end())
         {
-          output->insert(std::make_pair("Host", new HeaderString(static_cast<http_parser::PTNodeFieldHost*>(parsed_field.result)->host->reg_name->content.to_string())));
+          output->insert(std::make_pair("Host", new HeaderString(static_cast<http_parser::PTNodeFieldHost*>(parsed_field.result_ptnode)->host->reg_name->content.to_string())));
         }
         else
         {
@@ -255,7 +255,7 @@ enum ParseError AnalysisRequestHeaders(http_parser::PTNodeFields* fields, Header
       {
         if (output->find("Transfer-Encoding") == output->end())
         {
-          http_parser::PTNodeFieldTransferEncoding* transfer_encoding = static_cast<http_parser::PTNodeFieldTransferEncoding*>(parsed_field.result);
+          http_parser::PTNodeFieldTransferEncoding* transfer_encoding = static_cast<http_parser::PTNodeFieldTransferEncoding*>(parsed_field.result_ptnode);
           for (temporary::vector<http_parser::StringSlice>::iterator it = transfer_encoding->codings.begin(); it != transfer_encoding->codings.end(); it++)
           {
             if (it->match("chunked") == 7)
@@ -510,11 +510,11 @@ namespace http_parser
   ///////////////////////////////////////////
 
   ParseOutput::ParseOutput()
-    : result(NULL), length(0) {}
+    : result_ptnode(NULL), length(0) {}
 
   bool  ParseOutput::is_valid() const
   {
-    return result != NULL;
+    return result_ptnode != NULL;
   }
 
   static int ConsumeByCharacter(Input* input, char character)
@@ -607,7 +607,7 @@ namespace http_parser
       token->content = content;
 
       output.length = content.length;
-      output.result = token;
+      output.result_ptnode = token;
     }
     return output;
   }
@@ -645,7 +645,7 @@ namespace http_parser
         quoted_string->content = content;
 
         output.length = content.length;
-        output.result = quoted_string;
+        output.result_ptnode = quoted_string;
       }
     }
     return output;
@@ -695,7 +695,7 @@ namespace http_parser
         comment->type = kComment;
 
         output.length = content.length;
-        output.result = comment;
+        output.result_ptnode = comment;
       }
     }
     return output;
@@ -721,11 +721,11 @@ namespace http_parser
         {
           PTNodeParameter*  parameter = PTNodeCreate<PTNodeParameter>();
           parameter->type = kParameter;
-          parameter->name = static_cast<PTNodeToken*>(name_parse_output.result);
-          parameter->value_header = value_parse_output.result;
+          parameter->name = static_cast<PTNodeToken*>(name_parse_output.result_ptnode);
+          parameter->value_header = value_parse_output.result_ptnode;
 
           output.length = name_parse_output.length + parsed_length + value_parse_output.length;
-          output.result = parameter;
+          output.result_ptnode = parameter;
         }
         else
         {
@@ -754,7 +754,7 @@ namespace http_parser
         if (parameter_parse_output.is_valid())
         {
           parsed_length += parsed_length_1 + parsed_length_2 + parsed_length_3 + parameter_parse_output.length;
-          children.push_back(static_cast<PTNodeParameter*>(parameter_parse_output.result));
+          children.push_back(static_cast<PTNodeParameter*>(parameter_parse_output.result_ptnode));
           error = false;
         }
       }
@@ -768,7 +768,7 @@ namespace http_parser
       parameters->children = children;
 
       output.length = parsed_length;
-      output.result = parameters;
+      output.result_ptnode = parameters;
     }
     return output;
   }
@@ -930,7 +930,7 @@ namespace http_parser
     path_abempty->content = content;
 
     output.length = content.length;
-    output.result = path_abempty;
+    output.result_ptnode = path_abempty;
     return output;
   }
 
@@ -960,7 +960,7 @@ namespace http_parser
       path_absolute->content = content;
 
       output.length = content.length;
-      output.result = path_absolute;
+      output.result_ptnode = path_absolute;
     }
     return output;
   }
@@ -982,7 +982,7 @@ namespace http_parser
         path_noscheme->content = StringSlice(input_start, parsed_result.length + parsed_result_2.length);;
 
         output.length = path_noscheme->content.length;
-        output.result = path_noscheme;
+        output.result_ptnode = path_noscheme;
       }
     }
     return output;
@@ -1005,7 +1005,7 @@ namespace http_parser
         path_rootless->content = StringSlice(input_start, parsed_result.length + parsed_result_2.length);;
 
         output.length = path_rootless->content.length;
-        output.result = path_rootless;
+        output.result_ptnode = path_rootless;
       }
     }
     return output;
@@ -1016,8 +1016,8 @@ namespace http_parser
     ParseOutput output;
 
     output.length = 0;
-    output.result = static_cast<PTNode*>(PTNodeCreate<PTNodePathEmpty>());
-    output.result->type = kPathEmpty;
+    output.result_ptnode = static_cast<PTNode*>(PTNodeCreate<PTNodePathEmpty>());
+    output.result_ptnode->type = kPathEmpty;
     return output;
   }
 
@@ -1145,7 +1145,7 @@ namespace http_parser
     ipv6_address->content = StringSlice(input_start, input.bytes - input_start);
 
     output.length = ipv6_address->content.length;
-    output.result = ipv6_address;
+    output.result_ptnode = ipv6_address;
     return output;
   }
 
@@ -1186,7 +1186,7 @@ namespace http_parser
     ipv_future_address->content = StringSlice(input_start, input.bytes - input_start);
 
     output.length = ipv_future_address->content.length;
-    output.result = ipv_future_address;
+    output.result_ptnode = ipv_future_address;
     return output;
   }
 
@@ -1219,7 +1219,7 @@ namespace http_parser
     ipv4_address->content = StringSlice(input_start, parsed_octet_1.length + parsed_octet_2.length + parsed_octet_3.length + parsed_octet_4.length + 3); // 3 is the length of the 3 dots.
 
     output.length = ipv4_address->content.length;
-    output.result = ipv4_address;
+    output.result_ptnode = ipv4_address;
     return output;
   }
 
@@ -1240,7 +1240,7 @@ namespace http_parser
     reg_name->content = StringSlice(input_start, input.bytes - input_start);
 
     output.length = reg_name->content.length;
-    output.result = reg_name;
+    output.result_ptnode = reg_name;
 
     return output;
   }
@@ -1270,7 +1270,7 @@ namespace http_parser
     scheme->content = StringSlice(input_start, input.bytes - input_start);
 
     output.length = scheme->content.length;
-    output.result = scheme;
+    output.result_ptnode = scheme;
     return output;
   }
 
@@ -1306,10 +1306,10 @@ namespace http_parser
     {
       PTNodeUriHost* host = PTNodeCreate<PTNodeUriHost>();
       host->type = kUriHost;
-      host->address_header = parsed_address.result;
+      host->address_header = parsed_address.result_ptnode;
 
       output.length = input.bytes - input_start;
-      output.result = host;
+      output.result_ptnode = host;
     }
     return output;
   }
@@ -1329,7 +1329,7 @@ namespace http_parser
     port->content = StringSlice(input_start, input.bytes - input_start);
 
     output.length = input.bytes - input_start;
-    output.result = port;
+    output.result_ptnode = port;
     return output;
   }
 
@@ -1348,7 +1348,7 @@ namespace http_parser
     query->content = StringSlice(input_start, input.bytes - input_start);
 
     output.length = query->content.length;
-    output.result = query;
+    output.result_ptnode = query;
     return output;
   }
 
@@ -1368,7 +1368,7 @@ namespace http_parser
     user_info->content = StringSlice(input_start, input.bytes - input_start);
 
     output.length = user_info->content.length;
-    output.result = user_info;
+    output.result_ptnode = user_info;
     return output;
   }
 
@@ -1388,7 +1388,7 @@ namespace http_parser
       {
         if (ConsumeByCharacter(&input_tmp, '@'))
         {
-          user_info = static_cast<PTNodeUriUserInfo*>(parsed_user_info.result);
+          user_info = static_cast<PTNodeUriUserInfo*>(parsed_user_info.result_ptnode);
           input = input_tmp;
         }
         else
@@ -1397,7 +1397,7 @@ namespace http_parser
     }
     ParseOutput parsed_host = ConsumeByParserFunction(&input, &ParseUriHost);
     if (parsed_host.is_valid())
-      host = static_cast<PTNodeUriHost*>(parsed_host.result);
+      host = static_cast<PTNodeUriHost*>(parsed_host.result_ptnode);
     else
     {
       temporary::arena.rollback(snapshot);
@@ -1410,7 +1410,7 @@ namespace http_parser
         ParseOutput parsed_port = ConsumeByParserFunction(&input_tmp, &ParseUriPort);
         if (parsed_port.is_valid())
         {
-          port = static_cast<PTNodeUriPort*>(parsed_port.result);
+          port = static_cast<PTNodeUriPort*>(parsed_port.result_ptnode);
           input = input_tmp;
         }
       }
@@ -1422,7 +1422,7 @@ namespace http_parser
     authority->port = port;
 
     output.length = input.bytes - input_start;
-    output.result = authority;
+    output.result_ptnode = authority;
     return output;
   }
 
@@ -1441,7 +1441,7 @@ namespace http_parser
     fragment->content = StringSlice(input_start, input.bytes - input_start);
 
     output.length = fragment->content.length;
-    output.result = fragment;
+    output.result_ptnode = fragment;
     return output;
   }
 
@@ -1459,7 +1459,7 @@ namespace http_parser
       ParseOutput parsed_authority = ConsumeByParserFunction(&input, &ParseUriAuthority);
       if (!parsed_authority.is_valid())
         return output;
-      authority = static_cast<PTNodeUriAuthority*>(parsed_authority.result);
+      authority = static_cast<PTNodeUriAuthority*>(parsed_authority.result_ptnode);
     }
     {
       ParseOutput parsed_path_abempty = ConsumeByParserFunction(&input, &ParsePathAbEmpty);
@@ -1468,7 +1468,7 @@ namespace http_parser
         temporary::arena.rollback(snapshot);
         return output;
       }
-      path = static_cast<PTNodePathAbEmpty*>(parsed_path_abempty.result);
+      path = static_cast<PTNodePathAbEmpty*>(parsed_path_abempty.result_ptnode);
     }
 
     PTNodeUriReferenceNetworkPath* reference_network_path = PTNodeCreate<PTNodeUriReferenceNetworkPath>();
@@ -1477,7 +1477,7 @@ namespace http_parser
     reference_network_path->path = path;
 
     output.length = input.bytes - input_start;
-    output.result = reference_network_path;
+    output.result_ptnode = reference_network_path;
     return output;
   }
 
@@ -1494,7 +1494,7 @@ namespace http_parser
     {
       ParseOutput parsed_scheme = ConsumeByParserFunction(&input, &ParseUriScheme);
       if (parsed_scheme.is_valid())
-        scheme = static_cast<PTNodeUriScheme*>(parsed_scheme.result);
+        scheme = static_cast<PTNodeUriScheme*>(parsed_scheme.result_ptnode);
       else
         return output;
     }
@@ -1506,22 +1506,22 @@ namespace http_parser
     {
       ParseOutput parsed_path_header = ConsumeByParserFunction(&input, &ParseUriReferenceNetworkPath);
       if (parsed_path_header.is_valid())
-        path_header = parsed_path_header.result;
+        path_header = parsed_path_header.result_ptnode;
       else
       {
         parsed_path_header = ConsumeByParserFunction(&input, &ParsePathAbsolute);
         if (parsed_path_header.is_valid())
-          path_header = parsed_path_header.result;
+          path_header = parsed_path_header.result_ptnode;
         else
         {
           parsed_path_header = ConsumeByParserFunction(&input, &ParsePathRootless);
           if (parsed_path_header.is_valid())
-            path_header = parsed_path_header.result;
+            path_header = parsed_path_header.result_ptnode;
           else
           {
             parsed_path_header = ConsumeByParserFunction(&input, &ParsePathEmpty);
             if (parsed_path_header.is_valid())
-              path_header = parsed_path_header.result;
+              path_header = parsed_path_header.result_ptnode;
             else
             {
               temporary::arena.rollback(snapshot);
@@ -1538,7 +1538,7 @@ namespace http_parser
         ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriQuery);
         if (parsed_query.is_valid())
         {
-          query = static_cast<PTNodeUriQuery*>(parsed_query.result);
+          query = static_cast<PTNodeUriQuery*>(parsed_query.result_ptnode);
           input = input_tmp;
         }
       }
@@ -1550,7 +1550,7 @@ namespace http_parser
         ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriFragment);
         if (parsed_query.is_valid())
         {
-          fragment = static_cast<PTNodeUriFragment*>(parsed_query.result);
+          fragment = static_cast<PTNodeUriFragment*>(parsed_query.result_ptnode);
           input = input_tmp;
         }
       }
@@ -1564,7 +1564,7 @@ namespace http_parser
     uri->fragment = fragment;
 
     output.length = input.bytes - input_start;
-    output.result = uri;
+    output.result_ptnode = uri;
     return output;
   }
 
@@ -1580,7 +1580,7 @@ namespace http_parser
     {
       ParseOutput parsed_scheme = ConsumeByParserFunction(&input, &ParseUriScheme);
       if (parsed_scheme.is_valid())
-        scheme = static_cast<PTNodeUriScheme*>(parsed_scheme.result);
+        scheme = static_cast<PTNodeUriScheme*>(parsed_scheme.result_ptnode);
       else
         return output;
     }
@@ -1592,22 +1592,22 @@ namespace http_parser
     {
       ParseOutput parsed_path_header = ConsumeByParserFunction(&input, &ParseUriReferenceNetworkPath);
       if (parsed_path_header.is_valid())
-        path_header = parsed_path_header.result;
+        path_header = parsed_path_header.result_ptnode;
       else
       {
         parsed_path_header = ConsumeByParserFunction(&input, &ParsePathAbsolute);
         if (parsed_path_header.is_valid())
-          path_header = parsed_path_header.result;
+          path_header = parsed_path_header.result_ptnode;
         else
         {
           parsed_path_header = ConsumeByParserFunction(&input, &ParsePathRootless);
           if (parsed_path_header.is_valid())
-            path_header = parsed_path_header.result;
+            path_header = parsed_path_header.result_ptnode;
           else
           {
             parsed_path_header = ConsumeByParserFunction(&input, &ParsePathEmpty);
             if (parsed_path_header.is_valid())
-              path_header = parsed_path_header.result;
+              path_header = parsed_path_header.result_ptnode;
             else
             {
               temporary::arena.rollback(snapshot);
@@ -1624,7 +1624,7 @@ namespace http_parser
         ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriQuery);
         if (parsed_query.is_valid())
         {
-          query = static_cast<PTNodeUriQuery*>(parsed_query.result);
+          query = static_cast<PTNodeUriQuery*>(parsed_query.result_ptnode);
           input = input_tmp;
         }
       }
@@ -1636,7 +1636,7 @@ namespace http_parser
     url_absolute->query = query;
 
     output.length = input.bytes - input_start;
-    output.result = url_absolute;
+    output.result_ptnode = url_absolute;
     return output;
   }
 
@@ -1651,22 +1651,22 @@ namespace http_parser
     {
       ParseOutput parsed_path_header = ConsumeByParserFunction(&input, &ParseUriReferenceNetworkPath);
       if (parsed_path_header.is_valid())
-        path_header = parsed_path_header.result;
+        path_header = parsed_path_header.result_ptnode;
       else
       {
         parsed_path_header = ConsumeByParserFunction(&input, &ParsePathAbsolute);
         if (parsed_path_header.is_valid())
-          path_header = parsed_path_header.result;
+          path_header = parsed_path_header.result_ptnode;
         else
         {
           parsed_path_header = ConsumeByParserFunction(&input, &ParsePathNoScheme);
           if (parsed_path_header.is_valid())
-            path_header = parsed_path_header.result;
+            path_header = parsed_path_header.result_ptnode;
           else
           {
             parsed_path_header = ConsumeByParserFunction(&input, &ParsePathEmpty);
             if (parsed_path_header.is_valid())
-              path_header = parsed_path_header.result;
+              path_header = parsed_path_header.result_ptnode;
             else
               return output;
           }
@@ -1680,7 +1680,7 @@ namespace http_parser
         ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriQuery);
         if (parsed_query.is_valid())
         {
-          query = static_cast<PTNodeUriQuery*>(parsed_query.result);
+          query = static_cast<PTNodeUriQuery*>(parsed_query.result_ptnode);
           input = input_tmp;
         }
       }
@@ -1692,7 +1692,7 @@ namespace http_parser
         ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriFragment);
         if (parsed_query.is_valid())
         {
-          fragment = static_cast<PTNodeUriFragment*>(parsed_query.result);
+          fragment = static_cast<PTNodeUriFragment*>(parsed_query.result_ptnode);
           input = input_tmp;
         }
       }
@@ -1705,7 +1705,7 @@ namespace http_parser
     uri_reference_relative->fragment = fragment;
 
     output.length = input.bytes - input_start;
-    output.result = uri_reference_relative;
+    output.result_ptnode = uri_reference_relative;
     return output;
   }
 
@@ -1717,12 +1717,12 @@ namespace http_parser
 
     ParseOutput parsed_uri_header = ConsumeByParserFunction(&input, &ParseUri);
     if (parsed_uri_header.is_valid())
-      uri_header = parsed_uri_header.result;
+      uri_header = parsed_uri_header.result_ptnode;
     else
     {
       parsed_uri_header = ConsumeByParserFunction(&input, &ParseUriReferenceRelative);
       if (parsed_uri_header.is_valid())
-        uri_header = parsed_uri_header.result;
+        uri_header = parsed_uri_header.result_ptnode;
       else
         return output;
     }
@@ -1732,7 +1732,7 @@ namespace http_parser
     uri_reference->uri_header = uri_header;
 
     output.length = input.bytes - input_start;
-    output.result = uri_reference;
+    output.result_ptnode = uri_reference;
     return output;
   }
 
@@ -1783,7 +1783,7 @@ namespace http_parser
       http_version->content = StringSlice(input_start, input.bytes - input_start);
 
       output.length = input.bytes - input_start;
-      output.result = http_version;
+      output.result_ptnode = http_version;
     }
     return output;
   }
@@ -1798,7 +1798,7 @@ namespace http_parser
     if (parsed_token.is_valid())
     {
       enum Method method_name = kWrong;
-      StringSlice string = ((PTNodeToken*) parsed_token.result)->content;
+      StringSlice string = ((PTNodeToken*) parsed_token.result_ptnode)->content;
       if (string.match("GET") == 3)
         method_name = kGet;
       else if (string.match("POST") == 4)
@@ -1817,7 +1817,7 @@ namespace http_parser
       method->method = method_name;
 
       output.length = input.bytes - input_start;
-      output.result = method;
+      output.result_ptnode = method;
     }
     return output;
   }
@@ -1832,7 +1832,7 @@ namespace http_parser
     {
       ParseOutput parsed_absolute_path = ConsumeByParserFunction(&input, &ParsePathAbsolute);
       if (parsed_absolute_path.is_valid())
-        absolute_path = static_cast<PTNodePathAbsolute*>(parsed_absolute_path.result);
+        absolute_path = static_cast<PTNodePathAbsolute*>(parsed_absolute_path.result_ptnode);
       else
         return output;
     }
@@ -1843,7 +1843,7 @@ namespace http_parser
         ParseOutput parsed_query = ConsumeByParserFunction(&input_tmp, &ParseUriQuery);
         if (parsed_query.is_valid())
         {
-          query = static_cast<PTNodeUriQuery*>(parsed_query.result);
+          query = static_cast<PTNodeUriQuery*>(parsed_query.result_ptnode);
           input = input_tmp;
         }
       }
@@ -1855,7 +1855,7 @@ namespace http_parser
     request_target_origin_form->query = query;
 
     output.length = input.bytes - input_start;
-    output.result = request_target_origin_form;
+    output.result_ptnode = request_target_origin_form;
     return output;
   }
 
@@ -1870,7 +1870,7 @@ namespace http_parser
     {
       ParseOutput parsed_host = ConsumeByParserFunction(&input, &ParseUriHost);
       if (parsed_host.is_valid())
-        host = static_cast<PTNodeUriHost*>(parsed_host.result);
+        host = static_cast<PTNodeUriHost*>(parsed_host.result_ptnode);
       else
         return output;
     }
@@ -1882,7 +1882,7 @@ namespace http_parser
     {
       ParseOutput parsed_host = ConsumeByParserFunction(&input, &ParseUriPort);
       if (parsed_host.is_valid())
-        port = static_cast<PTNodeUriPort*>(parsed_host.result);
+        port = static_cast<PTNodeUriPort*>(parsed_host.result_ptnode);
       else
       {
         temporary::arena.rollback(snapshot);
@@ -1896,7 +1896,7 @@ namespace http_parser
     request_target_authority_form->port = port;
 
     output.length = input.bytes - input_start;
-    output.result = request_target_authority_form;
+    output.result_ptnode = request_target_authority_form;
     return output;
   }
 
@@ -1911,7 +1911,7 @@ namespace http_parser
       request_target_asterisk_form->type = kRequestAsteriskForm;
 
       output.length = input.bytes - input_start;
-      output.result = request_target_asterisk_form;
+      output.result_ptnode = request_target_asterisk_form;
     }
     return output;
   }
@@ -1928,7 +1928,7 @@ namespace http_parser
     {
       ParseOutput parsed_method = ConsumeByParserFunction(&input, &ParseMethod);
       if (parsed_method.is_valid())
-        method = static_cast<PTNodeMethod*>(parsed_method.result);
+        method = static_cast<PTNodeMethod*>(parsed_method.result_ptnode);
       else
         return output;
     }
@@ -1940,22 +1940,22 @@ namespace http_parser
     {
       ParseOutput parsed_request_target = ConsumeByParserFunction(&input, &ParseRequestTargetOriginForm);
       if (parsed_request_target.is_valid())
-        request_target_header = parsed_request_target.result;
+        request_target_header = parsed_request_target.result_ptnode;
       else
       {
         parsed_request_target = ConsumeByParserFunction(&input, &ParseUriAbsolute);
         if (parsed_request_target.is_valid())
-          request_target_header = parsed_request_target.result;
+          request_target_header = parsed_request_target.result_ptnode;
         else
         {
           parsed_request_target = ConsumeByParserFunction(&input, &ParseRequestTargetAuthorityForm);
           if (parsed_request_target.is_valid())
-            request_target_header = parsed_request_target.result;
+            request_target_header = parsed_request_target.result_ptnode;
           else
           {
             parsed_request_target = ConsumeByParserFunction(&input, &ParseRequestTargetAsteriskForm);
             if (parsed_request_target.is_valid())
-              request_target_header = parsed_request_target.result;
+              request_target_header = parsed_request_target.result_ptnode;
             else
             {
               temporary::arena.rollback(snapshot);
@@ -1973,7 +1973,7 @@ namespace http_parser
     {
       ParseOutput parsed_http_version = ConsumeByParserFunction(&input, &ParseHttpVersion);
       if (parsed_http_version.is_valid())
-        version = static_cast<PTNodeHttpVersion*>(parsed_http_version.result);
+        version = static_cast<PTNodeHttpVersion*>(parsed_http_version.result_ptnode);
       else
       {
         temporary::arena.rollback(snapshot);
@@ -1988,7 +1988,7 @@ namespace http_parser
     request_line->version = version;
 
     output.length = input.bytes - input_start;
-    output.result = request_line;
+    output.result_ptnode = request_line;
     return output;
   }
 
@@ -2018,7 +2018,7 @@ namespace http_parser
       reason_phrase->content = StringSlice(input_start, input.bytes - input_start);
 
       output.length = input.bytes - input_start;
-      output.result = reason_phrase;
+      output.result_ptnode = reason_phrase;
     }
     return output;
   }
@@ -2043,7 +2043,7 @@ namespace http_parser
       status_code->number  = number;
 
       output.length = input.bytes - input_start;
-      output.result = status_code;
+      output.result_ptnode = status_code;
     }
     return output;
   }
@@ -2060,7 +2060,7 @@ namespace http_parser
     {
       ParseOutput parsed_http_version = ConsumeByParserFunction(&input, &ParseHttpVersion);
       if (parsed_http_version.is_valid())
-        http_version = static_cast<PTNodeHttpVersion*>(parsed_http_version.result);
+        http_version = static_cast<PTNodeHttpVersion*>(parsed_http_version.result_ptnode);
       else
         return output;
     }
@@ -2072,7 +2072,7 @@ namespace http_parser
     {
       ParseOutput parsed_status_code = ConsumeByParserFunction(&input, &ParseStatusCode);
       if (parsed_status_code.is_valid())
-        status_code = static_cast<PTNodeStatusCode*>(parsed_status_code.result);
+        status_code = static_cast<PTNodeStatusCode*>(parsed_status_code.result_ptnode);
       else
       {
         temporary::arena.rollback(snapshot);
@@ -2087,7 +2087,7 @@ namespace http_parser
     {
       ParseOutput parsed_reason_phrase = ConsumeByParserFunction(&input, &ParseReasonPhrase);
       if (parsed_reason_phrase.is_valid())
-        reason_phrase = static_cast<PTNodeReasonPhrase*>(parsed_reason_phrase.result);
+        reason_phrase = static_cast<PTNodeReasonPhrase*>(parsed_reason_phrase.result_ptnode);
     }
     PTNodeStatusLine*  status_line = PTNodeCreate<PTNodeStatusLine>();
     status_line->type = kStatusLine;
@@ -2096,7 +2096,7 @@ namespace http_parser
     status_line->reason_phrase = reason_phrase;
 
     output.length = input.bytes - input_start;
-    output.result = status_line;
+    output.result_ptnode = status_line;
     return output;
   }
 
@@ -2155,7 +2155,7 @@ namespace http_parser
     field_value->content = StringSlice(value_start, value_end - value_start);
 
     output.length = input.bytes - input_start;
-    output.result = field_value;
+    output.result_ptnode = field_value;
     return output;
   }
 
@@ -2170,7 +2170,7 @@ namespace http_parser
     {
       ParseOutput parsed_field_name = ConsumeByParserFunction(&input, &ParseToken);
       if (parsed_field_name.is_valid())
-        name = static_cast<PTNodeToken*>(parsed_field_name.result);
+        name = static_cast<PTNodeToken*>(parsed_field_name.result_ptnode);
       else
         return output;
     }
@@ -2183,7 +2183,7 @@ namespace http_parser
     {
       ParseOutput parsed_field_value = ConsumeByParserFunction(&input, &ParseFieldValue);
       if (parsed_field_value.is_valid())
-        value = static_cast<PTNodeFieldValue*>(parsed_field_value.result);
+        value = static_cast<PTNodeFieldValue*>(parsed_field_value.result_ptnode);
       else
       {
         temporary::arena.rollback(snapshot);
@@ -2198,7 +2198,7 @@ namespace http_parser
     field_line->value = value;
 
     output.length = input.bytes - input_start;
-    output.result = field_line;
+    output.result_ptnode = field_line;
     return output;
   }
 
@@ -2215,7 +2215,7 @@ namespace http_parser
       if (parsed_field.is_valid())
       {
         if (ConsumeByScanFunction(&input, &ScanNewLine).is_valid())
-          fields.push_back(static_cast<PTNodeFieldLine*>(parsed_field.result));
+          fields.push_back(static_cast<PTNodeFieldLine*>(parsed_field.result_ptnode));
         else
         {
           temporary::arena.rollback(snapshot);
@@ -2231,7 +2231,7 @@ namespace http_parser
     node_fields->fields = fields;
 
     output.length = input.bytes - input_start;
-    output.result = node_fields;
+    output.result_ptnode = node_fields;
     return output;
   }
 
@@ -2269,7 +2269,7 @@ namespace http_parser
     {
       ParseOutput parsed_parameters = ConsumeByParserFunction(&input, &ParseParameters);
       if (parsed_parameters.is_valid())
-        parameters = static_cast<PTNodeParameters*>(parsed_parameters.result);
+        parameters = static_cast<PTNodeParameters*>(parsed_parameters.result_ptnode);
       else
         return output;
     }
@@ -2280,7 +2280,7 @@ namespace http_parser
     content_type->parameters = parameters;
 
     output.length = input.bytes - input_start;
-    output.result = content_type;
+    output.result_ptnode = content_type;
     return output;
   }
 
@@ -2302,7 +2302,7 @@ namespace http_parser
       content_length->number = number;
 
       output.length = input.bytes - input_start;
-      output.result = content_length;
+      output.result_ptnode = content_length;
     }
     return output;
   }
@@ -2316,7 +2316,7 @@ namespace http_parser
     {
       ParseOutput parsed_connection_option = ConsumeByParserFunction(&input, &ParseToken);
       if (parsed_connection_option.is_valid())
-        options.push_back(static_cast<PTNodeToken*>(parsed_connection_option.result));
+        options.push_back(static_cast<PTNodeToken*>(parsed_connection_option.result_ptnode));
       else
       {
         while (input.length > 0)
@@ -2329,7 +2329,7 @@ namespace http_parser
           parsed_connection_option = ConsumeByParserFunction(&input_tmp, &ParseToken);
           if (parsed_connection_option.is_valid())
           {
-            options.push_back(static_cast<PTNodeToken*>(parsed_connection_option.result));
+            options.push_back(static_cast<PTNodeToken*>(parsed_connection_option.result_ptnode));
             input = input_tmp;
           }
           else
@@ -2342,7 +2342,7 @@ namespace http_parser
     connection->options = options;
 
     output.length = input.bytes - input_start;
-    output.result = connection;
+    output.result_ptnode = connection;
     return output;
   }
 
@@ -2356,7 +2356,7 @@ namespace http_parser
     {
       ParseOutput parsed_uri_host = ConsumeByParserFunction(&input, &ParseUriHost);
       if (parsed_uri_host.is_valid())
-        uri_host = static_cast<PTNodeUriHost*>(parsed_uri_host.result);
+        uri_host = static_cast<PTNodeUriHost*>(parsed_uri_host.result_ptnode);
       else
         return output;
     }
@@ -2366,7 +2366,7 @@ namespace http_parser
       ParseOutput parsed_port = ConsumeByParserFunction(&input_tmp, &ParseUriPort);
       if (parsed_port.is_valid())
       {
-        port = static_cast<PTNodeUriPort*>(parsed_port.result);
+        port = static_cast<PTNodeUriPort*>(parsed_port.result_ptnode);
         input = input_tmp;
       }
     }
@@ -2377,7 +2377,7 @@ namespace http_parser
     host->port = port;
 
     output.length = input.bytes - input_start;
-    output.result = host;
+    output.result_ptnode = host;
     return output;
   }
 
@@ -2389,27 +2389,27 @@ namespace http_parser
     {
       ParseOutput parsed_uri_header = ConsumeByParserFunction(&input, &ParseUriAbsolute);
       if (parsed_uri_header.is_valid())
-        uri_header = parsed_uri_header.result;
+        uri_header = parsed_uri_header.result_ptnode;
       else
       {
         parsed_uri_header = ConsumeByParserFunction(&input, &ParseUriReferenceNetworkPath);
         if (parsed_uri_header.is_valid())
-          uri_header = parsed_uri_header.result;
+          uri_header = parsed_uri_header.result_ptnode;
         else
         {
           parsed_uri_header = ConsumeByParserFunction(&input, &ParsePathAbsolute);
           if (parsed_uri_header.is_valid())
-            uri_header = parsed_uri_header.result;
+            uri_header = parsed_uri_header.result_ptnode;
           else
           {
             parsed_uri_header = ConsumeByParserFunction(&input, &ParsePathNoScheme);
             if (parsed_uri_header.is_valid())
-              uri_header = parsed_uri_header.result;
+              uri_header = parsed_uri_header.result_ptnode;
             else
             {
               parsed_uri_header = ConsumeByParserFunction(&input, &ParsePathEmpty);
               if (parsed_uri_header.is_valid())
-                uri_header = parsed_uri_header.result;
+                uri_header = parsed_uri_header.result_ptnode;
               else
                 return output;
             }
@@ -2423,7 +2423,7 @@ namespace http_parser
     referer->uri_header = uri_header;
 
     output.length = input.bytes - input_start;
-    output.result = referer;
+    output.result_ptnode = referer;
     return output;
   }
 
@@ -2490,7 +2490,7 @@ namespace http_parser
     transfer_encoding->codings = codings;
 
     output.length = input.bytes - input_start;
-    output.result = transfer_encoding;
+    output.result_ptnode = transfer_encoding;
     return output;
   }
 
