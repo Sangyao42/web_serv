@@ -42,18 +42,17 @@ Fields only in HTTP response:
 ### Supported server configuration directives
 
 ```nginx
-types {
-    text/html html;
-    text/css css;
-    text/javascript js;
-    image/png png;
-    image/jpeg jpeg;
-    image/gif gif;
-    application/json json;
-}
-
 http {
-    include mime.types;
+     types {
+        text/html html;
+        text/css css;
+        text/javascript js;
+        image/png png;
+        image/jpeg jpeg;
+        image/gif gif;
+        application/json json;
+    }
+
     server {
         listen 8080;
         server_name my.com;
@@ -120,7 +119,6 @@ For logging information:
 - `access_log` - The access log file of the server
 - `error_log` - The error log file of the server
 
-- `include` - Include another configuration file
 - `worker_connections` - Maximum amount of connections that the server will handle at any given point of time 
 
 See the properties of all supported directives [here](docs/planning.md#configuration-file)
