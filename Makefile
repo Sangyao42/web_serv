@@ -8,15 +8,17 @@ LDFLAGS= -std=c++98 -pedantic
 ifdef DEBUG
 	CXXFLAGS+= -g3 -DDEBUG=1
 	LDFLAGS+= -g3 
-else
-	CXXFLAGS+= -O2 -DNDEBUG
 endif
 
 ifdef FSANITIZE
 	CXXFLAGS+= -g3 -fsanitize=address -DDEBUG=1
 	LDFLAGS+= -g3 -fsanitize=address
-else
+endif
+
+ifndef FSANITIZE
+ifndef DEBUG
 	CXXFLAGS+= -O2 -DNDEBUG
+endif
 endif
 
 ###############################
