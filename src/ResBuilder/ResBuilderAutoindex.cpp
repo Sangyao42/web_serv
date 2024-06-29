@@ -24,7 +24,7 @@ std::string res_builder::BuildAutoindexHTML(DSet files, std::string path)
     html += "ul li a:hover { background-color: rgba(255, 255, 255, 0.65); border: 1px solid #ececec; }";
     html += "i { padding: 3px; margin-right: 8px; }";
 
-	html += "</style><title>Index of";
+	html += "</style><title>Index of ";
 	html += path;
 	html += "</title></head>\r\n";
 	html += "<body>\r\n";
