@@ -46,6 +46,7 @@ class SocketManager
 	public:
 
 		SocketManager();
+		SocketManager(int max_clients);
 		~SocketManager();
 
 		//methods

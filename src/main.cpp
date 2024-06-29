@@ -66,7 +66,6 @@ int main(int argc, char **argv)
 		return (1);
 	}
 
-	SocketManager sm;
 	std::vector<struct Client> clients;
 	std::vector<struct pollfd> pfds;
 
@@ -79,6 +78,7 @@ int main(int argc, char **argv)
 	static char recv_buf[RECV_BUF_SIZE];
 
 	int max_clients = ws_database.worker_connections();
+	SocketManager sm(max_clients);
 	int client_count = 0;
 	SocketError err = sm.set_servers(ws_database.all_server_sockets());
 	if (err != kNoError)

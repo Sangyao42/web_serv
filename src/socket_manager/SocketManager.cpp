@@ -15,6 +15,11 @@
 
 SocketManager::SocketManager() {}
 
+SocketManager::SocketManager(int max_clients){
+	clients_.reserve(max_clients);
+
+}
+
 SocketManager::~SocketManager()
 {
 	std::vector<ServerSocket>::iterator it;
