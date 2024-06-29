@@ -1,6 +1,8 @@
-FROM debian:bookworm
+FROM ubuntu:20.04
 
-RUN apt-get update && \
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -y && \
     apt-get upgrade -y && \
     apt-get install -y \
         build-essential \
@@ -12,6 +14,7 @@ RUN apt-get update && \
 
 COPY Makefile /web_serv/
 COPY src /web_serv/src
+COPY www /web_serv/www
 WORKDIR /web_serv
 RUN make
 CMD  ./webserv || tail -f /dev/null
