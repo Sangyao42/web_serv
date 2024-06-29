@@ -40,7 +40,10 @@ Configuration::Configuration()
   : server_cache_(),
     location_cache_(),
     location_insertion_index_(0),
-    main_block_(NULL) {}
+    main_block_(NULL)
+{
+  location_cache_.reserve(32);
+}
 
 Configuration::Configuration(int cache_size)
   : server_cache_(),
