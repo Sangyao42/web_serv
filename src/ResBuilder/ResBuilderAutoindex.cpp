@@ -35,11 +35,15 @@ std::string res_builder::BuildAutoindexHTML(DSet files, std::string path)
 	html += "</h1>\r\n";
 	html += "<ul>";
 
+
+	if (!path.empty() && path[path.size() - 1] != '/')
+		path = path + "/";
+
 	// add icons and links for directories and files
     for (it = ++(files.begin()); it != files.end(); ++it)
     {
       html += "<li><a href=\"";
-      html += it->second;
+      html += path + it->second;
       if (it->first == DT_DIR)
         html += "\"><i class=\"fa-regular fa-folder\"></i>";
       else
@@ -82,14 +86,14 @@ void	res_builder::GenerateAutoindexResponse(struct Client *clt)
 		files.insert(std::make_pair(dirent->d_type, dirent->d_name));
 	}
 
-	if (errno != 0)
-	{
-		ServerError500(clt);
-		closedir(dir_stream);
-		return ;
-	}
+	// if (errno != 0)
+	// {
+	// 	ServerError500(clt);
+	// 	closedir(dir_stream);
+	// 	return ;
+	// }
 
-	std::string html = BuildAutoindexHTML(files, path);
+	std::string html = BuildAutoindexHTML(files, clt->req.getRequestTarget().path);
 	if (closedir(dir_stream) == -1)
 	{
 		ServerError500(clt);

@@ -64,7 +64,7 @@ void  Config2(directive::MainBlock& main)
     }
     {
       directive::Listen*  listen = new directive::Listen();
-      listen->add(uri::Authority("::", "8080"));
+      listen->add(uri::Authority("::", "8088"));
       server->add_directive(listen);
     }
     {
