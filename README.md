@@ -26,18 +26,16 @@ Fields only in HTTP request:
 
 - Host
 - Referer
-- User-Agent
-- Authorization (optional)
-- Accept (optional)
 
 Fields only in HTTP response:
 
 - Last-Modified
 - Allow
 - Location
-- Retry-After (maybe for CGI)
 - Server
-- WWW-Authenticate, Authentication-Info (optional)
+- User-Agent
+
+Grammer for the HTTP parser can be read [here](docs/HTTP.abnf)
 
 ### Supported server configuration directives
 
