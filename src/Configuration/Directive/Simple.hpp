@@ -35,7 +35,6 @@ namespace directive
   typedef DirectiveSimple<bool, Directive::kDirectiveAutoindex> Autoindex;
   typedef DirectiveSimple<std::string, Directive::kDirectiveAccessLog> AccessLog;
   typedef DirectiveSimple<std::string, Directive::kDirectiveErrorLog> ErrorLog;
-  typedef DirectiveSimple<Directive*, Directive::kDirectiveInclude> Include;
   typedef DirectiveSimple<size_t, Directive::kDirectiveWorkerConnections> WorkerConnections;
 
   //////////////////////////////////////////////////////
