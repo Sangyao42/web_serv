@@ -16,7 +16,7 @@ common_content         := "allow_methods"        OWS allow_methods
                         | "error_log"            OWS error_log
                         | "return"               OWS return
 http_content           := "server" OWS server_block
-                | common_content
+                        | common_content
 server_block           := "{" *( OB server_block_content OB [ ";" ] "\n") "}" [ ";" ]
 server_block_content   := "location"    OWS location_block
                         | "listen"      OWS listen
@@ -37,12 +37,14 @@ allow_methods        := 1*( "GET" | "POST" | "DELETE" SP)
 cgi                  := token SP file_name
 error_page           := file_name
 listen               := authority
-types                := ;; TODO
-return               := ;; TODO
+types                := "{" *( OB token SP token OB)  "}"
+return               := status_code [ URI ]
 server_name          := token
 
 directory_name := name
 file_name := token
-
 OB := *(" " | "\r" | "\n") ;; optional blank
+
+number := 1*( 0-9 )
+status_code := 100-511
 
