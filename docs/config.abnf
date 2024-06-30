@@ -1,0 +1,48 @@
+main_block             := OB *( main_block_content OB)
+main_block_content     := "http" OWS http_block
+                        | "events" OWS events_block
+                        | "error_log" OWS error_log
+events_block           := "{" *( OB "worker_connection" OWS worker_connection  OB [ ";" ] "\n") "}" [ ";" ]
+http_block             := "{" *( OB http_block_content OB [ ";" ] "\n") "}" [ ";" ]
+common_content         := "allow_methods"        OWS allow_methods
+                        | "root"                 OWS root
+                        | "index"                OWS index
+                        | "types"                OWS types
+                        | "error_pages"          OWS error_pages
+                        | "client_max_body_size" OWS client_max_body_size
+                        | "autoindex"            OWS autoindex
+                        | "cgi"                  OWS cgi
+                        | "access_log"           OWS access_log
+                        | "error_log"            OWS error_log
+                        | "return"               OWS return
+http_content           := "server" OWS server_block
+                | common_content
+server_block           := "{" *( OB server_block_content OB [ ";" ] "\n") "}" [ ";" ]
+server_block_content   := "location"    OWS location_block
+                        | "listen"      OWS listen
+                        | "server_name" OWS server_name
+                        | common_content
+location_block         := "{" *( OB location_block_content OB [ ";" ] "\n") "}" [ ";" ]
+location_block_content := "location" OWS location_block
+                        | common_content
+
+root                 := directory_name
+index                := 1*( file_name SP)
+autoindex            := "on" | "off"
+client_max_body_size := number [ "k" | "m" ] ;; k as in KB, m as in MB
+access_log           := file_name
+error_log            := file_name
+worker_connection    := number
+allow_methods        := 1*( "GET" | "POST" | "DELETE" SP)
+cgi                  := token SP file_name
+error_page           := file_name
+listen               := authority
+types                := ;; TODO
+return               := ;; TODO
+server_name          := token
+
+directory_name := name
+file_name := token
+
+OB := *(" " | "\r" | "\n") ;; optional blank
+
