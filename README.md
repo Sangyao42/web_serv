@@ -120,6 +120,7 @@ For logging information:
 - `worker_connections` - Maximum amount of connections that the server will handle at any given point of time 
 
 See the properties of all supported directives [here](docs/planning.md#configuration-file)
+Grammer for the configuration parser can be read [here](docs/Config.abnf)
 
 ## External materials
 
