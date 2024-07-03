@@ -7,9 +7,6 @@ def index():
 	root = os.environ['DOCUMENT_ROOT']
 
 	upload_folder = root + '/upload'
-	# TEST
-	print(upload_folder, file=sys.stderr)
-	# End of Test
 	files = os.listdir(upload_folder)
 
 	# for generating uri
@@ -17,9 +14,6 @@ def index():
 
 	# load script for list all the files
 	dir_cgi = os.path.dirname(__file__)
-	# TEST
-	print(dir_cgi, file=sys.stderr)
-	# End of Test
 	script_file = open( os.path.join(dir_cgi, 'del.js'), "r")
 	print(os.path.join(dir_cgi, 'del.js'), file=sys.stderr)
 
@@ -35,9 +29,9 @@ def index():
 	html += "<script>" + script + "</script></html>"
 
 	# # TODO: For testing generated html, can be deleted aftertesting
-    # f = open( os.path.join(dir_cgi, 'delete1.html'), "w+")
-    # f.write(html)
-    # f.close()
+    f = open( os.path.join(dir_cgi, 'delete.html'), "w+")
+    f.write(html)
+    f.close()
 	# # End of TODO
 
 	print("Content-Type: text/html", end='\r\n\r\n')
@@ -45,11 +39,10 @@ def index():
 
 
 if __name__ == '__main__':
-	# try:
-	# 	index()
-	# except:
-	# 	# log = open("errortrace.log", "w+")
-	# 	# log.write(traceback.format_exc())
-	# 	# log.close()
-	# 	sys.exit(1)
-	print("hello")
+	try:
+		index()
+	except:
+		# log = open("errortrace.log", "w+")
+		# log.write(traceback.format_exc())
+		# log.close()
+		sys.exit(1)
