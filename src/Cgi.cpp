@@ -253,33 +253,26 @@ void	cgi::SetCgiEnv(struct Client *clt)
 
 	//construct method
 	std::string method;
-  switch (clt->req.getMethod())
-  {
-  case kGet: method = "GET"; break;
-  case kPost: method = "POST"; break;
-  case kDelete: method = "DELETE"; break;
-  default: {}
-  };
+	switch (clt->req.getMethod())
+	{
+		case kGet: method = "GET"; break;
+		case kPost: method = "POST"; break;
+		case kDelete: method = "DELETE"; break;
+		default: {}
+	};
 	clt->cgi_env.push_back("REQUEST_METHOD=" + method);
 	// clt->cgi_env.push_back("REQUEST_METHOD=" + clt->req.getMethod());
 
 	//construct query_string
-	// std::string query_string;
-	// for (size_t i = 0; i < query.size(); ++i)
-	// {
-	// 	if (i == query.size() - 1)
-	// 		query_string += query[i].first + "=" + query[i].second;
-	// 	else
-	// 		query_string += query[i].first + "=" + query[i].second + "&";
-	// }
 	clt->cgi_env.push_back("QUERY_STRING=" + clt->req.getRequestTarget().query);
 
 	//construct content_length
 	HeaderInt *content_length = static_cast<HeaderInt *>(clt->req.returnValueAsPointer("Content-Length"));
-	std::ostringstream content_length_str;
-	content_length_str << content_length->to_string();
-	if (content_length && content_length_str.good())
-		clt->cgi_env.push_back("CONTENT_LENGTH=" + content_length_str.str());
+	if (content_length)
+	{
+		std::string content_length_str = content_length->to_string();
+		clt->cgi_env.push_back("CONTENT_LENGTH=" + content_length_str);
+	}
 	else
 		clt->cgi_env.push_back("CONTENT_LENGTH=");
 
