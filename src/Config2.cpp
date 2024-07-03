@@ -1,5 +1,6 @@
 #include <cstdlib>
 
+#include "Protocol.hpp"
 #include "constants.hpp"
 #include "Configuration.hpp"
 #include "Uri/Authority.hpp"
@@ -93,7 +94,46 @@ void  Config2(directive::MainBlock& main)
         root->set("./www");
         location->add_directive(root);
       }
-    }
+
+	  {
+      directive::Autoindex*  autoindex = new directive::Autoindex();
+      autoindex->set(true);
+      location->add_directive(autoindex);
+      }
+	}
+
+	{
+      directive::LocationBlock*  location = new directive::LocationBlock();
+      location->set("/upload");
+      server->add_directive(location);
+
+      {
+        directive::Root*  root = new directive::Root();
+        root->set("./www");
+        location->add_directive(root);
+      }
+
+	  {
+      directive::Autoindex*  autoindex = new directive::Autoindex();
+      autoindex->set(true);
+      location->add_directive(autoindex);
+      }
+
+	  {
+	  directive::AllowMethods*  allow_methods = new directive::AllowMethods();
+	  allow_methods->set(kPost);
+	  location->add_directive(allow_methods);
+	  }
+
+	  {
+		directive::MimeTypes* mime_types = new directive::MimeTypes();
+		mime_types->add("txt", "text/plain");
+		mime_types->add("html", "text/html");
+		location->add_directive(mime_types);
+	  }
+
+	}
+
     {
       directive::Autoindex*  autoindex = new directive::Autoindex();
       autoindex->set(true);
