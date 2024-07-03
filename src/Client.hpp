@@ -43,7 +43,7 @@ struct Client
 	bool	keepAlive;
 	std::string location_created;
 	std::string cgi_content_type;
-	std::string cgi_content_length;
+	int			cgi_content_length;
 	//START: request status before processing
 	size_t content_length;
 	size_t max_body_size;

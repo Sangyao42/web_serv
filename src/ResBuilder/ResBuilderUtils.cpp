@@ -48,7 +48,7 @@ void	res_builder::AddAcceptHeader(struct Client *clt)
 void	res_builder::BuildContentHeadersCGI(struct Client *clt)
 {
 	// add content-length header
-	clt->res.addNewPair("Content-Length", new HeaderInt(static_cast<int>(strtol(clt->cgi_content_length.c_str(), NULL, 10))));
+	clt->res.addNewPair("Content-Length", new HeaderInt(clt->cgi_content_length));
 
 	// add content-type header
 	clt->res.addNewPair("Content-Type", new HeaderString(clt->cgi_content_type));
