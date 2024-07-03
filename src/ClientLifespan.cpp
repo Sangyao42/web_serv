@@ -115,15 +115,14 @@ void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 	// check if the path exists (for get and delete)
 	std::string path = process::GetExactPath(location->root, location->match_path, clt->req.getRequestTarget());
 	clt->path = path;
-	if ((access(path.c_str(), F_OK) != 0) \
-	&& (clt->req.getMethod() == kGet || clt->req.getMethod() == kDelete))
+	if (clt->req.getMethod() == kGet || clt->req.getMethod() == kDelete)
 	{
-		clt->status_code = k404;
-		clt->consume_body = false;
-		return ;
-	}
-	else
-	{
+		if (access(path.c_str(), F_OK) != 0)
+		{
+			clt->status_code = k404;
+			clt->consume_body = false;
+			return ;
+		}
 		if (stat(path.c_str(), &clt->stat_buff) != 0)
 		{
 			clt->status_code = k500;
@@ -131,6 +130,15 @@ void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 			return ;
 		}
 	}
+	// else
+	// {
+	// 	if (stat(path.c_str(), &clt->stat_buff) != 0)
+	// 	{
+	// 		clt->status_code = k500;
+	// 		clt->consume_body = false;
+	// 		return ;
+	// 	}
+	// }
 	return ;
 }
 
