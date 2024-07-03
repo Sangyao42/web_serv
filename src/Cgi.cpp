@@ -184,18 +184,18 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
-		struct CgiOutput cgi_output;
-		if(ParseCgiOutput(cgi_output, response_tmp) == false)
+		struct CgiOutput cgi_content;
+		if(ParseCgiOutput(cgi_content, response_tmp) == false)
 		{
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
-		if (cgi_output.content_type.empty() && cgi_output.content_body.empty())
+		if (cgi_content.content_type.empty() && cgi_content.content_body.empty())
 		{
 			clt->status_code = k204;
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
-		if (!process::IsSupportedMediaType(cgi_output.content_type, clt->config.query->mime_types)) //check the response content type with the MIME type
+		if (!process::IsSupportedMediaType(cgi_content.content_type, clt->config.query->mime_types)) //check the response content type with the MIME type
 		{
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -207,17 +207,15 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 		// }
 		else
 		{
-			// TODO: generate the response body with content type and content length
-			clt->cgi_content_type = cgi_output.content_type;
-			clt->cgi_content_length = cgi_output.content_body.size();
-			clt->res.setResponseBody(cgi_output.content_body);
+			clt->cgi_content_type = cgi_content.content_type;
+			clt->cgi_content_length = cgi_content.content_body.size();
+			clt->res.setResponseBody(cgi_content.content_body);
 			clt->status_code = k200;
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
 	}
 	else
 	{
-
 		close(cgi_output[kRead]);
 		clt->status_code = k500;
 		return (res_builder::GenerateErrorResponse(clt));
