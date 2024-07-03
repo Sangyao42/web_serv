@@ -38,6 +38,12 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 		std::vector<char *> cstrings_env;
 		char** cgi_argv = StringVecToTwoDimArray(cstrings_argv, clt->cgi_argv);
 		char** cgi_env = StringVecToTwoDimArray(cstrings_env, clt->cgi_env);
+		// TEST
+		for (size_t i = 0; cgi_argv[i] != NULL; ++i)
+			std::cout << "cgi_argv: " << cgi_argv[i] << std::endl;
+		for (size_t i = 0; cgi_env[i] != NULL; ++i)
+			std::cout << "cgi_env: " << cgi_env[i] << std::endl;
+		// END OF TEST
 		if (cgi_argv == NULL || cgi_env == NULL)
 		{
 			close(cgi_output[kWrite]);
@@ -48,14 +54,20 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 		close(cgi_output[kWrite]);
 		exit(4);
 	}
-	//parent process
+	//parent process48
 	std::string response_tmp;
 	close(cgi_output[kWrite]);
 	int wstats;
 	waitpid(pid, &wstats, 0);
 	int if_exit = WIFEXITED(wstats);
 	int childprocess_exit_status = WEXITSTATUS(wstats);
-	if (if_exit && (childprocess_exit_status == 0))
+	int signal = WIFSIGNALED(wstats);
+	int  termsig = WTERMSIG(wstats);
+	std::cout << "if_exit: " << if_exit << std::endl;
+	std::cout << "childprocess_exit_status: " << childprocess_exit_status << std::endl;
+	std::cout << "signal: " << signal << std::endl;
+	std::cout << "termsig: " << termsig << std::endl;
+	if (if_exit || (childprocess_exit_status == 0))
 	{
 		int read_byte = ReadAll(cgi_output[kRead], response_tmp);
 		close(cgi_output[kRead]);
@@ -68,18 +80,18 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 		// TEST:
 		std::cout << "test response from cgi: " << response_tmp << std::endl;
 		// END OF TEST
-		struct CgiOutput cgi_output;
-		if(ParseCgiOutput(cgi_output, response_tmp) == false)
+		struct CgiOutput cgi_content;
+		if(ParseCgiOutput(cgi_content, response_tmp) == false)
 		{
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
-		if (cgi_output.content_type.empty() && cgi_output.content_body.empty())
+		if (cgi_content.content_type.empty() && cgi_content.content_body.empty())
 		{
 			clt->status_code = k204;
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
-		if (!process:: IsSupportedMediaType(cgi_output.content_type, clt->config.query->mime_types)) //check the response content type with the MIME type
+		if (!process:: IsSupportedMediaType(cgi_content.content_type, clt->config.query->mime_types)) //check the response content type with the MIME type
 		{
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -92,9 +104,9 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 		else
 		{
 			// TODO: generate the response body with content type and content length
-			clt->cgi_content_type = cgi_output.content_type;
-			clt->cgi_content_length = cgi_output.content_body.size();
-			clt->res.setResponseBody(cgi_output.content_body);
+			clt->cgi_content_type = cgi_content.content_type;
+			clt->cgi_content_length = cgi_content.content_body.size();
+			clt->res.setResponseBody(cgi_content.content_body);
 			clt->status_code = k200;
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
@@ -379,7 +391,7 @@ int cgi::WriteAll(int fd, char *cstr_buf, int size)
 
 }
 
-bool	cgi::ParseCgiOutput(struct CgiOutput &cgi_output, std::string &response_tmp)
+bool	cgi::ParseCgiOutput(struct CgiOutput &cgi_content, std::string &response_tmp)
 {
 	std::string delimiter = "\r\n\r\n";
 	size_t pos_delim = response_tmp.find(delimiter);
@@ -390,10 +402,10 @@ bool	cgi::ParseCgiOutput(struct CgiOutput &cgi_output, std::string &response_tmp
 		return false;
 	}
 	size_t pos = pos_cont_type + sizeof("Content-Type: ") - 1;
- 	cgi_output.content_type = response_tmp.substr(pos, pos_delim - pos);
-	cgi_output.content_body = response_tmp.substr(pos_delim + delimiter.size());
-	if ((cgi_output.content_type.empty() && !cgi_output.content_body.empty()) \
-		|| (!cgi_output.content_type.empty() && cgi_output.content_body.empty()))
+ 	cgi_content.content_type = response_tmp.substr(pos, pos_delim - pos);
+	cgi_content.content_body = response_tmp.substr(pos_delim + delimiter.size());
+	if ((cgi_content.content_type.empty() && !cgi_content.content_body.empty()) \
+		|| (!cgi_content.content_type.empty() && cgi_content.content_body.empty()))
 	{
 		std::cerr << "Error: ParseCgiOutput" << std::endl;
 		return false;
