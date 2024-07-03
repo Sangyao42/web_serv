@@ -38,12 +38,6 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 		std::vector<char *> cstrings_env;
 		char** cgi_argv = StringVecToTwoDimArray(cstrings_argv, clt->cgi_argv);
 		char** cgi_env = StringVecToTwoDimArray(cstrings_env, clt->cgi_env);
-		// TEST
-		for (size_t i = 0; cgi_argv[i] != NULL; ++i)
-			std::cout << "cgi_argv: " << cgi_argv[i] << std::endl;
-		for (size_t i = 0; cgi_env[i] != NULL; ++i)
-			std::cout << "cgi_env: " << cgi_env[i] << std::endl;
-		// END OF TEST
 		if (cgi_argv == NULL || cgi_env == NULL)
 		{
 			close(cgi_output[kWrite]);
@@ -59,15 +53,7 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 	close(cgi_output[kWrite]);
 	int wstats;
 	waitpid(pid, &wstats, 0);
-	int if_exit = WIFEXITED(wstats);
-	int childprocess_exit_status = WEXITSTATUS(wstats);
-	int signal = WIFSIGNALED(wstats);
-	int  termsig = WTERMSIG(wstats);
-	std::cout << "if_exit: " << if_exit << std::endl;
-	std::cout << "childprocess_exit_status: " << childprocess_exit_status << std::endl;
-	std::cout << "signal: " << signal << std::endl;
-	std::cout << "termsig: " << termsig << std::endl;
-	if (if_exit || (childprocess_exit_status == 0))
+	if (WIFEXITED(wstats) && (WEXITSTATUS(wstats) == 0))
 	{
 		int read_byte = ReadAll(cgi_output[kRead], response_tmp);
 		close(cgi_output[kRead]);
@@ -77,9 +63,6 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
-		// TEST:
-		std::cout << "test response from cgi: " << response_tmp << std::endl;
-		// END OF TEST
 		struct CgiOutput cgi_content;
 		if(ParseCgiOutput(cgi_content, response_tmp) == false)
 		{
