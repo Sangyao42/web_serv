@@ -1,9 +1,9 @@
-main_block             := OB *( main_block_content OB)
-main_block_content     := "http" OWS http_block
-                        | "events" OWS events_block
+main_block             := OB *( main_block_content OWS [ ";" ] OB)
+main_block_content     := "http"      OWS http_block
+                        | "events"    OWS events_block
                         | "error_log" OWS error_log
-events_block           := "{" *( OB "worker_connection" OWS worker_connection  OB [ ";" ] "\n") "}" [ ";" ]
-http_block             := "{" *( OB http_block_content OB [ ";" ] "\n") "}" [ ";" ]
+events_block           := "{" *( OB "worker_connection" OWS worker_connection  OWS [ ";" ]) "}"
+http_block             := "{" *( OB http_block_content OWS [ ";" ]) "}"
 common_content         := "allow_methods"        OWS allow_methods
                         | "root"                 OWS root
                         | "index"                OWS index
@@ -17,12 +17,12 @@ common_content         := "allow_methods"        OWS allow_methods
                         | "return"               OWS return
 http_content           := "server" OWS server_block
                         | common_content
-server_block           := "{" *( OB server_block_content OB [ ";" ] "\n") "}" [ ";" ]
+server_block           := "{" *( OB server_block_content OWS [ ";" ]) "}"
 server_block_content   := "location"    OWS location_block
                         | "listen"      OWS listen
                         | "server_name" OWS server_name
                         | common_content
-location_block         := "{" *( OB location_block_content OB [ ";" ] "\n") "}" [ ";" ]
+location_block         := "{" *( OB location_block_content OWS [ ";" ]) "}"
 location_block_content := "location" OWS location_block
                         | common_content
 
