@@ -27,15 +27,19 @@ void	process::ProcessRequest(struct Client *clt)
 	switch(clt->req.getMethod())
 	{
 		case kGet:
-			return (process::ProcessGetRequest(clt));
+			process::ProcessGetRequest(clt);
+			break ;
 		case kPost:
-			return (process::ProcessPostRequest(clt));
+			process::ProcessPostRequest(clt);
+			break ;
 		case kDelete:
-			return (process::ProcessDeleteRequest(clt));
+			process::ProcessDeleteRequest(clt);
+			break ;
 		default:
 			clt->status_code = k501;
-			return (res_builder::GenerateErrorResponse(clt));
+			res_builder::GenerateErrorResponse(clt);
 	}
+	return ;
 }
 
 void	process::ProcessGetRequest(struct Client *clt)
