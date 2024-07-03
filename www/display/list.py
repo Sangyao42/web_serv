@@ -1,5 +1,6 @@
 import os
 import sys
+import traceback
 
 def index():
 	# get root from envp
@@ -14,6 +15,7 @@ def index():
 	# load script for list all the files
     dir_cgi = os.path.dirname(__file__)
     script_file = open( os.path.join(dir_cgi, 'del.js'), "r")
+
     script = script_file.read()
 
     html = "<!DOCTYPE html>\n<html><body><h1>Directory Listing</h1>"
@@ -25,11 +27,11 @@ def index():
     html += "</body>\n"
     html += "<script>" + script + "</script></html>"
 
-	# TODO: For testing generated html, can be deleted aftertesting
-    f = open( os.path.join(dir_cgi, 'delete1.html'), "w+")
-    f.write(html)
-    f.close()
-	# End of TODO
+	# # TODO: For testing generated html, can be deleted aftertesting
+    # f = open( os.path.join(dir_cgi, 'delete1.html'), "w+")
+    # f.write(html)
+    # f.close()
+	# # End of TODO
 
     print("Content-Type: text/html", end='\r\n\r\n')
     print(html, end='')
@@ -39,4 +41,7 @@ if __name__ == '__main__':
     try:
         index()
     except:
+		log = open("errortrace.log", "w+")
+		log.write(traceback.format_exc())
+		log.close()
         sys.exit(1)

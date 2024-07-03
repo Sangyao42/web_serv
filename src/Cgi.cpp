@@ -31,7 +31,7 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 		access(clt->cgi_argv[1].c_str(), F_OK | R_OK) != 0)
 		{
 			close(cgi_output[kWrite]);
-			exit(1);
+			exit(2);
 		}
 		SetCgiEnv(clt);
 		std::vector<char *> cstrings_argv;
@@ -41,28 +41,33 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 		if (cgi_argv == NULL || cgi_env == NULL)
 		{
 			close(cgi_output[kWrite]);
-			exit(1);
+			exit(3);
 		}
 		execve(cgi_argv[0], cgi_argv, cgi_env);
 		std::cerr << "Error: execve" << std::endl;
 		close(cgi_output[kWrite]);
-		exit(1);
+		exit(4);
 	}
 	//parent process
 	std::string response_tmp;
 	close(cgi_output[kWrite]);
 	int wstats;
 	waitpid(pid, &wstats, 0);
-	if (WIFEXITED(wstats) && WEXITSTATUS(wstats) == 0)
+	int if_exit = WIFEXITED(wstats);
+	int childprocess_exit_status = WEXITSTATUS(wstats);
+	if (if_exit && (childprocess_exit_status == 0))
 	{
 		int read_byte = ReadAll(cgi_output[kRead], response_tmp);
 		close(cgi_output[kRead]);
-		assert(read_byte != 0 && "ReadAll: read byte is 0");
+		assert(read_byte != -1 && "ReadAll: read byte is -1");
 		if (read_byte < 0)
 		{
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
+		// TEST:
+		std::cout << "test response from cgi: " << response_tmp << std::endl;
+		// END OF TEST
 		struct CgiOutput cgi_output;
 		if(ParseCgiOutput(cgi_output, response_tmp) == false)
 		{
@@ -158,7 +163,7 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 	int content_size = clt->req.getRequestBody().size();
 	char *content_str = const_cast<char *>(clt->req.getRequestBody().c_str());
 	int write_byte = WriteAll(cgi_input[kWrite], content_str, content_size);
-	assert (write_byte != 0 && "WriteAll: write byte is 0");
+	assert (write_byte != -1  && "WriteAll: write() failed.");
 	if (write_byte < 0 && write_byte != content_size)
 	{
 		close(cgi_input[kWrite]);
@@ -217,6 +222,7 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 	}
 	else
 	{
+
 		close(cgi_output[kRead]);
 		clt->status_code = k500;
 		return (res_builder::GenerateErrorResponse(clt));

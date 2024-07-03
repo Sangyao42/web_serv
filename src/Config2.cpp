@@ -80,12 +80,17 @@ void  Config2(directive::MainBlock& main)
 
     {
       directive::LocationBlock*  location = new directive::LocationBlock();
-      location->set("/images");
+      location->set("/display");
       server->add_directive(location);
+	  {
+      directive::Cgi* python = new directive::Cgi();
+      python->set("py", "/usr/bin/python3");
+      location->add_directive(python);
+      }
 
       {
         directive::Root*  root = new directive::Root();
-        root->set("/var/example");
+        root->set("./www");
         location->add_directive(root);
       }
     }
