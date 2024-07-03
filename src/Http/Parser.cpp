@@ -761,15 +761,12 @@ namespace http_parser
       if (error)
         break;
     }
-    if (children.size() > 0)
-    {
-      PTNodeParameters* parameters = PTNodeCreate<PTNodeParameters>();
-      parameters->type = kParameters;
-      parameters->children = children;
+    PTNodeParameters* parameters = PTNodeCreate<PTNodeParameters>();
+    parameters->type = kParameters;
+    parameters->children = children;
 
-      output.length = parsed_length;
-      output.result = parameters;
-    }
+    output.length = parsed_length;
+    output.result = parameters;
     return output;
   }
 
