@@ -86,7 +86,6 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 		// }
 		else
 		{
-			// TODO: generate the response body with content type and content length
 			clt->cgi_content_type = cgi_content.content_type;
 			clt->cgi_content_length = cgi_content.content_body.size();
 			clt->res.setResponseBody(cgi_content.content_body);
@@ -288,7 +287,6 @@ void	cgi::SetCgiEnv(struct Client *clt)
 
 	//construct document_root
 	std::string document_root = clt->config.query->root;
-	// clt->cgi_env.push_back("DOCUMENT_ROOT=.." + document_root);
 	clt->cgi_env.push_back("DOCUMENT_ROOT=" + document_root);
 
 	//construct script_name
@@ -297,7 +295,6 @@ void	cgi::SetCgiEnv(struct Client *clt)
 	clt->cgi_env.push_back("SCRIPT_NAME=" + script_name);
 
 	//construct scipt_filename
-	// clt->cgi_env.push_back("SCRIPT_FILENAME=.." + document_root + script_name);
 	clt->cgi_env.push_back("SCRIPT_FILENAME=" + document_root + script_name);
 }
 
