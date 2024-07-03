@@ -29,9 +29,9 @@ def index():
 	html += "<script>" + script + "</script></html>"
 
 	# # TODO: For testing generated html, can be deleted aftertesting
-    f = open( os.path.join(dir_cgi, 'delete.html'), "w+")
-    f.write(html)
-    f.close()
+	f = open( os.path.join(dir_cgi, 'delete.html'), "w+")
+	f.write(html)
+	f.close()
 	# # End of TODO
 
 	print("Content-Type: text/html", end='\r\n\r\n')
