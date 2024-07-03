@@ -1,6 +1,6 @@
 #include <cstdlib>
 
-#include "Protocol.hpp"
+#include "Configuration/Directive/Simple/AllowMethods.hpp"
 #include "constants.hpp"
 #include "Configuration.hpp"
 #include "Uri/Authority.hpp"
@@ -121,7 +121,7 @@ void  Config2(directive::MainBlock& main)
 
 	  {
 	  directive::AllowMethods*  allow_methods = new directive::AllowMethods();
-	  allow_methods->set(kPost);
+	  allow_methods->set(directive::kMethodPost);
 	  location->add_directive(allow_methods);
 	  }
 
@@ -132,6 +132,35 @@ void  Config2(directive::MainBlock& main)
 		location->add_directive(mime_types);
 	  }
 
+	}
+
+	{
+      directive::LocationBlock*  location = new directive::LocationBlock();
+      location->set("/register");
+      server->add_directive(location);
+	  {
+      directive::Cgi* python = new directive::Cgi();
+      python->set("py", "/usr/bin/python3");
+      location->add_directive(python);
+      }
+
+      {
+        directive::Root*  root = new directive::Root();
+        root->set("./www");
+        location->add_directive(root);
+      }
+
+	  {
+	  directive::AllowMethods*  allow_methods = new directive::AllowMethods();
+	  allow_methods->set(directive::kMethodGet | directive::kMethodPost);
+	  location->add_directive(allow_methods);
+	  }
+
+	  {
+      directive::Autoindex*  autoindex = new directive::Autoindex();
+      autoindex->set(true);
+      location->add_directive(autoindex);
+      }
 	}
 
     {
