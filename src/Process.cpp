@@ -154,6 +154,7 @@ void	process::ProcessPostRequest(struct Client *clt)
 				clt->status_code = k500;
 				return (res_builder::GenerateErrorResponse(clt));
 			}
+			clt->location_created = clt->path;
 			clt->status_code = k200; // ? what should be sent in the body? could be, eg., <html>Modification Success!</html>
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
