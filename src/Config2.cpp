@@ -157,6 +157,14 @@ void  Config2(directive::MainBlock& main)
 	  }
 
 	  {
+		directive::MimeTypes* mime_types = new directive::MimeTypes();
+		mime_types->add("txt", "text/plain");
+		mime_types->add("html", "text/html");
+		mime_types->add("json", "application/json");
+		location->add_directive(mime_types);
+	  }
+
+	  {
       directive::Autoindex*  autoindex = new directive::Autoindex();
       autoindex->set(true);
       location->add_directive(autoindex);
