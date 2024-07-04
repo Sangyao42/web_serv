@@ -121,7 +121,7 @@ void  Config2(directive::MainBlock& main)
 
 	  {
 	  directive::AllowMethods*  allow_methods = new directive::AllowMethods();
-	  allow_methods->set(directive::kMethodPost);
+	  allow_methods->set(directive::kMethodPost | directive::kMethodGet | directive::kMethodDelete);
 	  location->add_directive(allow_methods);
 	  }
 
