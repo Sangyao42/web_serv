@@ -6,16 +6,15 @@
     <title>Register</title>
 </head>
 <body>
-    <form id="nameForm" method="post">
         <input type="text" name="userName" id="userName" placeholder="Write your name here...">
-        <button type="register">Register</button>
-    </form>
-    <!-- <p id="welcomeMessage"></p> -->
+		<button id="registerButton">Register</button>
+    <p id="welcomeMessage"></p>
 </body>
 <script>
-	document.getElementById('nameForm').addEventListener('register', function(event) {
-		event.preventDefault(); // Prevent the default form submission
+	document.getElementById('registerButton').addEventListener('click', function() {
+		// event.preventDefault(); // Prevent the default form submission
 		var userName = document.getElementById('userName').value;
+		console.log("User name:", userName);
 		fetch("http://localhost:8080/register/save_username.py", {
        		method: 'POST',
         	headers: {
@@ -27,7 +26,7 @@
 			if (!response.ok) {
 				throw new Error("Network response was not ok " + response.statusText);
 			}
-			return response.json(); // or response.text() if you expect a text response
+			return response.text();
 		})
 		.then(data => {
 			console.log("Response:", data);
@@ -35,7 +34,7 @@
 		.catch(error => {
 			console.log("Error:", error);
 		});
-		// document.getElementById("welcomeMessage").innerHTML = userName + ", welcome!";
+		document.getElementById("welcomeMessage").innerHTML = userName + ", welcome!";
 	});
 </script>
 </html>
