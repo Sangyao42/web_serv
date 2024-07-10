@@ -30,10 +30,12 @@ namespace http_parser
 {
 struct PTNodeRequestLine;
 struct PTNodeFields;
+struct PTNodeUriAuthority;
 }
 
 enum ParseError AnalysisRequestLine(http_parser::PTNodeRequestLine* request_line, RequestLine* output);
 enum ParseError AnalysisRequestHeaders(http_parser::PTNodeFields* fields, HeaderMap* output);
+enum ParseError AnalysisUriAuthority(http_parser::PTNodeUriAuthority* authority, struct uri::Authority* output);
 
 namespace http_parser
 {

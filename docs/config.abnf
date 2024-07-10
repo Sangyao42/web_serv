@@ -27,7 +27,7 @@ location_block_content := "location" OWS location_block
                         | common_content
 
 root                 := directory_name
-index                := 1*( file_name SP)
+index                := file_name
 autoindex            := "on" | "off"
 client_max_body_size := number [ "k" | "m" ] ;; k as in KB, m as in MB
 access_log           := file_name
@@ -35,14 +35,17 @@ error_log            := file_name
 worker_connection    := number
 allow_methods        := 1*( "GET" | "POST" | "DELETE" SP)
 cgi                  := token SP file_name
-error_page           := file_name
-listen               := authority
-types                := "{" *( OB token SP token OB)  "}"
-return               := status_code [ URI ]
-server_name          := token
+error_page           := status_code SP file_name
+listen               := authority *(SP authority)
+types                := "{" *( OB content_type SP token OWS [;] )  "}"
+return               := status_code [ SP URI ]
+server_name          := reg_name *(SP reg_name)
 
-directory_name := name
-file_name := token
+directory_name := os_path
+file_name := os_path
+os_path := '\'
+         | 1*('\' os_filename) ['\']
+         | 1*(os_filename '\')
 OB := *(" " | "\r" | "\n") ;; optional blank
 
 number := 1*( 0-9 )
