@@ -256,7 +256,7 @@ int main(int argc, char **argv)
 							}
 							else
 							{
-								if (error != kNone)
+								if (error == kNone)
 								{
 									error = AnalysisRequestHeaders(static_cast<http_parser::PTNodeFields*>(parsed_headers.result), &clt->req.headers_);
 									if (error != kNone)
