@@ -213,7 +213,7 @@ int main(int argc, char **argv)
 					//parse request
 					if (!clt->continue_reading)
 					{
-						enum ParseError error;
+						enum ParseError error = kNone;
             size_t  find_index = clt->client_socket->req_buf.find("\r\n");
 						if (find_index != std::string::npos)
 						{
