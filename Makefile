@@ -64,6 +64,7 @@ HTTP_SRC:= \
 
 CONFIGURATION_SRC:= \
 	Configuration.cpp \
+	Configuration/Parser.cpp \
 	Configuration/Directive.cpp \
 	Configuration/Cache/LocationQuery.cpp \
 	Configuration/Cache/ServerQuery.cpp \
