@@ -213,6 +213,7 @@ int main(int argc, char **argv)
 					//parse request
 					if (!clt->continue_reading)
 					{
+						enum ParseError error;
             size_t  find_index = clt->client_socket->req_buf.find("\r\n");
 						if (find_index != std::string::npos)
 						{
@@ -230,7 +231,7 @@ int main(int argc, char **argv)
 							else
 							{
                 				RequestLine request_line;
-                				enum ParseError error = AnalysisRequestLine(static_cast<http_parser::PTNodeRequestLine*>(parsed_request_line.result), &request_line);
+                				error = AnalysisRequestLine(static_cast<http_parser::PTNodeRequestLine*>(parsed_request_line.result), &request_line);
 								if (error != kNone)
 									clt->consume_body = false;
 								clt->status_code = ParseErrorToStatusCode(error);
@@ -255,10 +256,13 @@ int main(int argc, char **argv)
 							}
 							else
 							{
-                				enum ParseError error = AnalysisRequestHeaders(static_cast<http_parser::PTNodeFields*>(parsed_headers.result), &clt->req.headers_);
 								if (error != kNone)
-									clt->consume_body = false;
-                clt->status_code = ParseErrorToStatusCode(error);
+								{
+									error = AnalysisRequestHeaders(static_cast<http_parser::PTNodeFields*>(parsed_headers.result), &clt->req.headers_);
+									if (error != kNone)
+										clt->consume_body = false;
+               						clt->status_code = ParseErrorToStatusCode(error);
+								}
 								clt->client_socket->req_buf.erase(0, parsed_headers.length + 2);
 							}
               temporary::arena.clear();
