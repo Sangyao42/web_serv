@@ -256,13 +256,12 @@ int main(int argc, char **argv)
 							}
 							else
 							{
+								enum ParseError errorReqHeaders = AnalysisRequestHeaders(static_cast<http_parser::PTNodeFields*>(parsed_headers.result), &clt->req.headers_);
+								if (errorReqHeaders != kNone)
+									clt->consume_body = false;
 								if (error == kNone)
-								{
-									error = AnalysisRequestHeaders(static_cast<http_parser::PTNodeFields*>(parsed_headers.result), &clt->req.headers_);
-									if (error != kNone)
-										clt->consume_body = false;
-               						clt->status_code = ParseErrorToStatusCode(error);
-								}
+									error = errorReqHeaders;
+								clt->status_code = ParseErrorToStatusCode(error);
 								clt->client_socket->req_buf.erase(0, parsed_headers.length + 2);
 							}
               temporary::arena.clear();
