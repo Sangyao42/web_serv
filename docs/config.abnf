@@ -22,7 +22,7 @@ server_block_content   := "location"    OWS location_block
                         | "listen"      OWS listen
                         | "server_name" OWS server_name
                         | common_content
-location_block         := "{" *( OB location_block_content OWS [ ";" ]) "}"
+location_block         := path-absolute OB "{" *( OB location_block_content OWS [ ";" ]) "}"
 location_block_content := "location" OWS location_block
                         | common_content
 
