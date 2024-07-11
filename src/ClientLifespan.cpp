@@ -90,9 +90,15 @@ void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 	if (requestline_host == "")
 	{
 		HeaderString	*header_host = static_cast<HeaderString *> (clt->req.returnValueAsPointer("Host"));
-		assert(header_host && "Host header is missing");
-		requestline_host = header_host->content();
-		assert((requestline_host != "") && "Host header is empty");
+		// assert(header_host && "Host header is missing");
+		// requestline_host = header_host->content();
+		// assert((requestline_host != "") && "Host header is empty");
+		if (!header_host || header_host->content() == "")
+		{
+			clt->status_code = k400;
+			clt->consume_body = false;
+			return ;
+		}
 	}
 	// query configuration
 	clt->config = ws_database.query(clt->client_socket->server.socket, \
@@ -107,9 +113,12 @@ void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 
 	if (!(location->allowed_methods & (int) clt->req.getMethod()))
 	{
-		clt->status_code = k405;
-		clt->consume_body = false;
-		return ;
+		if (clt->status_code == k000)
+		{
+			clt->status_code = k405;
+			clt->consume_body = false;
+			return ;
+		}
 	}
 
 	// check if the path exists (for get and delete)
@@ -119,26 +128,23 @@ void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 	{
 		if (access(path.c_str(), F_OK) != 0)
 		{
-			clt->status_code = k404;
-			clt->consume_body = false;
-			return ;
+			if (clt->status_code == k000)
+			{
+				clt->status_code = k404;
+				clt->consume_body = false;
+				return ;
+			}
 		}
 		if (stat(path.c_str(), &clt->stat_buff) != 0)
 		{
-			clt->status_code = k500;
-			clt->consume_body = false;
-			return ;
+			if (clt->status_code == k000)
+			{
+				clt->status_code = k500;
+				clt->consume_body = false;
+				return ;
+			}
 		}
 	}
-	// else
-	// {
-	// 	if (stat(path.c_str(), &clt->stat_buff) != 0)
-	// 	{
-	// 		clt->status_code = k500;
-	// 		clt->consume_body = false;
-	// 		return ;
-	// 	}
-	// }
 	return ;
 }
 

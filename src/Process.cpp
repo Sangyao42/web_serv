@@ -6,11 +6,6 @@
 
 void	process::ProcessRequest(struct Client *clt)
 {
-	// if (!clt || !clt->client_socket || !clt->req || !clt->res)
-	// {
-	// 	clt->status_code = k500;
-	// 	return (res_builder::GenerateErrorResponse(clt));
-	// }
 	assert(clt && clt->client_socket && "client_socket is null");
 
 	if (clt->status_code != k000)
