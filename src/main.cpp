@@ -232,6 +232,15 @@ int main(int argc, char **argv)
 							{
                 				RequestLine request_line;
                 				error = AnalysisRequestLine(static_cast<http_parser::PTNodeRequestLine*>(parsed_request_line.result), &request_line);
+								if (error == kSyntaxError)
+								{
+									//handle only syntax error
+									clt->status_code = k400;
+									clt->keepAlive = false;
+									process::ProcessRequest(clt);
+									pfds[i].events = POLLOUT;
+									continue;
+								}
 								if (error != kNone)
 									clt->consume_body = false;
 								clt->status_code = ParseErrorToStatusCode(error);
@@ -257,6 +266,15 @@ int main(int argc, char **argv)
 							else
 							{
 								enum ParseError errorReqHeaders = AnalysisRequestHeaders(static_cast<http_parser::PTNodeFields*>(parsed_headers.result), &clt->req.headers_);
+								if (error == kSyntaxError)
+								{
+									//handle only syntax error
+									clt->status_code = k400;
+									clt->keepAlive = false;
+									process::ProcessRequest(clt);
+									pfds[i].events = POLLOUT;
+									continue;
+								}
 								if (errorReqHeaders != kNone)
 									clt->consume_body = false;
 								if (error == kNone)
