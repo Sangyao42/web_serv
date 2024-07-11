@@ -465,14 +465,17 @@ namespace directive_parser
   ScanOutput  ScanOSPath(ParseInput input)
   {
     ScanOutput output;
-    bool  last_is_slash = false;
+    bool  last_is_slash = true;
 
     output.bytes = input.bytes;
     if (input.length > 0)
     {
+#ifdef __WIN32
       if (*input.bytes == '\\')
+#else
+      if (*input.bytes == '/')
+#endif
       {
-        last_is_slash = true;
         input.consume();
       }
     }
@@ -484,21 +487,27 @@ namespace directive_parser
         if (tmp.is_valid())
         {
           input.consume(tmp.length);
+          last_is_slash = false;
+          output.length += tmp.length;
         }
         else
           break;
       }
       else
       {
+#ifdef __WIN32
         if (*input.bytes == '\\')
+#else
+        if (*input.bytes == '/')
+#endif
         {
           last_is_slash = true;
           input.consume();
+          output.length++;
         }
         else
           break;
       }
-      output.length++;
     }
     if (output.length < 1)
       output.bytes = NULL;
