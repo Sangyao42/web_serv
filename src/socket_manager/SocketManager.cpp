@@ -255,6 +255,9 @@ ssize_t SocketManager::send_all(int client_socket)
 	}
 	else
 	{
+		// TEST: print the response
+		std::cout << "response:\n" << client->res_buf << std::endl;
+		// END OF TEST
 		client->res_buf.clear();
 	}
 	return (total_sent);
