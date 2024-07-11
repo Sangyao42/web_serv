@@ -676,9 +676,11 @@ namespace directive_parser
       {
         methods |= directive::kMethodDelete;
       }
+      else
+        break;
       http_parser::ConsumeByScanFunction(&input, &http_parser::ScanOptionalWhitespace);
     }
-    if (methods == 0)
+    if (methods != 0)
     {
       directive::AllowMethods*  allow_methods = new directive::AllowMethods();
       allow_methods->set(methods);
