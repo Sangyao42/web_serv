@@ -374,52 +374,58 @@ namespace directive_parser
   {
     ParseOutput output;
     const char* input_start = input.bytes;
+    directive::LocationBlock* location_block = new directive::LocationBlock();
 
-    if (http_parser::ConsumeByCString(&input, "{") == 1)
+    ArenaSnapshot snapshot = temporary::arena.snapshot();
+    ParseOutput parsed_path = http_parser::ConsumeByParserFunction(&input, &http_parser::ParsePathAbsolute);
+    if (parsed_path.is_valid())
     {
-      directive::LocationBlock* location_block = new directive::LocationBlock();
-      while (input.length > 0)
       location_block->set(((http_parser::PTNodePathAbsolute*)parsed_path.result)->content.to_string());
       temporary::arena.rollback(snapshot);
       http_parser::ConsumeByScanFunction(&input, &ScanOptionalBlank);
       if (http_parser::ConsumeByCString(&input, "{") == 1)
       {
-        http_parser::ConsumeByScanFunction(&input, &ScanOptionalBlank);
-        ParseInput  input_temp = input;
-        Directive*  directive = NULL;
-        if (http_parser::ConsumeByCString(&input_temp, "location") == 8)
+        while (input.length > 0)
         {
-          http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
-          ParseOutput parsed_location_block = http_parser::ConsumeByParserFunction(&input_temp, &ParseLocationBlock);
-          if (parsed_location_block.is_valid())
+          http_parser::ConsumeByScanFunction(&input, &ScanOptionalBlank);
+          ParseInput  input_temp = input;
+          Directive*  directive = NULL;
+          if (http_parser::ConsumeByCString(&input, "}") == 1)
           {
-            directive = static_cast<Directive*>(parsed_location_block.result);
+            output.result = location_block;
+            output.length = input.bytes - input_start;
+            return output;
           }
-        }
-        else
-        {
-          ParseOutput parsed_directive = http_parser::ConsumeByParserFunction(&input_temp, &ParseCommonContent);
-          if (parsed_directive.is_valid())
+          else if (http_parser::ConsumeByCString(&input_temp, "location") == 8)
           {
-            directive = static_cast<Directive*>(parsed_directive.result);
+            http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
+            ParseOutput parsed_location_block = http_parser::ConsumeByParserFunction(&input_temp, &ParseLocationBlock);
+            if (parsed_location_block.is_valid())
+            {
+              directive = static_cast<Directive*>(parsed_location_block.result);
+            }
           }
+          else
+          {
+            ParseOutput parsed_directive = http_parser::ConsumeByParserFunction(&input_temp, &ParseCommonContent);
+            if (parsed_directive.is_valid())
+            {
+              directive = static_cast<Directive*>(parsed_directive.result);
+            }
+          }
+          if (directive)
+          {
+            location_block->add_directive(directive);
+            http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
+            http_parser::ConsumeByCString(&input_temp, ";");
+            input = input_temp;
+          }
+          else
+            break;
         }
-        if (directive)
-        {
-          location_block->add_directive(directive);
-          http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
-          http_parser::ConsumeByCString(&input_temp, ";");
-          input = input_temp;
-        }
-        else
-        {
-          delete location_block;
-          location_block = NULL;
-          break;
-        }
-      }
       }
     }
+    delete location_block;
     return output;
   }
 
