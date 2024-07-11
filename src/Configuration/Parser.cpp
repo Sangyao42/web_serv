@@ -101,12 +101,17 @@ namespace directive_parser
     if (http_parser::ConsumeByCString(&input, "{") == 1)
     {
       directive::EventsBlock* event_block = new directive::EventsBlock();
-      bool  is_valid = true;
-      while ((input.length > 0) && is_valid)
+      while (input.length > 0)
       {
         http_parser::ConsumeByScanFunction(&input, &ScanOptionalBlank);
         ParseInput  input_temp = input;
-        if (http_parser::ConsumeByCString(&input_temp, "worker_connection") == 17)
+        if (http_parser::ConsumeByCString(&input, "}") == 1)
+        {
+          output.result = event_block;
+          output.length = input.bytes - input_start;
+          return output;
+        }
+        else if (http_parser::ConsumeByCString(&input_temp, "worker_connection") == 17)
         {
           http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
           ParseOutput parsed_worker_connection = http_parser::ConsumeByParserFunction(&input_temp, &ParseWorkerConnections);
@@ -123,11 +128,6 @@ namespace directive_parser
             break;
           }
         }
-      }
-      if (is_valid && (http_parser::ConsumeByCString(&input, "}") == 1))
-      {
-        output.result = event_block;
-        output.length = input.bytes - input_start;
       }
     }
     return output;
@@ -259,7 +259,13 @@ namespace directive_parser
         http_parser::ConsumeByScanFunction(&input, &ScanOptionalBlank);
         ParseInput  input_temp = input;
         Directive*  directive = NULL;
-        if (http_parser::ConsumeByCString(&input_temp, "server") == 6)
+        if (http_parser::ConsumeByCString(&input, "}") == 1)
+        {
+          output.result = http_block;
+          output.length = input.bytes - input_start;
+          return output;
+        }
+        else if (http_parser::ConsumeByCString(&input_temp, "server") == 6)
         {
           http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
           ParseOutput parsed_server_block = http_parser::ConsumeByParserFunction(&input_temp, &ParseServerBlock);
@@ -286,14 +292,8 @@ namespace directive_parser
         else
         {
           delete http_block;
-          http_block = NULL;
           break;
         }
-      }
-      if (http_block && (http_parser::ConsumeByCString(&input, "}") == 1))
-      {
-        output.result = http_block;
-        output.length = input.bytes - input_start;
       }
     }
     return output;
@@ -312,7 +312,13 @@ namespace directive_parser
         http_parser::ConsumeByScanFunction(&input, &ScanOptionalBlank);
         ParseInput  input_temp = input;
         Directive*  directive = NULL;
-        if (http_parser::ConsumeByCString(&input_temp, "location") == 8)
+        if (http_parser::ConsumeByCString(&input, "}") == 1)
+        {
+          output.result = server_block;
+          output.length = input.bytes - input_start;
+          return output;
+        }
+        else if (http_parser::ConsumeByCString(&input_temp, "location") == 8)
         {
           http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
           ParseOutput parsed_location_block = http_parser::ConsumeByParserFunction(&input_temp, &ParseLocationBlock);
@@ -357,14 +363,8 @@ namespace directive_parser
         else
         {
           delete server_block;
-          server_block = NULL;
           break;
         }
-      }
-      if (server_block && (http_parser::ConsumeByCString(&input, "}") == 1))
-      {
-        output.result = server_block;
-        output.length = input.bytes - input_start;
       }
     }
     return output;
@@ -379,6 +379,10 @@ namespace directive_parser
     {
       directive::LocationBlock* location_block = new directive::LocationBlock();
       while (input.length > 0)
+      location_block->set(((http_parser::PTNodePathAbsolute*)parsed_path.result)->content.to_string());
+      temporary::arena.rollback(snapshot);
+      http_parser::ConsumeByScanFunction(&input, &ScanOptionalBlank);
+      if (http_parser::ConsumeByCString(&input, "{") == 1)
       {
         http_parser::ConsumeByScanFunction(&input, &ScanOptionalBlank);
         ParseInput  input_temp = input;
@@ -414,10 +418,6 @@ namespace directive_parser
           break;
         }
       }
-      if (location_block && (http_parser::ConsumeByCString(&input, "}") == 1))
-      {
-        output.result = location_block;
-        output.length = input.bytes - input_start;
       }
     }
     return output;
