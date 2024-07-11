@@ -446,13 +446,16 @@ namespace directive_parser
     output.bytes = input.bytes;
     while (input.length > 0)
     {
-      const char* target = input.consume();
-      if (target)
+      if (!http_parser::IsSpace(*input.bytes) &&
+          !http_parser::IsHorizontalTab(*input.bytes) &&
+          (*input.bytes != ';') &&
+          IsOSFileCharacter(*input.bytes))
       {
-        if (http_parser::IsSpace(*target) || http_parser::IsHorizontalTab(*target) || !IsOSFileCharacter(*target))
-          break;
+        input.consume();
+        output.length++;
       }
-      output.length++;
+      else
+        break;
     }
     if (output.length < 1)
       output.bytes = NULL;
