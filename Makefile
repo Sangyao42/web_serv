@@ -42,7 +42,6 @@ OBJS_DIR:= obj
 
 MAIN_SRC:= \
 	main.cpp \
-	Config2.cpp \
 	constants.cpp \
 	Cgi.cpp \
 	ClientLifespan.cpp \
