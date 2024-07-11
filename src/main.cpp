@@ -3,6 +3,7 @@
 #include "Configuration.hpp"
 #include "Client.hpp"
 #include "Http/Parser.hpp"
+#include "Configuration/Parser.hpp"
 
 #include <poll.h>
 #include <unistd.h>
@@ -16,8 +17,6 @@
 #define POLL_TIMEOUT 30
 
 int server_running = 1;
-
-void  Config2(directive::MainBlock& main);
 
 namespace pollfds
 {
@@ -57,23 +56,45 @@ void	SignalHandler(int signum)
 
 int main(int argc, char **argv)
 {
-	(void) argc;
-	(void) argv;
-
-	if (signal(SIGINT, SignalHandler) == SIG_ERR)
+  if (argc != 2)
+  {
+    std::cout << "Usage: " << argv[0] << " configuration_file" << std::endl;
+    return (1);
+  }
+  else if (signal(SIGINT, SignalHandler) == SIG_ERR)
 	{
 		std::cerr << "signal: " << strerror(errno) << std::endl;
 		return (1);
 	}
+  {
+    std::ifstream file(argv[1], std::ios::in | std::ios::ate);
+    if (!file.is_open())
+    {
+      std::cerr << "Unable to open file " << argv[1] << std::endl;
+      return (1);
+    }
+    size_t  size = file.tellg();
+    char* string = new char [size];
+    file.seekg (0, std::ios::beg);
+    file.read(string, size);
+    file.close();
+
+    directive_parser::ParseOutput parsed_main_block = directive_parser::ParseMainBlock(directive_parser::ParseInput(string, size));
+    delete[] string;
+    if (parsed_main_block.is_valid())
+    {
+      directive::MainBlock* main_block = static_cast<directive::MainBlock*>(parsed_main_block.result);
+      ws_database.set_main_block(main_block);
+    }
+    else
+    {
+      std::cerr << "Configuration file parsing error" << std::endl;
+      return (1);
+    }
+  }
 
 	std::vector<struct Client> clients;
 	std::vector<struct pollfd> pfds;
-
-	// TEST: Configuration
-	directive::MainBlock* main_block = new directive::MainBlock();
-	Config2(*main_block);
-	ws_database.set_main_block(main_block);
-	// TEST: end
 
 	static char recv_buf[RECV_BUF_SIZE];
 
