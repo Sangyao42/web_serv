@@ -1133,8 +1133,7 @@ namespace http_parser
       }
       if (should_scan_h16)
       {
-        if (!ConsumeByScanFunction(&input, &ScanH16).is_valid())
-          return output;
+        ConsumeByScanFunction(&input, &ScanH16);
       }
     }
     PTNodeIpv6Address* ipv6_address = PTNodeCreate<PTNodeIpv6Address>();
