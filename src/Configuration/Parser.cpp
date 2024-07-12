@@ -810,8 +810,9 @@ namespace directive_parser
       while (input.length > 0)
       {
         http_parser::ConsumeByScanFunction(&input, &ScanOptionalBlank);
+        if (http_parser::ConsumeByCString(&input, "}") == 1)
+          break;
         ParseInput  input_temp = input;
-
         ArenaSnapshot snapshot = temporary::arena.snapshot();
         ParseOutput parsed_mime_type = http_parser::ConsumeByParserFunction(&input_temp, &http_parser::ParseFieldContentType);
         if (parsed_mime_type.is_valid())
@@ -827,6 +828,8 @@ namespace directive_parser
               http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
               http_parser::ConsumeByCString(&input_temp, ";");
               input = input_temp;
+              temporary::arena.rollback(snapshot);
+              continue;
             }
           }
           temporary::arena.rollback(snapshot);
@@ -835,7 +838,7 @@ namespace directive_parser
         mime_types = NULL;
         break;
       }
-      if (mime_types && (http_parser::ConsumeByCString(&input, "}") == 1))
+      if (mime_types)
       {
         output.result = mime_types;
         output.length = input.bytes - input_start;
