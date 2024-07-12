@@ -19,6 +19,43 @@
 
 namespace directive_parser
 {
+  bool  IsTab(char c)
+  {
+    return (c == '\t');
+  }
+
+  ScanOutput  ScanOptionalWhitespace(ParseInput input)
+  {
+    ScanOutput output;
+
+    output.bytes = input.bytes;
+    while (input.length > 0)
+    {
+      const char* target = input.consume();
+      if (target && !(http_parser::IsSpace(*target) || IsTab(*target)))
+        break;
+      output.length++;
+    }
+    return output;
+  }
+
+  ScanOutput  ScanRequiredWhitespace(ParseInput input)
+  {
+    ScanOutput output;
+
+    output.bytes = input.bytes;
+    while (input.length > 0)
+    {
+      const char* target = input.consume();
+      if (target && !(http_parser::IsSpace(*target) || IsTab(*target)))
+        break;
+      output.length++;
+    }
+    if (output.length < 1)
+      output.bytes = NULL;
+    return output;
+  }
+
   ScanOutput  ScanOptionalBlank(ParseInput input)
   {
     ScanOutput output;
@@ -27,7 +64,7 @@ namespace directive_parser
     while (input.length > 0)
     {
       const char* target = input.consume();
-      if (target && !(http_parser::IsSpace(*target) || http_parser::IsHorizontalTab(*target) || http_parser::IsLinefeed(*target)))
+      if (target && !(http_parser::IsSpace(*target) || IsTab(*target) || http_parser::IsLinefeed(*target)))
         break;
       output.length++;
     }
@@ -47,7 +84,7 @@ namespace directive_parser
         Directive*  directive = NULL;
         if (http_parser::ConsumeByCString(&input_temp, "http") == 4)
         {
-          http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
+          http_parser::ConsumeByScanFunction(&input_temp, &ScanOptionalWhitespace);
           ParseOutput parsed_http_block = http_parser::ConsumeByParserFunction(&input_temp, &ParseHttpBlock);
           if (parsed_http_block.is_valid())
           {
@@ -56,7 +93,7 @@ namespace directive_parser
         }
         else if (http_parser::ConsumeByCString(&input_temp, "events") == 6)
         {
-          http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
+          http_parser::ConsumeByScanFunction(&input_temp, &ScanOptionalWhitespace);
           ParseOutput parsed_events_block = http_parser::ConsumeByParserFunction(&input_temp, &ParseEventsBlock);
           if (parsed_events_block.is_valid())
           {
@@ -65,7 +102,7 @@ namespace directive_parser
         }
         else if (http_parser::ConsumeByCString(&input_temp, "error_log") == 9)
         {
-          http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
+          http_parser::ConsumeByScanFunction(&input_temp, &ScanOptionalWhitespace);
           ParseOutput parsed_error_log = http_parser::ConsumeByParserFunction(&input_temp, &ParseErrorLog);
           if (parsed_error_log.is_valid())
           {
@@ -75,7 +112,7 @@ namespace directive_parser
 
         if (directive)
         {
-          http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
+          http_parser::ConsumeByScanFunction(&input_temp, &ScanOptionalWhitespace);
           http_parser::ConsumeByCString(&input_temp, ";");
           http_parser::ConsumeByScanFunction(&input_temp, &ScanOptionalBlank);
           main_block->add_directive(directive);
@@ -113,11 +150,11 @@ namespace directive_parser
         }
         else if (http_parser::ConsumeByCString(&input_temp, "worker_connection") == 17)
         {
-          http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
+          http_parser::ConsumeByScanFunction(&input_temp, &ScanOptionalWhitespace);
           ParseOutput parsed_worker_connection = http_parser::ConsumeByParserFunction(&input_temp, &ParseWorkerConnections);
           if (parsed_worker_connection.is_valid())
           {
-            http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
+            http_parser::ConsumeByScanFunction(&input_temp, &ScanOptionalWhitespace);
             http_parser::ConsumeByCString(&input_temp, ";");
             input = input_temp;
             event_block->add_directive(static_cast<Directive*>(parsed_worker_connection.result));
@@ -141,7 +178,7 @@ namespace directive_parser
 
     if (http_parser::ConsumeByCString(&input, "allow_methods") == 13)
     {
-      http_parser::ConsumeByScanFunction(&input, &http_parser::ScanOptionalWhitespace);
+      http_parser::ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
       ParseOutput parsed_directive = http_parser::ConsumeByParserFunction(&input, &ParseAllowMethods);
       if (parsed_directive.is_valid())
       {
@@ -150,7 +187,7 @@ namespace directive_parser
     }
     else if (http_parser::ConsumeByCString(&input, "root") == 4)
     {
-      http_parser::ConsumeByScanFunction(&input, &http_parser::ScanOptionalWhitespace);
+      http_parser::ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
       ParseOutput parsed_directive = http_parser::ConsumeByParserFunction(&input, &ParseRoot);
       if (parsed_directive.is_valid())
       {
@@ -159,7 +196,7 @@ namespace directive_parser
     }
     else if (http_parser::ConsumeByCString(&input, "index") == 5)
     {
-      http_parser::ConsumeByScanFunction(&input, &http_parser::ScanOptionalWhitespace);
+      http_parser::ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
       ParseOutput parsed_directive = http_parser::ConsumeByParserFunction(&input, &ParseIndex);
       if (parsed_directive.is_valid())
       {
@@ -168,7 +205,7 @@ namespace directive_parser
     }
     else if (http_parser::ConsumeByCString(&input, "types") == 5)
     {
-      http_parser::ConsumeByScanFunction(&input, &http_parser::ScanOptionalWhitespace);
+      http_parser::ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
       ParseOutput parsed_directive = http_parser::ConsumeByParserFunction(&input, &ParseMimeTypes);
       if (parsed_directive.is_valid())
       {
@@ -177,7 +214,7 @@ namespace directive_parser
     }
     else if (http_parser::ConsumeByCString(&input, "error_pages") == 11)
     {
-      http_parser::ConsumeByScanFunction(&input, &http_parser::ScanOptionalWhitespace);
+      http_parser::ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
       ParseOutput parsed_directive = http_parser::ConsumeByParserFunction(&input, &ParseErrorPages);
       if (parsed_directive.is_valid())
       {
@@ -186,7 +223,7 @@ namespace directive_parser
     }
     else if (http_parser::ConsumeByCString(&input, "client_max_body_size") == 20)
     {
-      http_parser::ConsumeByScanFunction(&input, &http_parser::ScanOptionalWhitespace);
+      http_parser::ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
       ParseOutput parsed_directive = http_parser::ConsumeByParserFunction(&input, &ParseClientMaxBodySize);
       if (parsed_directive.is_valid())
       {
@@ -195,7 +232,7 @@ namespace directive_parser
     }
     else if (http_parser::ConsumeByCString(&input, "autoindex") == 9)
     {
-      http_parser::ConsumeByScanFunction(&input, &http_parser::ScanOptionalWhitespace);
+      http_parser::ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
       ParseOutput parsed_directive = http_parser::ConsumeByParserFunction(&input, &ParseAutoIndex);
       if (parsed_directive.is_valid())
       {
@@ -204,7 +241,7 @@ namespace directive_parser
     }
     else if (http_parser::ConsumeByCString(&input, "cgi") == 3)
     {
-      http_parser::ConsumeByScanFunction(&input, &http_parser::ScanOptionalWhitespace);
+      http_parser::ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
       ParseOutput parsed_directive = http_parser::ConsumeByParserFunction(&input, &ParseCgi);
       if (parsed_directive.is_valid())
       {
@@ -213,7 +250,7 @@ namespace directive_parser
     }
     else if (http_parser::ConsumeByCString(&input, "access_log") == 10)
     {
-      http_parser::ConsumeByScanFunction(&input, &http_parser::ScanOptionalWhitespace);
+      http_parser::ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
       ParseOutput parsed_directive = http_parser::ConsumeByParserFunction(&input, &ParseAccessLog);
       if (parsed_directive.is_valid())
       {
@@ -222,7 +259,7 @@ namespace directive_parser
     }
     else if (http_parser::ConsumeByCString(&input, "error_log") == 9)
     {
-      http_parser::ConsumeByScanFunction(&input, &http_parser::ScanOptionalWhitespace);
+      http_parser::ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
       ParseOutput parsed_directive = http_parser::ConsumeByParserFunction(&input, &ParseErrorLog);
       if (parsed_directive.is_valid())
       {
@@ -231,7 +268,7 @@ namespace directive_parser
     }
     else if (http_parser::ConsumeByCString(&input, "return") == 6)
     {
-      http_parser::ConsumeByScanFunction(&input, &http_parser::ScanOptionalWhitespace);
+      http_parser::ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
       ParseOutput parsed_directive = http_parser::ConsumeByParserFunction(&input, &ParseReturn);
       if (parsed_directive.is_valid())
       {
@@ -267,7 +304,7 @@ namespace directive_parser
         }
         else if (http_parser::ConsumeByCString(&input_temp, "server") == 6)
         {
-          http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
+          http_parser::ConsumeByScanFunction(&input_temp, &ScanOptionalWhitespace);
           ParseOutput parsed_server_block = http_parser::ConsumeByParserFunction(&input_temp, &ParseServerBlock);
           if (parsed_server_block.is_valid())
           {
@@ -285,7 +322,7 @@ namespace directive_parser
         if (directive)
         {
           http_block->add_directive(directive);
-          http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
+          http_parser::ConsumeByScanFunction(&input_temp, &ScanOptionalWhitespace);
           http_parser::ConsumeByCString(&input_temp, ";");
           input = input_temp;
         }
@@ -320,7 +357,7 @@ namespace directive_parser
         }
         else if (http_parser::ConsumeByCString(&input_temp, "location") == 8)
         {
-          http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
+          http_parser::ConsumeByScanFunction(&input_temp, &ScanOptionalWhitespace);
           ParseOutput parsed_location_block = http_parser::ConsumeByParserFunction(&input_temp, &ParseLocationBlock);
           if (parsed_location_block.is_valid())
           {
@@ -329,7 +366,7 @@ namespace directive_parser
         }
         else if (http_parser::ConsumeByCString(&input_temp, "listen") == 6)
         {
-          http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
+          http_parser::ConsumeByScanFunction(&input_temp, &ScanOptionalWhitespace);
           ParseOutput parsed_listen = http_parser::ConsumeByParserFunction(&input_temp, &ParseListen);
           if (parsed_listen.is_valid())
           {
@@ -338,7 +375,7 @@ namespace directive_parser
         }
         else if (http_parser::ConsumeByCString(&input_temp, "server_name") == 11)
         {
-          http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
+          http_parser::ConsumeByScanFunction(&input_temp, &ScanOptionalWhitespace);
           ParseOutput parsed_server_name = http_parser::ConsumeByParserFunction(&input_temp, &ParseServerName);
           if (parsed_server_name.is_valid())
           {
@@ -356,7 +393,7 @@ namespace directive_parser
         if (directive)
         {
           server_block->add_directive(directive);
-          http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
+          http_parser::ConsumeByScanFunction(&input_temp, &ScanOptionalWhitespace);
           http_parser::ConsumeByCString(&input_temp, ";");
           input = input_temp;
         }
@@ -398,7 +435,7 @@ namespace directive_parser
           }
           else if (http_parser::ConsumeByCString(&input_temp, "location") == 8)
           {
-            http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
+            http_parser::ConsumeByScanFunction(&input_temp, &ScanOptionalWhitespace);
             ParseOutput parsed_location_block = http_parser::ConsumeByParserFunction(&input_temp, &ParseLocationBlock);
             if (parsed_location_block.is_valid())
             {
@@ -416,7 +453,7 @@ namespace directive_parser
           if (directive)
           {
             location_block->add_directive(directive);
-            http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
+            http_parser::ConsumeByScanFunction(&input_temp, &ScanOptionalWhitespace);
             http_parser::ConsumeByCString(&input_temp, ";");
             input = input_temp;
           }
@@ -453,7 +490,7 @@ namespace directive_parser
     while (input.length > 0)
     {
       if (!http_parser::IsSpace(*input.bytes) &&
-          !http_parser::IsHorizontalTab(*input.bytes) &&
+          !IsTab(*input.bytes) &&
           !http_parser::IsLinefeed(*input.bytes) &&
           (*input.bytes != ';') &&
           IsOSFileCharacter(*input.bytes))
@@ -680,7 +717,7 @@ namespace directive_parser
       }
       else
         break;
-      http_parser::ConsumeByScanFunction(&input, &http_parser::ScanOptionalWhitespace);
+      http_parser::ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
     }
     if (methods != 0)
     {
@@ -700,7 +737,7 @@ namespace directive_parser
     ScanOutput  extension = http_parser::ConsumeByScanFunction(&input, &ScanOSFileName);
     if (extension.is_valid())
     {
-      if (http_parser::ConsumeByScanFunction(&input, &http_parser::ScanRequiredWhitespace).is_valid())
+      if (http_parser::ConsumeByScanFunction(&input, &ScanRequiredWhitespace).is_valid())
       {
         ScanOutput path = http_parser::ConsumeByScanFunction(&input, &ScanOSPath);
         if (path.is_valid())
@@ -745,7 +782,7 @@ namespace directive_parser
     ParseOutput parsed_status_code = http_parser::ConsumeByParserFunction(&input, &ParseStatusCode);
     if (parsed_status_code.is_valid())
     {
-      if (http_parser::ConsumeByScanFunction(&input, &http_parser::ScanRequiredWhitespace).is_valid())
+      if (http_parser::ConsumeByScanFunction(&input, &ScanRequiredWhitespace).is_valid())
       {
         ScanOutput path = http_parser::ConsumeByScanFunction(&input, &ScanOSPath);
         if (path.is_valid())
@@ -781,7 +818,7 @@ namespace directive_parser
     }
     while (input.length > 0)
     {
-      if (!http_parser::ConsumeByScanFunction(&input, &http_parser::ScanRequiredWhitespace).is_valid())
+      if (!http_parser::ConsumeByScanFunction(&input, &ScanRequiredWhitespace).is_valid())
         break;
       snapshot = temporary::arena.snapshot();
       ParseOutput tmp = http_parser::ConsumeByParserFunction(&input, &http_parser::ParseUriAuthority);
@@ -820,14 +857,14 @@ namespace directive_parser
         if (parsed_mime_type.is_valid())
         {
           mime_type = ((http_parser::PTNodeFieldContentType*)parsed_mime_type.result)->content.to_string();
-          if (http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanRequiredWhitespace).is_valid())
+          if (http_parser::ConsumeByScanFunction(&input_temp, &ScanRequiredWhitespace).is_valid())
           {
             ParseOutput parsed_extension = http_parser::ConsumeByParserFunction(&input_temp, &http_parser::ParseToken);
             if (parsed_extension.is_valid())
             {
               extension = ((http_parser::PTNodeToken*) parsed_extension.result)->content.to_string();
               mime_types->add(extension, mime_type);
-              http_parser::ConsumeByScanFunction(&input_temp, &http_parser::ScanOptionalWhitespace);
+              http_parser::ConsumeByScanFunction(&input_temp, &ScanOptionalWhitespace);
               http_parser::ConsumeByCString(&input_temp, ";");
               input = input_temp;
               temporary::arena.rollback(snapshot);
@@ -860,7 +897,7 @@ namespace directive_parser
       directive::Return*  return_directive = new directive::Return();
       ParseInput input_tmp = input;
       std::string uri;
-      if (http_parser::ConsumeByScanFunction(&input_tmp, &http_parser::ScanRequiredWhitespace).is_valid())
+      if (http_parser::ConsumeByScanFunction(&input_tmp, &ScanRequiredWhitespace).is_valid())
       {
         ArenaSnapshot snapshot = temporary::arena.snapshot();
         const char* uri_start = input_tmp.bytes;
@@ -899,7 +936,7 @@ namespace directive_parser
     }
     while (input.length > 0)
     {
-      if (!http_parser::ConsumeByScanFunction(&input, &http_parser::ScanRequiredWhitespace).is_valid())
+      if (!http_parser::ConsumeByScanFunction(&input, &ScanRequiredWhitespace).is_valid())
         break;
       snapshot = temporary::arena.snapshot();
       ParseOutput parsed_regname = http_parser::ConsumeByParserFunction(&input, &http_parser::ParseRegName);
