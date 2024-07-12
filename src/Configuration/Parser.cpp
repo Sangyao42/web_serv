@@ -454,6 +454,7 @@ namespace directive_parser
     {
       if (!http_parser::IsSpace(*input.bytes) &&
           !http_parser::IsHorizontalTab(*input.bytes) &&
+          !http_parser::IsLinefeed(*input.bytes) &&
           (*input.bytes != ';') &&
           IsOSFileCharacter(*input.bytes))
       {
@@ -483,6 +484,7 @@ namespace directive_parser
 #endif
       {
         input.consume();
+        output.length++;
       }
     }
     while (input.length > 0)
