@@ -139,7 +139,7 @@ void	process::ProcessPostRequest(struct Client *clt)
 				return (res_builder::GenerateErrorResponse(clt));
 			}
 			std::string existing_file_extension = GetReqExtension(clt->path);
-			if (!existing_file_extension.empty() && location->mime_types->query(existing_file_extension).is_ok() && (req_content_type->content() != location->mime_types->query(existing_file_extension).value()))
+			if (!existing_file_extension.empty() || location->mime_types->query(existing_file_extension).is_ok() || (req_content_type->content() != location->mime_types->query(existing_file_extension).value()))
 			{
 				clt->status_code = k415;
 				return (res_builder::GenerateErrorResponse(clt));
