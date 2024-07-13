@@ -36,7 +36,7 @@
             .then(fileContent => {
                 return fetch('/upload/' + file.name, {
                     method: 'POST',
-					mode: 'no-cors',
+					// mode: 'no-cors',
                     headers: {
                         "Content-Type": file.type ? file.type : "text/plain",
                         // 'Content-Type': 'application/x-www-form-urlencoded',
