@@ -21,7 +21,7 @@
             reader.addEventListener('error', () => {
                 reject(reader.error);
             });
-            reader.readAsText(file);
+			reader.readAsArrayBuffer(file);
         });
     }
 
