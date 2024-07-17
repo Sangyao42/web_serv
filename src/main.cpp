@@ -128,13 +128,18 @@ int main(int argc, char **argv)
 
 	std::vector<struct Client> clients;
 	std::vector<struct pollfd> pfds;
-
 	static char recv_buf[RECV_BUF_SIZE];
 
 	int max_clients = ws_database.worker_connections();
 	SocketManager sm(max_clients);
 	int client_count = 0;
-	SocketError err = sm.set_servers(ws_database.all_server_sockets());
+	SocketError err;
+  {
+    std::vector<const uri::Authority*> sockets = ws_database.all_server_sockets();
+    clients.reserve(max_clients);
+    pfds.reserve(max_clients + sockets.size());
+    err = sm.set_servers(sockets);
+  }
 	if (err != kNoError)
 		return (err);
 	int server_socket_count = pollfds::AddServerFd(pfds, sm.get_servers());
