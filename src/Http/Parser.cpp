@@ -72,10 +72,8 @@ enum ParseError AnalysisUriAuthority(http_parser::PTNodeUriAuthority* authority,
 
 enum ParseError AnalysisRequestLine(http_parser::PTNodeRequestLine* request_line, RequestLine* output)
 {
-  if (!request_line)
-    return kSyntaxError;
   enum ParseError error = kNone;
-  assert((request_line->type == http_parser::kRequestLine) && "Parse result should be a request line");
+  assert((request_line) && (request_line->type == http_parser::kRequestLine) && "Parse result should be a request line");
 
   switch (request_line->method->method)
   {
