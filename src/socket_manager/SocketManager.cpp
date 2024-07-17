@@ -197,7 +197,6 @@ int SocketManager::accept_client(int server_socket)
 			client.first_recv_time = Maybe<time_t>();
 			client.timeout = false;
 			clients_.push_back(client);
-			std::cout << "accept: client connected with fd " << client_socket << " to server port " << server_socket << std::endl;
 			return (client_socket);
 		}
 	}
@@ -217,7 +216,6 @@ ssize_t SocketManager::recv_append(int client_socket, char *buf)
 		{
 			std::cout << "recv: client disconnected" << std::endl;
 		}
-		delete_client_socket(client_socket);
 	}
 	else
 	{
@@ -250,7 +248,6 @@ ssize_t SocketManager::send_all(int client_socket)
 	//TODO: do I need to close the client socket if send fails?
 	if (sent_bytes == -1)
 	{
-		delete_client_socket(client_socket);
 		return (-1);
 	}
 	else
