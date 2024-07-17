@@ -59,7 +59,7 @@ struct Client
 namespace client_lifespan
 {
 	void	InitClient(struct Client &client, struct ClientSocket *client_socket);
-	void	DeleteClientFromVector(std::vector<struct Client> &clients, int client_fd);
+  int   DeleteClientFromVector(std::vector<struct Client> &clients, int client_fd);
 	void	ResetClient(struct Client &client);
 
 	//update functions
