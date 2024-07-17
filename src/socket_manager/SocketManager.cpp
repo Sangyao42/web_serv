@@ -15,9 +15,9 @@
 
 SocketManager::SocketManager() {}
 
-SocketManager::SocketManager(int max_clients){
+SocketManager::SocketManager(int max_clients)
+{
 	clients_.reserve(max_clients);
-
 }
 
 SocketManager::~SocketManager()
@@ -31,9 +31,9 @@ SocketManager::~SocketManager()
 	}
 }
 
-//setter for servers_, which uses getaddrinfo(), socket(), bind(), listen() to set up the server sockets
-//This means server.start()
-enum SocketError SocketManager::set_servers(std::vector<const uri::Authority*> socket_configs)
+// setter for servers_, which uses getaddrinfo(), socket(), bind(), listen() to set up the server sockets
+// This means server.start()
+enum SocketError SocketManager::set_servers(std::vector<const uri::Authority *> socket_configs)
 {
 	assert(socket_configs.size() > 0);
 
@@ -41,15 +41,15 @@ enum SocketError SocketManager::set_servers(std::vector<const uri::Authority*> s
 	int serv_sock;
 	int status;
 
-	std::vector<const uri::Authority*>::const_iterator it;
+	std::vector<const uri::Authority *>::const_iterator it;
 	for (it = socket_configs.begin(); it != socket_configs.end(); it++)
 	{
-		//for setsockopt()
+		// for setsockopt()
 		int yes = 1;
 		struct addrinfo *res;
 		int res_len = -1;
 
-		//set socketaddress hints
+		// set socketaddress hints
 		memset(&hints, 0, sizeof(hints));
 		if ((*it)->family() == uri::Host::IPV4)
 			hints.ai_family = AF_INET;
@@ -58,8 +58,8 @@ enum SocketError SocketManager::set_servers(std::vector<const uri::Authority*> s
 		else
 			hints.ai_family = AF_UNSPEC;
 		hints.ai_socktype = SOCK_STREAM;
-		//testing the address and port and family
-		// std::cout << "host: " << (*it)->host.value << " port: " << (*it)->port << " family: " << (*it)->family() <<std::endl;
+		// testing the address and port and family
+		//  std::cout << "host: " << (*it)->host.value << " port: " << (*it)->port << " family: " << (*it)->family() <<std::endl;
 		if ((*it)->host.value == "::" || (*it)->host.value.empty() || (*it)->host.value == "0.0.0.0")
 		{
 			hints.ai_flags = AI_PASSIVE;
@@ -75,9 +75,9 @@ enum SocketError SocketManager::set_servers(std::vector<const uri::Authority*> s
 		struct addrinfo *ai_ptr;
 		for (ai_ptr = res; ai_ptr != NULL; ai_ptr = ai_ptr->ai_next)
 		{
-			//testing the address and port and family
+			// testing the address and port and family
 			std::cout << "famliy: " << ai_ptr->ai_family << " socktype: " << ai_ptr->ai_socktype << " protocol: " << ai_ptr->ai_protocol << std::endl;
-			//end of testing
+			// end of testing
 			res_len++;
 			serv_sock = socket(ai_ptr->ai_family, ai_ptr->ai_socktype, ai_ptr->ai_protocol);
 			if (serv_sock == -1)
@@ -92,16 +92,16 @@ enum SocketError SocketManager::set_servers(std::vector<const uri::Authority*> s
 				freeaddrinfo(res);
 				return (kSetSockOptError);
 			}
-			#ifdef __linux__
-				int yes = 1;
-				if (ai_ptr->ai_family == AF_INET6 && setsockopt(serv_sock, IPPROTO_IPV6, IPV6_V6ONLY, &yes, sizeof(int)) == -1)
-				{
-					std::cerr << "setsockopt linux: " << strerror(errno) << std::endl;
-					close(serv_sock);
-					freeaddrinfo(res);
-					return (kSetSockOptError);
-				}
-			#endif
+#ifdef __linux__
+			int yes = 1;
+			if (ai_ptr->ai_family == AF_INET6 && setsockopt(serv_sock, IPPROTO_IPV6, IPV6_V6ONLY, &yes, sizeof(int)) == -1)
+			{
+				std::cerr << "setsockopt linux: " << strerror(errno) << std::endl;
+				close(serv_sock);
+				freeaddrinfo(res);
+				return (kSetSockOptError);
+			}
+#endif
 			if (fcntl(serv_sock, F_SETFL, O_NONBLOCK) == -1)
 			{
 				std::cerr << "fcntl: " << strerror(errno) << std::endl;
@@ -135,37 +135,37 @@ enum SocketError SocketManager::set_servers(std::vector<const uri::Authority*> s
 			freeaddrinfo(res);
 			return (kListenError);
 		}
-		//free the addrinfo struct and close the socket fd in SocketManager destructor
+		// free the addrinfo struct and close the socket fd in SocketManager destructor
 		ServerSocket server;
 		server.socket = serv_sock;
 		server.add_info = res;
 		server.addr_to_bind = res_len;
 		servers_.push_back(server);
 		ws_database.register_server_socket(serv_sock, **it);
-		//for testing the address and port
+		// for testing the address and port
 		void *addr;
-        std::string ipver;
+		std::string ipver;
 		char ipstr[INET6_ADDRSTRLEN];
 		int port;
-    	// get the pointer to the address itself, different fields in IPv4 and IPv6:
-		if (ai_ptr->ai_family == AF_INET) { // IPv4
-        	struct sockaddr_in *ipv4 = (struct sockaddr_in *)ai_ptr->ai_addr;
-           	addr = &(ipv4->sin_addr);
+		// get the pointer to the address itself, different fields in IPv4 and IPv6:
+		if (ai_ptr->ai_family == AF_INET)
+		{ // IPv4
+			struct sockaddr_in *ipv4 = (struct sockaddr_in *)ai_ptr->ai_addr;
+			addr = &(ipv4->sin_addr);
 			port = ntohs(ipv4->sin_port);
-           	ipver = "IPv4";
-
-        }
-		else { // IPv6, if ai_family is UNSPEC, getaddrinfo() will return socket addresses either IPv4 or IPv6. In out case, it returns IPv6.
-           	struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)ai_ptr->ai_addr;
-           	addr = &(ipv6->sin6_addr);
+			ipver = "IPv4";
+		}
+		else
+		{ // IPv6, if ai_family is UNSPEC, getaddrinfo() will return socket addresses either IPv4 or IPv6. In out case, it returns IPv6.
+			struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)ai_ptr->ai_addr;
+			addr = &(ipv6->sin6_addr);
 			port = ntohs(ipv6->sin6_port);
-           	ipver = "IPv6";
-       	}
+			ipver = "IPv6";
+		}
 		// convert the IP to a string and print it:
 		inet_ntop(ai_ptr->ai_family, addr, ipstr, sizeof ipstr);
 		std::cout << "server socket: " << serv_sock << " is listeing on: " << ipver << ": [" << ipstr << "]:" << port << std::endl;
-		//end of testing
-
+		// end of testing
 	}
 	return (kNoError);
 }
@@ -229,12 +229,12 @@ ssize_t SocketManager::send_all(int client_socket)
 {
 	ClientSocket *client = get_one_client(client_socket);
 
-	//std::string res_buf = client->res_buf;
-	ssize_t total_sent = 0; //bytes have been sent
-	ssize_t bytes_left = client->res_buf.size(); //bytes left to send
-	ssize_t sent_bytes = 0; //bytes sent in one send() call
+	// std::string res_buf = client->res_buf;
+	ssize_t total_sent = 0;						 // bytes have been sent
+	ssize_t bytes_left = client->res_buf.size(); // bytes left to send
+	ssize_t sent_bytes = 0;						 // bytes sent in one send() call
 
-	while(bytes_left > 0)
+	while (bytes_left > 0)
 	{
 		sent_bytes = send(client_socket, client->res_buf.c_str() + total_sent, bytes_left, 0);
 		if (sent_bytes == -1)
@@ -245,7 +245,7 @@ ssize_t SocketManager::send_all(int client_socket)
 		bytes_left -= sent_bytes;
 		total_sent += sent_bytes;
 	}
-	//TODO: do I need to close the client socket if send fails?
+	// TODO: do I need to close the client socket if send fails?
 	if (sent_bytes == -1)
 	{
 		return (-1);
@@ -273,7 +273,7 @@ void SocketManager::delete_client_socket(int client_socket)
 	}
 }
 
-//getters
+// getters
 std::vector<struct ServerSocket> SocketManager::get_servers() const
 {
 	return (servers_);
@@ -336,27 +336,27 @@ struct addrinfo *SocketManager::get_server_addrinfo(int server_socket)
 	return (NULL);
 }
 
-//udpate for managing client timeouts
-//set first_recv_time to time of first recv of one request
-void	SocketManager::set_first_recv_time(int client_socket)
+// udpate for managing client timeouts
+// set first_recv_time to time of first recv of one request
+void SocketManager::set_first_recv_time(int client_socket)
 {
 	ClientSocket *client = get_one_client(client_socket);
 	if (client->first_recv_time.is_ok() == false)
 	{
-		client->first_recv_time = time(NULL); //set the time and set is_ok to true
+		client->first_recv_time = time(NULL); // set the time and set is_ok to true
 	}
 }
 
-bool	SocketManager::is_timeout(int client_socket)
+bool SocketManager::is_timeout(int client_socket)
 {
 	ClientSocket *client = get_one_client(client_socket);
 	update_timeout(client);
 	return (client->timeout);
 }
 
-void	SocketManager::update_timeout(ClientSocket *client)
+void SocketManager::update_timeout(ClientSocket *client)
 {
-	//timeout when complete request not received within TIMEOUT
+	// timeout when complete request not received within TIMEOUT
 	if (client->first_recv_time.is_ok() == true)
 	{
 		time_t current_time = time(NULL);
@@ -365,7 +365,7 @@ void	SocketManager::update_timeout(ClientSocket *client)
 			client->timeout = true;
 		}
 	}
-	//timeout when no new request received after last response sent
+	// timeout when no new request received after last response sent
 	else
 	{
 		time_t current_time = time(NULL);
@@ -376,7 +376,7 @@ void	SocketManager::update_timeout(ClientSocket *client)
 	}
 }
 
-void	SocketManager::set_time_assets(int client_socket)
+void SocketManager::set_time_assets(int client_socket)
 {
 	ClientSocket *client = get_one_client(client_socket);
 	client->last_active = time(NULL);
