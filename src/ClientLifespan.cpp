@@ -52,17 +52,20 @@ void	client_lifespan::ResetClient(struct Client &client)
 	new (&client.res) Response();
 }
 
-void	client_lifespan::DeleteClientFromVector(std::vector<struct Client> &clients, int client_fd)
+int	client_lifespan::DeleteClientFromVector(std::vector<struct Client> &clients, int client_fd)
 {
-	std::vector<struct Client>::iterator it;
+  int index = -1;
+	std::vector<struct Client>::iterator it = clients.begin();
 	for (it = clients.begin(); it != clients.end(); it++)
 	{
 		if (it->client_socket->socket == client_fd)
 		{
+      index = it - clients.begin();
 			clients.erase(it);
 			break;
 		}
 	}
+  return index;
 }
 
 //update functions
