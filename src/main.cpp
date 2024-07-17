@@ -254,15 +254,6 @@ int main(int argc, char **argv)
 							{
                 				RequestLine request_line;
                 				error = AnalysisRequestLine(static_cast<http_parser::PTNodeRequestLine*>(parsed_request_line.result), &request_line);
-								if (error == kSyntaxError)
-								{
-									//handle only syntax error
-									clt->status_code = k400;
-									clt->keepAlive = false;
-									process::ProcessRequest(clt);
-									pfds[i].events = POLLOUT;
-									continue;
-								}
 								if (error != kNone)
 									clt->consume_body = false;
 								clt->status_code = ParseErrorToStatusCode(error);
