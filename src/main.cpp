@@ -253,11 +253,11 @@ int main(int argc, char **argv)
 				else
 				{
 					//TEST: the request buffer
-					std::string whatigot = sm.get_one_client(pfds[i].fd)->req_buf;
-					std::cout << "client request: " << std::endl;
-					std::cout << whatigot << std::endl;
-					std::cout << "recv_len: " << recv_len << std::endl;
-					// unsigned long pos = whatigot.find("\r\n\r\n");
+					// std::string whatigot = sm.get_one_client(pfds[i].fd)->req_buf;
+					// std::cout << "client request: " << std::endl;
+					// std::cout << whatigot << std::endl;
+					// std::cout << "recv_len: " << recv_len << std::endl;
+					// // unsigned long pos = whatigot.find("\r\n\r\n");
 					// if (pos != std::string::npos && pos + 4 == whatigot.size())
 					// 	std::cout << "end of request(only headers)" << std::endl;
 					// else
@@ -268,10 +268,7 @@ int main(int argc, char **argv)
 					// 	else
 					// 		std::cout << "not end of request" << std::endl;
 					// }
-					//TEST: end
 					sm.set_first_recv_time(pfds[i].fd); //set first recv time if it is not set
-					//TODO:
-					//parse request
 					if (!clt->continue_reading)
 					{
             PrintDebugMessage("POLLIN request start", pfds[i].fd);
@@ -477,11 +474,6 @@ int main(int argc, char **argv)
 				else
 				{
 					// if keeplive is false
-					// close(pfds[i].fd);
-					// delete client from clients vector
-					// sm.delete_client_socket(pfds[i].fd);
-					// pollfds::DeleteClientFd(pfds, i);
-					// client_count--;
 					if (client_lifespan::IsClientAlive(clt) == false)
 					{
             PrintDebugMessage("POLLOUT is not alive (removed from pdfs)", pfds[i].fd);
@@ -514,8 +506,6 @@ int main(int argc, char **argv)
 	{
 		close(pfds[i].fd);
 	}
-	// pfds.clear();
-	// clients.clear();
 	std::cout << "server stopped" << std::endl;
 	return (err);
 }
