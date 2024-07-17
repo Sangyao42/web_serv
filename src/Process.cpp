@@ -1,4 +1,5 @@
 #include "Client.hpp"
+#include "Configuration/Directive/Simple/MimeTypes.hpp"
 
 #include <cstdio>
 
@@ -139,10 +140,19 @@ void	process::ProcessPostRequest(struct Client *clt)
 				return (res_builder::GenerateErrorResponse(clt));
 			}
 			std::string existing_file_extension = GetReqExtension(clt->path);
-			if (!existing_file_extension.empty() && location->mime_types->query(existing_file_extension).is_ok() && (req_content_type->content() != location->mime_types->query(existing_file_extension).value()))
+			if (!existing_file_extension.empty())
 			{
-				clt->status_code = k415;
-				return (res_builder::GenerateErrorResponse(clt));
+				Maybe<directive::MimeTypes::MimeType> mime_type = location->mime_types->query(existing_file_extension);
+				if (!mime_type.is_ok())
+				{
+					clt->status_code = k415;
+					return (res_builder::GenerateErrorResponse(clt));
+				}
+				if (req_content_type->content() != mime_type.value())
+				{
+					clt->status_code = k415;
+					return (res_builder::GenerateErrorResponse(clt));
+				}
 			}
 			if (file::ModifyFile(clt) == false)
 			{
