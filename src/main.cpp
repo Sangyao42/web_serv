@@ -165,6 +165,7 @@ int main(int argc, char **argv)
         DeleteClient(clients, sm, pfds[i].fd);
 				pollfds::DeleteClientFd(pfds, i);
 				client_count--;
+        i--;
 				continue;
 			}
 			else if ((pfds[i].revents & POLLHUP))
@@ -174,6 +175,7 @@ int main(int argc, char **argv)
         DeleteClient(clients, sm, pfds[i].fd);
 				pollfds::DeleteClientFd(pfds, i);
 				client_count--;
+        i--;
 				continue;
 			}
 			else if ((pfds[i].revents & (POLLIN | POLLOUT)) == 0) //no client events
@@ -185,6 +187,7 @@ int main(int argc, char **argv)
           DeleteClient(clients, sm, pfds[i].fd);
 					pollfds::DeleteClientFd(pfds, i);
 					client_count--;
+          i--;
 				}
 				continue;
 			}
@@ -213,6 +216,7 @@ int main(int argc, char **argv)
           DeleteClient(clients, sm, pfds[i].fd);
 					pollfds::DeleteClientFd(pfds, i);
 					client_count--;
+          i--;
 					continue;
 				}
 				else
@@ -427,6 +431,7 @@ int main(int argc, char **argv)
           DeleteClient(clients, sm, pfds[i].fd);
           pollfds::DeleteClientFd(pfds, i);
 					client_count--;
+          i--;
 				}
 				else
 				{
@@ -442,6 +447,7 @@ int main(int argc, char **argv)
             DeleteClient(clients, sm, pfds[i].fd);
 						pollfds::DeleteClientFd(pfds, i);
 						client_count--;
+            i--;
 					}
 					else
 					{
