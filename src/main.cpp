@@ -47,6 +47,29 @@ namespace pollfds
 	}
 }
 
+void PrintDebugMessage(const char* message, int fd)
+{
+#ifndef NDEBUG
+  std::cerr << "Client " << fd << ": " << message << std::endl;
+#else
+  (void) message;
+  (void) fd;
+#endif
+}
+
+void PrintClients(std::vector<struct Client>& clients)
+{
+#ifndef NDEBUG
+  std::cerr << "size " << clients.size() << " : ";
+  for (std::vector<struct Client>::iterator it = clients.begin(); it != clients.end(); it++)
+  {
+    std::cerr << it->client_socket->socket << ", ";
+  }
+  std::cerr << std::endl;
+#else
+  (void) clients;
+#endif
+}
 
 void  DeleteClient(std::vector<struct Client>& clients, SocketManager& sm, int client_fd)
 {
@@ -147,6 +170,10 @@ int main(int argc, char **argv)
 						struct ClientSocket *client_socket = sm.get_one_client(client_socket_fd);
 						client_lifespan::InitClient(client, client_socket);
 						clients.push_back(client);
+#ifndef NDEBUG
+            std::cerr << "Client " << client.client_socket->socket << ": accepted at server fd " << pfds[i].fd << std::endl;
+#endif
+            PrintClients(clients);
 					}
 				}
 			}
@@ -160,20 +187,22 @@ int main(int argc, char **argv)
 			bool timeout = sm.is_timeout(pfds[i].fd);
 			if ((pfds[i].revents & POLLERR))
 			{
-				std::cout << "poll error" << std::endl;
+        PrintDebugMessage("POLLERR (removed from pfds)", pfds[i].fd);
 				close(pfds[i].fd);
         DeleteClient(clients, sm, pfds[i].fd);
 				pollfds::DeleteClientFd(pfds, i);
+        PrintClients(clients);
 				client_count--;
         i--;
 				continue;
 			}
 			else if ((pfds[i].revents & POLLHUP))
 			{
-				std::cout << "poll hup" << std::endl;
+        PrintDebugMessage("POLLHUP (removed from pfds)", pfds[i].fd);
 				close(pfds[i].fd);
         DeleteClient(clients, sm, pfds[i].fd);
 				pollfds::DeleteClientFd(pfds, i);
+        PrintClients(clients);
 				client_count--;
         i--;
 				continue;
@@ -182,10 +211,11 @@ int main(int argc, char **argv)
 			{
 				if (timeout == true)
 				{
-					std::cout << "timeout" << std::endl;
+          PrintDebugMessage("Timeout at revents that are not POLLIN nor POLLOUT (removed from pfds)", pfds[i].fd);
 					close(pfds[i].fd);
           DeleteClient(clients, sm, pfds[i].fd);
 					pollfds::DeleteClientFd(pfds, i);
+          PrintClients(clients);
 					client_count--;
           i--;
 				}
@@ -196,11 +226,11 @@ int main(int argc, char **argv)
 			{
 				if (timeout == true)
 				{
+          PrintDebugMessage("Timeout at POLLIN", pfds[i].fd);
 					// generate 408 Request Timeout and build std::string response in client
 					// set 408 in client struct and process::ProcessRequest()
 					// client_lifespan::UpdateStatusCode(clt, k408);
 					clt->status_code = k408;
-					std::cout << "timeout" << std::endl;
 					pfds[i].events = POLLOUT;
 					clt->keepAlive = false;
 					process::ProcessRequest(clt);
@@ -211,10 +241,11 @@ int main(int argc, char **argv)
 				//1st timestamp for timeout, using Maybe<time_t> first_recv_time in the else block of recv_append()
 				if (recv_len <= 0)
 				{
-					std::cout << "recv_len <= 0" << std::endl;
+          PrintDebugMessage("recv_len <= 0 (removed from pfds)", pfds[i].fd);
 					close(pfds[i].fd);
           DeleteClient(clients, sm, pfds[i].fd);
 					pollfds::DeleteClientFd(pfds, i);
+          PrintClients(clients);
 					client_count--;
           i--;
 					continue;
@@ -243,6 +274,8 @@ int main(int argc, char **argv)
 					//parse request
 					if (!clt->continue_reading)
 					{
+            PrintDebugMessage("POLLIN request start", pfds[i].fd);
+            PrintClients(clients);
 						enum ParseError error = kNone;
             size_t  find_index = clt->client_socket->req_buf.find("\r\n");
 						if (find_index != std::string::npos)
@@ -252,6 +285,7 @@ int main(int argc, char **argv)
 							if (!parsed_request_line.is_valid())
 							{
 								//handle only syntax error
+                PrintDebugMessage("Request line syntax error", pfds[i].fd);
 								clt->status_code = k400;
 								clt->keepAlive = false;
 								process::ProcessRequest(clt);
@@ -279,6 +313,7 @@ int main(int argc, char **argv)
 							if (!parsed_headers.is_valid())
 							{
 								//handle only syntax error
+                PrintDebugMessage("Request fields syntax error", pfds[i].fd);
 								clt->status_code = k400;
 								clt->keepAlive = false;
 								process::ProcessRequest(clt);
@@ -292,6 +327,7 @@ int main(int argc, char **argv)
 								if (error == kSyntaxError)
 								{
 									//handle only syntax error
+                  PrintDebugMessage("Request field value syntax error", pfds[i].fd);
 									clt->status_code = k400;
 									clt->keepAlive = false;
 									process::ProcessRequest(clt);
@@ -393,6 +429,7 @@ int main(int argc, char **argv)
 							HeaderInt *content_length = static_cast<HeaderInt *> (clt->req.returnValueAsPointer("Content-Length"));
 							if (content_length && content_length->content() > (int)clt->max_body_size)
 							{
+                PrintDebugMessage("Exceed max body size", pfds[i].fd);
 								clt->exceed_max_body_size = true;
 								clt->status_code = k413;
 								clt->keepAlive = false;
@@ -418,18 +455,22 @@ int main(int argc, char **argv)
 						pfds[i].events = POLLOUT;
 					}
 				}
+        PrintDebugMessage("POLLIN request end", pfds[i].fd);
 			}
 			//socket is ready for writing
 			else if (pfds[i].revents & POLLOUT)
 			{
-				std::cout << "POLLOUT" << std::endl;
 				//send response to client
+        PrintDebugMessage("POLLOUT", pfds[i].fd);
+        PrintClients(clients);
 				ssize_t send_len = sm.send_all(pfds[i].fd);
 				if (send_len == -1)
 				{
+          PrintDebugMessage("POLLOUT send() error (removed from pdfs)", pfds[i].fd);
 					close(pfds[i].fd);
           DeleteClient(clients, sm, pfds[i].fd);
           pollfds::DeleteClientFd(pfds, i);
+          PrintClients(clients);
 					client_count--;
           i--;
 				}
@@ -443,9 +484,11 @@ int main(int argc, char **argv)
 					// client_count--;
 					if (client_lifespan::IsClientAlive(clt) == false)
 					{
+            PrintDebugMessage("POLLOUT is not alive (removed from pdfs)", pfds[i].fd);
 						close(pfds[i].fd);
             DeleteClient(clients, sm, pfds[i].fd);
 						pollfds::DeleteClientFd(pfds, i);
+            PrintClients(clients);
 						client_count--;
             i--;
 					}
@@ -459,6 +502,8 @@ int main(int argc, char **argv)
 						sm.set_time_assets(pfds[i].fd);
 						//reset Client struct for new request
 						client_lifespan::ResetClient(*clt);
+            PrintDebugMessage("Reset", pfds[i].fd);
+            PrintClients(clients);
 					}
 				}
 			}
