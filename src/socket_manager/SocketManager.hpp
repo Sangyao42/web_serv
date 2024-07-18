@@ -52,7 +52,7 @@ class SocketManager
 		//methods
 		int accept_client(int server_socket);
 		ssize_t recv_append(int client_socket, char *buf);
-		ssize_t send_all(int client_socket);
+		ssize_t send_to_client(int client_socket);
 		//helpers
 		void delete_client_socket(int client_socket);
 		//getters and setters

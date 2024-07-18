@@ -465,20 +465,23 @@ int main(int argc, char **argv)
 				// send response to client
 				PrintDebugMessage("POLLOUT", pfds[i].fd);
 				PrintClients(clients);
-				ssize_t send_len = sm.send_all(pfds[i].fd);
-				if (send_len == -1)
+				if (!clt->client_socket->res_buf.empty())
 				{
-					PrintDebugMessage("POLLOUT send() error (removed from pdfs)", pfds[i].fd);
-					close(pfds[i].fd);
-					DeleteClient(clients, sm, pfds[i].fd);
-					pollfds::DeleteClientFd(pfds, i);
-					PrintClients(clients);
-					client_count--;
-					i--;
+					ssize_t sent_len = sm.send_to_client(pfds[i].fd);
+					if (sent_len == -1)
+					{
+						PrintDebugMessage("POLLOUT send() error (removed from pdfs)", pfds[i].fd);
+						close(pfds[i].fd);
+						DeleteClient(clients, sm, pfds[i].fd);
+						pollfds::DeleteClientFd(pfds, i);
+						PrintClients(clients);
+						client_count--;
+						i--;
+					}
 				}
 				else
 				{
-					// if keeplive is false
+					// check if client is still alive
 					if (client_lifespan::IsClientAlive(clt) == false)
 					{
 						PrintDebugMessage("POLLOUT is not alive (removed from pdfs)", pfds[i].fd);
@@ -491,17 +494,14 @@ int main(int argc, char **argv)
 					}
 					else
 					{
-						// set pfds[i].events = POLLIN;
+						// all bytes are sent, and client is still alive
 						pfds[i].events = POLLIN;
-						// set last_active time to time(NULL);
-						// set first_recv_time to to Maybe<time_t> init_time, which is_ok_ = false; and value does not matter
-						// set timeout to false
 						sm.set_time_assets(pfds[i].fd);
-						// reset Client struct for new request
 						client_lifespan::ResetClient(*clt);
 						PrintDebugMessage("Reset", pfds[i].fd);
 						PrintClients(clients);
 					}
+
 				}
 			}
 		}
