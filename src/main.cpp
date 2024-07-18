@@ -279,6 +279,18 @@ int main(int argc, char **argv)
 						PrintDebugMessage("POLLIN request start", pfds[i].fd);
 						PrintClients(clients);
 						enum ParseError error = kNone;
+						{
+							// remove trailing cariage returns
+							size_t remove_size = 0;
+							while (clt->client_socket->req_buf.size() >= (remove_size + 2))
+							{
+								if ((clt->client_socket->req_buf[remove_size] == '\r') && (clt->client_socket->req_buf[remove_size + 1] == '\n'))
+									remove_size += 2;
+								else
+									break;
+							}
+							clt->client_socket->req_buf.erase(0, remove_size);
+						}
 						if (clt->client_socket->req_buf.find("\r\n\r\n") == std::string::npos)
 						{
 							// parse request line and headers as once
