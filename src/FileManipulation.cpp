@@ -1,6 +1,7 @@
 #include "Client.hpp"
 
 #include <string.h>
+#include <cassert>
 
 bool process::file::ModifyFile(struct Client *clt)
 {
@@ -34,9 +35,12 @@ bool process::file::UploadFile(struct Client *clt)
 	size_t pos = file_path.find_last_of(".");
 	if (pos != std::string::npos && file_path[pos + 1] == '/')
 	{
-		file_path += ".";
 		HeaderString *content_type = static_cast<HeaderString *>(clt->req.returnValueAsPointer("Content-Type"));
-		file_path += GenerateFileExtension(content_type->content(), clt->config.query->mime_types);
+		if (content_type)
+		{
+			file_path += ".";
+			file_path += GenerateFileExtension(content_type->content(), clt->config.query->mime_types);
+		}
 	}
 
 	//create file and all the directories in the path
