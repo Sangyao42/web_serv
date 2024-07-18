@@ -225,39 +225,21 @@ ssize_t SocketManager::recv_append(int client_socket, char *buf)
 	return (recv_len);
 }
 
-ssize_t SocketManager::send_all(int client_socket)
+ssize_t SocketManager::send_to_client(int client_socket)
 {
 	ClientSocket *client = get_one_client(client_socket);
+	ssize_t sent_bytes = 0;
 
-	// std::string res_buf = client->res_buf;
-	ssize_t total_sent = 0;						 // bytes have been sent
-	ssize_t bytes_left = client->res_buf.size(); // bytes left to send
-	ssize_t sent_bytes = 0;						 // bytes sent in one send() call
-
-	while (bytes_left > 0)
-	{
-		sent_bytes = send(client_socket, client->res_buf.c_str() + total_sent, bytes_left, 0);
-		if (sent_bytes == -1)
-		{
-			std::cerr << "send: " << strerror(errno) << std::endl;
-			break;
-		}
-		bytes_left -= sent_bytes;
-		total_sent += sent_bytes;
-	}
-	// TODO: do I need to close the client socket if send fails?
+	sent_bytes = send(client_socket, client->res_buf.c_str(), BUF_SIZE, 0);
 	if (sent_bytes == -1)
 	{
-		return (-1);
+		std::cerr << "send: " << strerror(errno) << std::endl;
 	}
 	else
 	{
-		// TEST: print the response
-		// std::cout << "response:\n" << client->res_buf << std::endl;
-		// END OF TEST
-		client->res_buf.clear();
+		client->res_buf.erase(0, sent_bytes);
 	}
-	return (total_sent);
+	return (sent_bytes);
 }
 
 void SocketManager::delete_client_socket(int client_socket)
