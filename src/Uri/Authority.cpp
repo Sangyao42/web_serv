@@ -111,11 +111,11 @@ namespace uri
   }
 
   Authority::Authority()
-    : host(Host::IPV4, "0.0.0.0"),
+    : host(),
       port("80") {}
 
   Authority::Authority(const std::string& port)
-    : host(Host::IPV4, "0.0.0.0"),
+    : host(),
       port(port) {}
 
   Authority::Authority(const std::string& host, const std::string& port)
