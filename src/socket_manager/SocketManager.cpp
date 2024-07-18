@@ -205,7 +205,7 @@ int SocketManager::accept_client(int server_socket)
 ssize_t SocketManager::recv_append(int client_socket, char *buf)
 {
 	ssize_t recv_len;
-	recv_len = recv(client_socket, buf, RECV_BUF_SIZE, 0);
+	recv_len = recv(client_socket, buf, BUF_SIZE, 0);
 	if (recv_len <= 0)
 	{
 		if (recv_len < 0)

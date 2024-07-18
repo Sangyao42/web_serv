@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 
 	std::vector<struct Client> clients;
 	std::vector<struct pollfd> pfds;
-	static char recv_buf[RECV_BUF_SIZE];
+	static char recv_buf[BUF_SIZE];
 
 	int max_clients = ws_database.worker_connections();
 	SocketManager sm(max_clients);
