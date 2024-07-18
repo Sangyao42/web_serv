@@ -148,7 +148,7 @@ void	process::ProcessPostRequest(struct Client *clt)
 					clt->status_code = k415;
 					return (res_builder::GenerateErrorResponse(clt));
 				}
-				if (req_content_type->content() != mime_type.value())
+				if (req_content_type && (req_content_type->content() != mime_type.value()))
 				{
 					clt->status_code = k415;
 					return (res_builder::GenerateErrorResponse(clt));
