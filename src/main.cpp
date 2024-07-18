@@ -367,79 +367,86 @@ int main(int argc, char **argv)
 					if (clt->is_chunked)
 					{
 						// find delimiter
-						// int	chunk_size = 0;
-						// clt->continue_reading = false;
-						// bool syntax_error_during_unchunk = false;
-						// do
-						// {
-						// 	std::pair<ParseMetaData, int> chunk_size_line = ParseChunkSizeLine(clt->client_socket->req_buf);
-						// 	if (chunk_size_line.first.parse_error_flags == kNoCRLFFound)
-						// 	{
-						// 		clt->continue_reading = true;
-						// 		break;
-						// 	}
-						// 	else if (chunk_size_line.first.parse_error_flags == kSyntaxError)
-						// 	{
-						// 		// handle syntax error
-						// 		syntax_error_during_unchunk = true;
-						// 		break;
-						// 	}
-						// 	else
-						// 	{
-						// 		chunk_size = chunk_size_line.second;
-						// 		clt->client_socket->req_buf.erase(0, chunk_size_line.first.parse_length);
-						// 	}
-						// 	if ((clt->req.requestBody_.size() + chunk_size) > clt->max_body_size)
-						// 	{
-						// 		clt->exceed_max_body_size = true;
-						// 	}
-						// 	ParseMetaData = ParseChunkData(clt->client_socket->req_buf, chunk_size);
-						// 	if (ParseMetaData.parse_error_flags == kNoCRLFFound)
-						// 	{
-						// 		clt->continue_reading = true;
-						// 		break;
-						// 	}
-						// 	else if (ParseMetaData.parse_error_flags ==  kSyntaxError)
-						// 	{
-						// 		// handle syntax error
-						// 		syntax_error_during_unchunk = true;
-						// 		break;
-						// 	}
-						// 	std::string chunk = clt->client_socket->req_buf.substr(0, chunk_size);
-						// 	if (!clt->exceed_max_body_size)
-						// 	{
-						// 		if (clt->consume_body)
-						// 			clt->req.requestBody_.append(chunk);
-						// 	}
-						// 	clt->client_socket->req_buf.erase(0, chunk_size);
-						// } while (chunk_size > 0);
-						// if (syntax_error_during_unchunk) // when syntax error happens
-						// {
-						// 	clt->status_code = k400;
-						// 	clt->keepAlive = false;
-						// 	process::ProcessRequest(clt);
-						// 	pfds[i].events = POLLOUT;
-						// 	continue;
-						// }
-						// IgnoreEntityHeaders(clt->client_socket->req_buf);
-						// if (!CheckCrlf(clt->client_socket->req_buf))
-						// {
-						// 	clt->status_code = k400;
-						// 	clt->keepAlive = false;
-						// 	process::ProcessRequest(clt);
-						// 	pfds[i].events = POLLOUT;
-						// 	continue;
-						// }
-						// clt->client_socket->req_buf.erase(0, 2);
-						// if (clt->continue_reading)
-						// 	continue;
-						// if (clt->exceed_max_body_size)
-						// {
-						// 	clt->status_code = k413;
-						// 	clt->keepAlive = false;
-						// }
-						// process::ProcessRequest(clt);
-						// pfds[i].events = POLLOUT;
+						int	chunk_size = 0;
+						clt->continue_reading = false;
+						bool syntax_error_during_unchunk = false;
+						do
+						{
+							http_parser::ParseOutput chunk_size_line = http_parser::ParseChunkSizeLine(clt->client_socket->req_buf);
+							if (!chunk_size_line.is_valid())
+							{
+								syntax_error_during_unchunk = true;
+								break;
+							}
+							else if ((clt->client_socket->req_buf.length() - chunk_size_line.length) < 2)
+							{
+								clt->continue_reading = true;
+								break;
+							}
+							else if (!http_parser::ScanNewLine(http_parser::Input(clt->client_socket->req_buf.c_str() + chunk_size_line.length, 2)).is_valid())
+							{
+								syntax_error_during_unchunk = true;
+								break;
+							}
+							else
+							{
+								chunk_size = *static_cast<int*>(chunk_size_line.result);
+								clt->client_socket->req_buf.erase(0, chunk_size_line.length + 2);
+							}
+							if ((clt->req.requestBody_.size() + chunk_size) > clt->max_body_size)
+							{
+								clt->exceed_max_body_size = true;
+							}
+							if (clt->client_socket->req_buf.length() < (chunk_size + 2))
+							{
+								// TODO: after it continues, it wont go here
+								clt->continue_reading = true;
+								break;
+							}
+							else if (!http_parser::ScanNewLine(http_parser::Input(clt->client_socket->req_buf.c_str() + chunk_size, 2)).is_valid())
+							{
+								syntax_error_during_unchunk = true;
+								break;
+							}
+							if (!clt->exceed_max_body_size && clt->consume_body)
+							{
+								std::string chunk = clt->client_socket->req_buf.substr(0, chunk_size);
+								clt->req.requestBody_.append(chunk);
+							}
+							clt->client_socket->req_buf.erase(0, chunk_size + 2);
+						} while (chunk_size > 0);
+						if (clt->continue_reading)
+						{
+							continue;
+						}
+						if (syntax_error_during_unchunk) // when syntax error happens
+						{
+							clt->status_code = k400;
+							clt->keepAlive = false;
+							process::ProcessRequest(clt);
+							pfds[i].events = POLLOUT;
+							continue;
+						}
+						IgnoreEntityHeaders(clt->client_socket->req_buf);
+						// TODO: after it continues, it wont go here
+						if (!http_parser::ScanNewLine(http_parser::Input(clt->client_socket->req_buf.c_str(), 2)).is_valid())
+						{
+							clt->status_code = k400;
+							clt->keepAlive = false;
+							process::ProcessRequest(clt);
+							pfds[i].events = POLLOUT;
+							continue;
+						}
+						clt->client_socket->req_buf.erase(0, 2);
+						if (clt->continue_reading)
+							continue;
+						if (clt->exceed_max_body_size)
+						{
+							clt->status_code = k413;
+							clt->keepAlive = false;
+						}
+						process::ProcessRequest(clt);
+						pfds[i].events = POLLOUT;
 					}
 					else
 					{
