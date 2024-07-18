@@ -230,7 +230,7 @@ ssize_t SocketManager::send_to_client(int client_socket)
 	ClientSocket *client = get_one_client(client_socket);
 	ssize_t sent_bytes = 0;
 
-	sent_bytes = send(client_socket, client->res_buf.c_str(), BUF_SIZE, 0);
+	sent_bytes = send(client_socket, client->res_buf.c_str(), client->res_buf.size() > BUF_SIZE ? BUF_SIZE : client->res_buf.size(), 0);
 	if (sent_bytes == -1)
 	{
 		std::cerr << "send: " << strerror(errno) << std::endl;
