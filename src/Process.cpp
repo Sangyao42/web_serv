@@ -97,8 +97,13 @@ void	process::ProcessPostRequest(struct Client *clt)
 {
 	cache::LocationQuery	*location= clt->config.query;
 
-	HeaderString	*req_content_type = static_cast<HeaderString *>(clt->req.returnValueAsPointer("Content-Type"));
-	if (req_content_type && !IsSupportedMediaType(req_content_type->content(), location->mime_types)) // checkt content type from request with MIME type
+	std::string req_content_type = "";
+	HeaderString	*content_type = static_cast<HeaderString *>(clt->req.returnValueAsPointer("Content-Type"));
+	if (!content_type)
+		req_content_type = "application/octet-stream";
+	else
+		req_content_type = content_type->content();
+	if ( !IsSupportedMediaType(req_content_type, location->mime_types)) // checkt content type from request with MIME type
 	{
 		clt->status_code = k415;
 		return (res_builder::GenerateErrorResponse(clt));
@@ -140,7 +145,7 @@ void	process::ProcessPostRequest(struct Client *clt)
 					clt->status_code = k415;
 					return (res_builder::GenerateErrorResponse(clt));
 				}
-				if (req_content_type && (req_content_type->content() != mime_type.value()))
+				if (req_content_type != mime_type.value())
 				{
 					clt->status_code = k415;
 					return (res_builder::GenerateErrorResponse(clt));
