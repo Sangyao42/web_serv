@@ -10,7 +10,7 @@ def save_registry():
     body = sys.stdin.read()
 
     user_name_json_obj = json.loads(body)
-    user_name = user_name_json_obj["userName"]
+    user_name = user_name_json_obj["user_name"]
     if not user_name:
         sys.exit(1)
 

@@ -10,14 +10,14 @@
 </body>
 <script>
 	document.getElementById("getRequestButton").addEventListener("click", function() {
-		fetch("http://localhost:8080/display/list.py"), {
+		fetch("/display/list.py", {
 			method: 'GET'
-		}
+		})
 		.then(response => {
-		if (!response.ok) {
+			if (!response.ok) {
 				throw new Error("Network response was not ok " + response.statusText);
 			}
-			return response.json(); // or response.text() if you expect a text response
+			return response.text();
 		})
 		.then(data => {
 			console.log("Response:", data);
