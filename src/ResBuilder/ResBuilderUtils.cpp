@@ -52,6 +52,10 @@ void	res_builder::BuildContentHeadersCGI(struct Client *clt)
 
 	// add content-type header
 	clt->res.addNewPair("Content-Type", new HeaderString(clt->cgi_content_type));
+
+	// add location header if created
+	if (!clt->location_created.empty())
+		AddLocationHeader(clt);
 }
 
 void	res_builder::BuildContentHeaders(struct Client *clt, std::string extension, std::string path)
