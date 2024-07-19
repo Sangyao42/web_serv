@@ -1,7 +1,8 @@
 import sys
 
 def str_cat(x):
-	result = "concatinated string: " + x
+    result = "concatinated string: " + x
+
 
 
 if __name__ == "__main__":
@@ -9,4 +10,5 @@ if __name__ == "__main__":
     try:
         str_cat(x)
     except:
+        print("type error", file=sys.stderr)
         sys.exit(1)

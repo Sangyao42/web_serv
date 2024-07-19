@@ -144,7 +144,7 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 		{
 			close(cgi_input[kRead]);
 			close(cgi_output[kWrite]);
-			exit(1);
+			exit(2);
 		}
 		SetCgiEnv(clt);
 		std::vector<char *> cstrings_argv;
@@ -155,13 +155,13 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 		{
 			close(cgi_input[kRead]);
 			close(cgi_output[kWrite]);
-			exit(1);
+			exit(3);
 		}
 		execve(cgi_argv[0], cgi_argv, cgi_env);
 		std::cerr << "Error: execve" << std::endl;
 		close(cgi_input[kRead]);
 		close(cgi_output[kWrite]);
-		exit(1);
+		exit(4);
 	}
 	//parent process
 	//write to child process
