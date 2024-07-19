@@ -5,7 +5,7 @@
 void	res_builder::AddLocationHeader(struct Client *clt)
 {
 	std::string file_path = clt->location_created;
-	size_t root_pos = file_path.find(clt->config.query->root) + clt->config.query->root.size() - 1;
+	size_t root_pos = file_path.find(clt->config.query->root) + clt->config.query->root.size();
 	std::string location = file_path.substr(root_pos);
 	clt->res.addNewPair("Location", new HeaderString(location));
 }
