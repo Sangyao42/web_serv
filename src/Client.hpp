@@ -114,6 +114,7 @@ namespace cgi
 	struct CgiOutput
 	{
 		std::string content_type;
+		std::string content_location;
 		std::string	content_body;
 	};
 	int		SetPipes(int *cgi_input, int *cgi_output, const Method method);
