@@ -3,6 +3,7 @@ import sys
 import traceback
 
 def index():
+
 	# get root from envp
 	root = os.environ['DOCUMENT_ROOT']
 
@@ -39,6 +40,11 @@ def index():
 
 
 if __name__ == '__main__':
+	method = os.environ['REQUEST_METHOD']
+	if method == 'POST' or method == 'DETELE':
+		print("CGI: method not allowed: " + method, file=sys.stderr)
+		sys.exit(1)
+
 	try:
 		index()
 	except:
