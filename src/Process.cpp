@@ -46,11 +46,7 @@ void	process::ProcessGetRequest(struct Client *clt)
 		if (process::IsCgi(clt->cgi_argv, clt->path, location)) //check file extension and get the cgi path inside IsCgi
 			return (cgi::ProcessGetRequestCgi(clt));
 		std::string content_type = process::GetReqExtension(clt->path);
-		// if (!content_type.empty()  && !process::IsAcceptable(content_type, clt->req.returnValueAsPointer("Accept"), location)) //check Accept header and MIME type && check response entity's content type(based on the extension) and Accept Header
-		// {
-		// 	clt->status_code = k406;
-		// 	return (res_builder::GenerateErrorResponse(clt));
-		// }
+
 		if (access(clt->path.c_str(), R_OK) != 0)
 		{
 			clt->status_code = k403;
@@ -105,8 +101,13 @@ void	process::ProcessPostRequest(struct Client *clt)
 {
 	cache::LocationQuery	*location= clt->config.query;
 
-	HeaderString	*req_content_type = static_cast<HeaderString *>(clt->req.returnValueAsPointer("Content-Type"));
-	if (req_content_type && !IsSupportedMediaType(req_content_type->content(), location->mime_types)) // checkt content type from request with MIME type
+	std::string req_content_type = "";
+	HeaderString	*content_type = static_cast<HeaderString *>(clt->req.returnValueAsPointer("Content-Type"));
+	if (!content_type)
+		req_content_type = "application/octet-stream";
+	else
+		req_content_type = content_type->content();
+	if ( !IsSupportedMediaType(req_content_type, location->mime_types)) // checkt content type from request with MIME type
 	{
 		clt->status_code = k415;
 		return (res_builder::GenerateErrorResponse(clt));
@@ -148,7 +149,7 @@ void	process::ProcessPostRequest(struct Client *clt)
 					clt->status_code = k415;
 					return (res_builder::GenerateErrorResponse(clt));
 				}
-				if (req_content_type && (req_content_type->content() != mime_type.value()))
+				if (req_content_type != mime_type.value())
 				{
 					clt->status_code = k415;
 					return (res_builder::GenerateErrorResponse(clt));
