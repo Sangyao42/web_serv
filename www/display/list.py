@@ -3,6 +3,9 @@ import sys
 import traceback
 
 def index():
+	method = os.environ['REQUEST_METHOD']
+	if method == 'POST' or method == 'DETELE':
+		sys.exit(1)
 	# get root from envp
 	root = os.environ['DOCUMENT_ROOT']
 

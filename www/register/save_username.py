@@ -4,6 +4,9 @@ import os
 from sys import stdin
 
 def save_registry():
+    method = os.environ['REQUEST_METHOD']
+    if method == 'GET' or method == 'DETELE':
+        sys.exit(1)
     root = os.environ['DOCUMENT_ROOT']
 
     # read from stdin.
