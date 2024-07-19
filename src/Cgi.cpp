@@ -4,6 +4,8 @@
 #include <cassert>
 #include <stdlib.h>
 
+#define CGI_TIMEOUT 5
+
 void	cgi::ProcessGetRequestCgi(struct Client *clt)
 {
 	int	cgi_input[2], cgi_output[2];
@@ -52,7 +54,17 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 	std::string response_tmp;
 	close(cgi_output[kWrite]);
 	int wstats;
-	waitpid(pid, &wstats, 0);
+	std::time_t start = std::time(NULL);
+	while(waitpid(pid, &wstats, WNOHANG) == 0)
+	{
+		if (std::difftime(std::time(NULL), start) > CGI_TIMEOUT)
+		{
+			close(cgi_output[kRead]);
+			kill(pid, SIGTERM);
+			clt->status_code = k504;
+			return (res_builder::GenerateErrorResponse(clt));
+		}
+	}
 	if (WIFEXITED(wstats) && (WEXITSTATUS(wstats) == 0))
 	{
 		int read_byte = ReadAll(cgi_output[kRead], response_tmp);
@@ -172,7 +184,17 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 	std::string response_tmp;
 	close(cgi_output[kWrite]);
 	int wstats;
-	waitpid(pid, &wstats, 0);
+	std::time_t start = std::time(NULL);
+	while(waitpid(pid, &wstats, WNOHANG) == 0)
+	{
+		if (std::difftime(std::time(NULL), start) > CGI_TIMEOUT)
+		{
+			close(cgi_output[kRead]);
+			kill(pid, SIGTERM);
+			clt->status_code = k504;
+			return (res_builder::GenerateErrorResponse(clt));
+		}
+	}
 	if (WIFEXITED(wstats) && WEXITSTATUS(wstats) == 0)
 	{
 		int read_byte = ReadAll(cgi_output[kRead], response_tmp);

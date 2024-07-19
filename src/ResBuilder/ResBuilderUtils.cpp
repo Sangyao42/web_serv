@@ -182,6 +182,8 @@ std::string	res_builder::StatusCodeAsString(StatusCode code)
 			return ("501 Not Implemented");
 		case k503:
 			return ("503 Service Unavailable");
+		case k504:
+			return ("504 Gateway Timeout");
 		default:
 		 return (""); // Error
 	}
