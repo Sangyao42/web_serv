@@ -366,17 +366,18 @@ int main(int argc, char **argv)
 					}
 					if (clt->is_chunked)
 					{
-						clt->continue_reading = false;
-						bool syntax_error_during_unchunk = false;
+						clt->continue_reading = true;
+						bool require_more_bytes = false;
 						if (!clt->is_chunk_end)
 						{
+							bool syntax_error_during_unchunk = false;
 							int	chunk_size = 0;
 							do
 							{
 								unsigned long index = clt->client_socket->req_buf.find("\r\n");
 								if (index == std::string::npos)
 								{
-									clt->continue_reading = true;
+									require_more_bytes = true;
 									break;
 								}
 								http_parser::ParseOutput chunk_size_line = http_parser::ParseChunkSizeLine(http_parser::Input(clt->client_socket->req_buf.c_str(), index));
@@ -408,8 +409,7 @@ int main(int argc, char **argv)
 								unsigned int bytes_entire_chunk = bytes_before_chunk_data + chunk_size + 2;
 								if (clt->client_socket->req_buf.length() < bytes_entire_chunk)
 								{
-									// TODO: after it continues, it wont go here
-									clt->continue_reading = true;
+									require_more_bytes = true;
 									break;
 								}
 								else if (!http_parser::ScanNewLine(http_parser::Input(clt->client_socket->req_buf.c_str() + bytes_before_chunk_data + chunk_size, 2)).is_valid())
@@ -424,7 +424,7 @@ int main(int argc, char **argv)
 								}
 								clt->client_socket->req_buf.erase(0, bytes_entire_chunk);
 							} while (chunk_size > 0);
-							if (clt->continue_reading)
+							if (require_more_bytes)
 							{
 								continue;
 							}
@@ -448,7 +448,7 @@ int main(int argc, char **argv)
 								unsigned long index = clt->client_socket->req_buf.find("\r\n");
 								if (index == std::string::npos)
 								{
-									clt->continue_reading = true;
+									require_more_bytes = true;
 									break;
 								}
 								ArenaSnapshot snapshot = temporary::arena.snapshot();
@@ -472,7 +472,7 @@ int main(int argc, char **argv)
 								pfds[i].events = POLLOUT;
 								continue;
 							}
-							if (clt->continue_reading)
+							if (require_more_bytes)
 								continue;
 						}
 						else
