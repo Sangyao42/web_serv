@@ -60,7 +60,8 @@ def uploadFile():
 		print(e, file=sys.stderr)
 
 	# read from stdin.
-	body = sys.stdin.read()
+	# body = sys.stdin.read()
+	body = sys.stdin.buffer.read()
 	if body == "":
 		print("CGI: nothing read from parent process", file=sys.stderr)
 		sys.exit(1)
@@ -68,8 +69,9 @@ def uploadFile():
 
 	try:
 		# write to file
-		f = open(full_path, 'w+')
+		f = open(full_path,'wb+')
 		f.write(body)
+		print("try write to file", file=sys.stderr)
 		f.close()
 	except e:
 		print("write to file failed", file=sys.stderr)
@@ -87,7 +89,7 @@ if __name__ == '__main__':
 	if method == 'GET' or method == 'DETELE':
 		print("CGI: method not allowed: " + method, file=sys.stderr)
 		sys.exit(1)
-		
+
 	try:
 		uploadFile()
 		# print("CGI: upload file failed.", file=sys.stderr)

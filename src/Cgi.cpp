@@ -3,6 +3,7 @@
 #include <sys/wait.h>
 #include <cassert>
 #include <stdlib.h>
+#include <signal.h>
 
 #define CGI_TIMEOUT 5
 
@@ -107,6 +108,7 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 	}
 	else
 	{
+		std::cerr << "" << std::endl;
 		close(cgi_output[kRead]);
 		clt->status_code = k500;
 		return (res_builder::GenerateErrorResponse(clt));
@@ -237,6 +239,7 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 	}
 	else
 	{
+		std::cerr << "WEXITSTATUS(wstats): " << WEXITSTATUS(wstats) << std::endl;
 		close(cgi_output[kRead]);
 		clt->status_code = k500;
 		return (res_builder::GenerateErrorResponse(clt));
