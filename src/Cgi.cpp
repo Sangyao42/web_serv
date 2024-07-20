@@ -72,7 +72,7 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 		int read_byte = ReadAll(cgi_output[kRead], response_tmp);
 		close(cgi_output[kRead]);
 		assert(read_byte != -1 && "ReadAll: read byte is -1");
-		if (read_byte < 0)
+		if (read_byte <= 0)
 		{
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -173,7 +173,7 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 	char *content_str = const_cast<char *>(clt->req.getRequestBody().c_str());
 	int write_byte = WriteAll(cgi_input[kWrite], content_str, content_size);
 	assert (write_byte != -1  && "WriteAll: write() failed.");
-	if (write_byte < 0 && write_byte != content_size)
+	if (write_byte <= 0 && write_byte != content_size)
 	{
 		close(cgi_input[kWrite]);
 		close(cgi_output[kRead]);
@@ -203,7 +203,7 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 		int read_byte = ReadAll(cgi_output[kRead], response_tmp);
 		close(cgi_output[kRead]);
 		assert(read_byte != 0 && "ReadAll: read byte is 0");
-		if (read_byte < 0)
+		if (read_byte <= 0)
 		{
 			clt->status_code = k500;
 			return (res_builder::GenerateErrorResponse(clt));
@@ -349,7 +349,6 @@ void	cgi::SetCgiEnv(struct Client *clt)
 */
 
 
-
 int cgi::ReadAll(int fd, std::string &response_tmp)
 {
 	char buffer[1024];
@@ -364,6 +363,11 @@ int cgi::ReadAll(int fd, std::string &response_tmp)
 	{
 		std::cerr << "Error: ReadAll from child process" << std::endl;
 		return (-1);
+	}
+	if (read_byte == 0)
+	{
+		std::cerr << "Error: ReadAll from child process: pipe write end is closed." << std::endl;
+		return (0);
 	}
 	return (total_read);
 }
@@ -380,6 +384,11 @@ int cgi::WriteAll(int fd, char *cstr_buf, int size)
 		{
 			std::cerr << "Error: WriteAll to child process" << std::endl;
 			return (-1);
+		}
+		if (write_byte == 0)
+		{
+			std::cerr << "Error: WriteAll to child process: nothing to write" << std::endl;
+			return (0);
 		}
 		total_write += write_byte;
 		byte_left -= write_byte;

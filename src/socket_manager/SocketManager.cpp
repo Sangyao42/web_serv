@@ -235,6 +235,10 @@ ssize_t SocketManager::send_to_client(int client_socket)
 	{
 		std::cerr << "send: " << strerror(errno) << std::endl;
 	}
+	else if (sent_bytes == 0)
+	{
+		std::cout << "send: failed in the blocking mode" << std::endl;
+	}
 	else
 	{
 		client->res_buf.erase(0, sent_bytes);
