@@ -1,5 +1,6 @@
 #include "Client.hpp"
 
+#include <signal.h>
 #include <sys/wait.h>
 #include <cassert>
 #include <stdlib.h>
