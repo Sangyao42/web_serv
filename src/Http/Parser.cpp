@@ -2488,5 +2488,74 @@ namespace http_parser
     return output;
   }
 
+  ScanOutput  ScanChunkExtension(Input input)
+  {
+    ScanOutput output;
+    output.bytes = input.bytes;
+
+    while (input.length > 0)
+    {
+      ConsumeByScanFunction(&input, &ScanBadWhitespace);
+      if (ConsumeByCString(&input, ";") != 1)
+      {
+        output.bytes = NULL;
+        return output;
+      }
+      ConsumeByScanFunction(&input, &ScanBadWhitespace);
+      if (!ConsumeByParserFunction(&input, &ParseToken).is_valid())
+      {
+        output.bytes = NULL;
+        return output;
+      }
+      Input input_temp;
+      ArenaSnapshot snapshot = temporary::arena.snapshot();
+      ConsumeByScanFunction(&input_temp, &ScanBadWhitespace);
+      if (ConsumeByCString(&input_temp, "=") == 1)
+      {
+        ConsumeByScanFunction(&input_temp, &ScanBadWhitespace);
+        ParseOutput parsed_token = ConsumeByParserFunction(&input_temp, &ParseQuotedString);
+        if (!parsed_token.is_valid())
+        {
+          parsed_token = ConsumeByParserFunction(&input_temp, &ParseToken);
+        }
+        if (parsed_token.is_valid())
+        {
+          input = input_temp;
+        }
+      }
+      temporary::arena.rollback(snapshot);
+    }
+    return output;
+  }
+
+  ParseOutput ParseChunkSizeLine(Input input)
+  {
+    ParseOutput output;
+    const char* input_start = input.bytes;
+    static int chunk_size = 0;
+    chunk_size = 0;
+
+    while (input.length > 0)
+    {
+      if (IsDigit(input.bytes[0]))
+      {
+        chunk_size = chunk_size * 16 + (input.bytes[0] - '0');
+      }
+      else if ((input.bytes[0] >= 'a') && (input.bytes[0] <= 'f'))
+      {
+        chunk_size = chunk_size * 16 + (10 + input.bytes[0] - 'a');
+      }
+      else if ((input.bytes[0] >= 'A') && (input.bytes[0] <= 'F'))
+      {
+        chunk_size = chunk_size * 16 + (10 + input.bytes[0] - 'A');
+      }
+      input.consume();
+    }
+    ConsumeByScanFunction(&input, &ScanChunkExtension);
+    output.length = input.bytes - input_start;
+    output.result = &chunk_size;
+    return output;
+  }
+
 } // namespace http_parser
 
