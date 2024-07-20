@@ -485,7 +485,7 @@ int main(int argc, char **argv)
 				if (!clt->client_socket->res_buf.empty())
 				{
 					ssize_t sent_len = sm.send_to_client(pfds[i].fd);
-					if (sent_len == -1)
+					if (sent_len <= 0)
 					{
 						PrintDebugMessage("POLLOUT send() error (removed from pdfs)", pfds[i].fd);
 						close(pfds[i].fd);
