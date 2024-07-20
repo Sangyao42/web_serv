@@ -700,26 +700,37 @@ namespace directive_parser
     ParseOutput output;
     const char* input_start = input.bytes;
     directive::Methods methods = 0;
+	bool	is_error = true;
 
     while (input.length > 0)
     {
       if (http_parser::ConsumeByCString(&input, "GET"))
       {
         methods |= directive::kMethodGet;
+		is_error = false;
       }
       else if (http_parser::ConsumeByCString(&input, "POST"))
       {
         methods |= directive::kMethodPost;
+		is_error = false;
       }
       else if (http_parser::ConsumeByCString(&input, "DELETE"))
       {
         methods |= directive::kMethodDelete;
+		is_error = false;
       }
+      else if (http_parser::ConsumeByCString(&input, "NONE"))
+	  {
+		methods = 0;
+		is_error = false;
+	  }
       else
+	  {
         break;
+	  }
       http_parser::ConsumeByScanFunction(&input, &ScanOptionalWhitespace);
     }
-    if (methods != 0)
+    if (!is_error)
     {
       directive::AllowMethods*  allow_methods = new directive::AllowMethods();
       allow_methods->set(methods);
