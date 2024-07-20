@@ -81,17 +81,19 @@ void	res_builder::GenerateAutoindexResponse(struct Client *clt)
 
 	DSet files;
 
+	errno = 0;
+
 	while ((dirent = readdir(dir_stream)) != NULL)
 	{
 		files.insert(std::make_pair(dirent->d_type, dirent->d_name));
 	}
 
-	// if (errno != 0)
-	// {
-	// 	ServerError500(clt);
-	// 	closedir(dir_stream);
-	// 	return ;
-	// }
+	if (errno != 0)
+	{
+		ServerError500(clt);
+		closedir(dir_stream);
+		return ;
+	}
 
 	std::string html = BuildAutoindexHTML(files, clt->req.getRequestTarget().path);
 	if (closedir(dir_stream) == -1)

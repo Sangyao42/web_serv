@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Webserv Tests for Evaluation</title>
+</head>
+
+<body>
+	<h1>Webserv Tests for Evaluation</h1>
+	<h2>Test 01</h2>
+	<a href="http://localhost:8080">Main Page</a>
+	<p>Do: Send GET Request of /</p>
+	<p>Expected: 200 OK</p>
+	<hr>
+	<h2>Test 02</h2>
+	<a href="http://localhost:8080/usernames">Folder with credentials</a>
+	<p>Do: Send GET Request of /usernames</p>
+	<p>Expected: 403 Forbidden (chmod -r www/usernames) / 405 Method Not Allowed (chmod +r www/usernames)</p>
+	<hr>
+	<h2>Test 03</h2>
+	<a href="http://localhost:8080/display">Directory Listing</a>
+	<p>Do: Send GET Request of /display (autoindex off)</p>
+	<p>Expected: 200 OK, showing index.html of the /display/ </p>
+	<p>Do: Click delete button for sample texts, send DELETE request of /upload/[filename.txt]</p>
+	<p>Expected: 204 No Content (successfully deleted)</p>
+	<hr>
+	<h2>Test 04-1</h2>
+	<a href="http://localhost:8080/post/upload.html">File Upload</a>
+	<p>Do: Send POST Request for file upload (plain, txt, html, jpg, jpeg, png)</p>
+	<p>Expected: 201 Created, check if the file is in the /upload/</p>
+	<hr>
+	<h2>Test 04-2</h2>
+	<a href="http://localhost:8080/post/upload.html">File Upload</a>
+	<p>Do: Send POST Request for file upload (same file, modification)</p>
+	<p>Expected: 200 OK</p>
+	<hr>
+	<h2>Test 04-3</h2>
+	<a href="http://localhost:8080/post/upload.html">File Upload</a>
+	<p>Do: Send POST Request for file upload (other extensions)</p>
+	<p>Expected: 415 Unsupported Media Type</p>
+	<hr>
+	<h2>Test 04-4</h2>
+	<a href="http://localhost:8080/post/upload.html">File Upload</a>
+	<p>Do: Send POST Request for file upload (big size file)</p>
+	<p>Expected: 413 Request Entity Too Large</p>
+	<hr>
+	<h2>Test 05</h2>
+	<a href="http://localhost:8080/error">Autoindex /error</a>
+	<p>Do: Send GET Request of /error</p>
+	<p>Expected: 200 OK</p>
+	<hr>
+	<h2>Test 06</h2>
+	<a href="http://localhost:8080/error/error.py">CGI error</a>
+	<p>Do: Send CGI GET Request of /error/error.py which exits with 1</p>
+	<p>Expected: 500 Server Error</p>
+	<hr>
+	<h2>Test 07</h2>
+	<a href="http://localhost:8080/error/inf.py">CGI Timeout</a>
+	<p>Do: Send CGI GET Request of /error/inf.py which will stuck in an infinite loop</p>
+	<p>Expected: 504 Gateway Timeout</p>
+	<hr>
+	<h2>Test 08</h2>
+	<a href="http://localhost:8080/register/form.html">CGI POST Request</a>
+	<p>Do: Send CGI POST Request, registering a user name</p>
+	<p>Expected: 200 OK, check if it is saved in /usernames/usernames.txt</p>
+	<hr>
+	<h2>Test 07</h2>
+	<a href="http://localhost:8080/error/inf.py">CGI Timeout</a>
+	<p>Do: Send CGI GET Request of /error/inf.py which will stuck in an infinite loop</p>
+	<p>Expected: 504 Gateway Timeout</p>
+	<hr>
+	<h2>Test 08</h2>
+	<a href="http://localhost:8080/50x.html">GET Request</a>
+	<p>Do: Send GET Request for a regular file</p>
+	<p>Expected: 200 OK</p>
+	<hr>
+	<h2>Test 09</h2>
+	<a href="http://localhost:8080/non-existing">404 Not Found</a>
+	<p>Do: Send GET Request for a non-existing path</p>
+	<p>Expected: 404 Not Found</p>
+	<hr>
+</body>
+
+</html>
