@@ -4,6 +4,7 @@
 #include <sys/wait.h>
 #include <cassert>
 #include <stdlib.h>
+#include <signal.h>
 
 #define CGI_TIMEOUT 5
 
@@ -87,14 +88,9 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 			clt->status_code = k204;
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
-		if (!process:: IsSupportedMediaType(cgi_content.content_type, clt->config.query->mime_types)) //check the response content type with the MIME type
-		{
-			clt->status_code = k500;
-			return (res_builder::GenerateErrorResponse(clt));
-		}
-		// if (IsAcceptable(cgi_output.content_type)) // TODO: get the content type from the string returned by cgi, check Accept header and MIME type && check response entity's content type and Accept Header
+		// if (!process:: IsSupportedMediaType(cgi_content.content_type, clt->config.query->mime_types)) //check the response content type with the MIME type
 		// {
-		// 	clt->status_code = k406;
+		// 	clt->status_code = k500;
 		// 	return (res_builder::GenerateErrorResponse(clt));
 		// }
 		else
@@ -102,12 +98,18 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 			clt->cgi_content_type = cgi_content.content_type;
 			clt->cgi_content_length = cgi_content.content_body.size();
 			clt->res.setResponseBody(cgi_content.content_body);
-			clt->status_code = k200;
+			if (!cgi_content.content_location.empty()){
+				clt->location_created = cgi_content.content_location;
+				clt->status_code = k201;
+			}
+			else
+				clt->status_code = k200;
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
 	}
 	else
 	{
+		std::cerr << "" << std::endl;
 		close(cgi_output[kRead]);
 		clt->status_code = k500;
 		return (res_builder::GenerateErrorResponse(clt));
@@ -217,14 +219,9 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 			clt->status_code = k204;
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
-		if (!process::IsSupportedMediaType(cgi_content.content_type, clt->config.query->mime_types)) //check the response content type with the MIME type
-		{
-			clt->status_code = k500;
-			return (res_builder::GenerateErrorResponse(clt));
-		}
-		// if (IsAcceptable(cgi_output.content_type)) // TODO: get the content type from the string returned by cgi, check Accept header and MIME type && check response entity's content type and Accept Header
+		// if (!process::IsSupportedMediaType(cgi_content.content_type, clt->config.query->mime_types)) //check the response content type with the MIME type
 		// {
-		// 	clt->status_code = k406;
+		// 	clt->status_code = k500;
 		// 	return (res_builder::GenerateErrorResponse(clt));
 		// }
 		else
@@ -232,12 +229,18 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 			clt->cgi_content_type = cgi_content.content_type;
 			clt->cgi_content_length = cgi_content.content_body.size();
 			clt->res.setResponseBody(cgi_content.content_body);
-			clt->status_code = k200;
+			if (!cgi_content.content_location.empty()){
+				clt->location_created = cgi_content.content_location;
+				clt->status_code = k201;
+			}
+			else
+				clt->status_code = k200;
 			return (res_builder::GenerateSuccessResponse(clt));
 		}
 	}
 	else
 	{
+		std::cerr << "WEXITSTATUS(wstats): " << WEXITSTATUS(wstats) << std::endl;
 		close(cgi_output[kRead]);
 		clt->status_code = k500;
 		return (res_builder::GenerateErrorResponse(clt));
@@ -387,17 +390,30 @@ int cgi::WriteAll(int fd, char *cstr_buf, int size)
 
 bool	cgi::ParseCgiOutput(struct CgiOutput &cgi_content, std::string &response_tmp)
 {
-	std::string delimiter = "\r\n\r\n";
-	size_t pos_delim = response_tmp.find(delimiter);
+	std::string delimiter_cont_type = "\r\n";
+	size_t pos_delim_ct = response_tmp.find(delimiter_cont_type);
 	size_t pos_cont_type = response_tmp.find("Content-Type: ");
-	if (pos_delim == std::string::npos || pos_cont_type == std::string::npos)
+	if (pos_delim_ct == std::string::npos || pos_cont_type == std::string::npos || pos_delim_ct < pos_cont_type)
 	{
-		std::cerr << "Error: ParseCgiOutput" << std::endl;
+		std::cerr << "Error: ParseCgiOutput: Content-Type" << std::endl;
 		return false;
 	}
-	size_t pos = pos_cont_type + sizeof("Content-Type: ") - 1;
- 	cgi_content.content_type = response_tmp.substr(pos, pos_delim - pos);
-	cgi_content.content_body = response_tmp.substr(pos_delim + delimiter.size());
+	size_t pos_ct_value = pos_cont_type + sizeof("Content-Type: ") - 1;
+ 	cgi_content.content_type = response_tmp.substr(pos_ct_value, pos_delim_ct - pos_ct_value);
+
+	std::string delimiter_location = "\r\n\r\n";
+	size_t pos_delim_loc = response_tmp.find(delimiter_location);
+	size_t pos_loc = response_tmp.find("Location: ");
+	if (pos_delim_loc == std::string::npos || pos_loc == std::string::npos || pos_delim_loc < pos_loc)
+	{
+		std::cerr << "Error: ParseCgiOutput: Location" << std::endl;
+		return false;
+	}
+	size_t pos_loc_value = pos_loc + sizeof("Location: ") - 1;
+	cgi_content.content_location = response_tmp.substr(pos_loc_value, pos_delim_loc - pos_loc_value);
+
+	cgi_content.content_body = response_tmp.substr(pos_delim_loc + delimiter_location.size());
+
 	if ((cgi_content.content_type.empty() && !cgi_content.content_body.empty()) \
 		|| (!cgi_content.content_type.empty() && cgi_content.content_body.empty()))
 	{
