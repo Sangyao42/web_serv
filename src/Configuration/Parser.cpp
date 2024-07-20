@@ -913,7 +913,11 @@ namespace directive_parser
         ArenaSnapshot snapshot = temporary::arena.snapshot();
         const char* uri_start = input_tmp.bytes;
         ParseOutput parsed_uri = http_parser::ConsumeByParserFunction(&input_tmp, &http_parser::ParseUri);
-        if (parsed_uri.is_valid())
+        if (!parsed_uri.is_valid())
+		{
+          parsed_uri = http_parser::ConsumeByParserFunction(&input_tmp, &http_parser::ParsePathAbsolute);
+		}
+		if (parsed_uri.is_valid())
         {
           uri = std::string(uri_start, parsed_uri.length);
           input = input_tmp;
