@@ -3,6 +3,7 @@
 #include <sys/wait.h>
 #include <cassert>
 #include <stdlib.h>
+#include <signal.h>
 
 #define CGI_TIMEOUT 5
 
@@ -59,8 +60,10 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 	{
 		if (std::difftime(std::time(NULL), start) > CGI_TIMEOUT)
 		{
+			std::cout << pid << std::endl;
 			close(cgi_output[kRead]);
 			kill(pid, SIGTERM);
+			waitpid(pid, NULL, 0);
 			clt->status_code = k504;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
@@ -191,6 +194,7 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 		{
 			close(cgi_output[kRead]);
 			kill(pid, SIGTERM);
+			waitpid(pid, NULL, 0);
 			clt->status_code = k504;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
