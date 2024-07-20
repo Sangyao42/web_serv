@@ -148,6 +148,16 @@ void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 			}
 		}
 	}
+
+	//For POST with Content-Length (normal request, without chunks)
+	HeaderInt *content_length = static_cast<HeaderInt *>(clt->req.returnValueAsPointer("Content-Length"));
+	if ((clt->req.getMethod() == kPost) && !content_length && !clt->is_chunked)
+	{
+		clt->status_code = k411;
+		clt->consume_body = false;
+		return ;
+	}
+
 	return ;
 }
 

@@ -5,7 +5,7 @@
 void	res_builder::AddLocationHeader(struct Client *clt)
 {
 	std::string file_path = clt->location_created;
-	size_t root_pos = file_path.find(clt->config.query->root) + clt->config.query->root.size() - 1;
+	size_t root_pos = file_path.find(clt->config.query->root) + clt->config.query->root.size();
 	std::string location = file_path.substr(root_pos);
 	clt->res.addNewPair("Location", new HeaderString(location));
 }
@@ -186,6 +186,8 @@ std::string	res_builder::StatusCodeAsString(StatusCode code)
 			return ("501 Not Implemented");
 		case k503:
 			return ("503 Service Unavailable");
+		case k504:
+			return ("504 Gateway Timeout");
 		default:
 		 return (""); // Error
 	}
