@@ -373,16 +373,16 @@ int main(int argc, char **argv)
 							int	chunk_size = 0;
 							do
 							{
-								unsigned int parsed_length = 0;
-								http_parser::ParseOutput chunk_size_line = http_parser::ParseChunkSizeLine(clt->client_socket->req_buf);
+								unsigned long index = clt->client_socket->req_buf.find("\r\n");
+								if (index == std::string::npos)
+								{
+									clt->continue_reading = true;
+									break;
+								}
+								http_parser::ParseOutput chunk_size_line = http_parser::ParseChunkSizeLine(http_parser::Input(clt->client_socket->req_buf.c_str(), index));
 								if (!chunk_size_line.is_valid())
 								{
 									syntax_error_during_unchunk = true;
-									break;
-								}
-								else if (clt->client_socket->req_buf.length() < (chunk_size_line.length + 2))
-								{
-									clt->continue_reading = true;
 									break;
 								}
 								unsigned int bytes_before_chunk_data = chunk_size_line.length + 2;
@@ -445,7 +445,7 @@ int main(int argc, char **argv)
 							bool	is_error = false;
 							while (!clt->client_socket->req_buf.empty())
 							{
-								int index = clt->client_socket->req_buf.find("\r\n");
+								unsigned long index = clt->client_socket->req_buf.find("\r\n");
 								if (index == std::string::npos)
 								{
 									clt->continue_reading = true;
