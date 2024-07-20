@@ -50,6 +50,7 @@ struct Client
 	bool continue_reading;
 	bool exceed_max_body_size;
 	bool is_chunked;
+	bool is_chunk_end;
 	bool consume_body;
 	//END: request status before processing
 	Request	req;
