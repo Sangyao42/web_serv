@@ -66,17 +66,12 @@
 	<p>Do: Send CGI POST Request, registering a user name</p>
 	<p>Expected: 200 OK, check if it is saved in /usernames/usernames.txt</p>
 	<hr>
-	<h2>Test 07</h2>
-	<a href="http://localhost:8080/error/inf.py">CGI Timeout</a>
-	<p>Do: Send CGI GET Request of /error/inf.py which will stuck in an infinite loop</p>
-	<p>Expected: 504 Gateway Timeout</p>
-	<hr>
-	<h2>Test 08</h2>
+	<h2>Test 09</h2>
 	<a href="http://localhost:8080/50x.html">GET Request</a>
 	<p>Do: Send GET Request for a regular file</p>
 	<p>Expected: 200 OK</p>
 	<hr>
-	<h2>Test 09</h2>
+	<h2>Test 10</h2>
 	<a href="http://localhost:8080/non-existing">404 Not Found</a>
 	<p>Do: Send GET Request for a non-existing path</p>
 	<p>Expected: 404 Not Found</p>
