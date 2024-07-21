@@ -17,7 +17,7 @@
 	<h2>Test 02</h2>
 	<a href="http://localhost:8080/usernames">Folder with credentials</a>
 	<p>Do: Send GET Request of /usernames</p>
-	<p>Expected: 403 Forbidden (chmod -r www/usernames) / 405 Method Not Allowed (chmod +r www/usernames)</p>
+	<p>Expected: 200 OK / 403 Forbidden / 405 Method Not Allowed depending on the permission of configuration</p>
 	<hr>
 	<h2>Test 03</h2>
 	<a href="http://localhost:8080/display">Directory Listing</a>
