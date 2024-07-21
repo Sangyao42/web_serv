@@ -73,7 +73,6 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 	{
 		int read_byte = ReadAll(cgi_output[kRead], response_tmp);
 		close(cgi_output[kRead]);
-		assert(read_byte != -1 && "ReadAll: read byte is -1");
 		if (read_byte < 0)
 		{
 			clt->status_code = k500;
@@ -174,7 +173,6 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 	int content_size = clt->req.getRequestBody().size();
 	char *content_str = const_cast<char *>(clt->req.getRequestBody().c_str());
 	int write_byte = WriteAll(cgi_input[kWrite], content_str, content_size);
-	assert (write_byte != -1  && "WriteAll: write() failed.");
 	if (write_byte <= 0 && write_byte != content_size)
 	{
 		close(cgi_input[kWrite]);
@@ -205,7 +203,6 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 	{
 		int read_byte = ReadAll(cgi_output[kRead], response_tmp);
 		close(cgi_output[kRead]);
-		assert(read_byte != 0 && "ReadAll: read byte is 0");
 		if (read_byte < 0)
 		{
 			clt->status_code = k500;
