@@ -120,6 +120,16 @@ int main(int argc, char **argv)
 #ifdef DEBUG
 			main_block->print(0);
 #endif
+			if (main_block->http() == NULL)
+			{
+				std::cerr << "Configuration file must include a HTTP block" << std::endl;
+				return (1);
+			}
+			if (!directive::DirectiveRangeIsValid(main_block->http()->servers()))
+			{
+				std::cerr << "Configuration file must include at least one Server block" << std::endl;
+				return (1);
+			}
 			ws_database.set_main_block(main_block);
 		}
 		else
