@@ -140,7 +140,7 @@ void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 				return ;
 			}
 		}
-		if (access(path.c_str(), R_OK) != 0)
+		if ((clt->req.getMethod() == kGet) && (access(path.c_str(), R_OK) != 0))
 		{
 			if (clt->status_code == k000)
 			{
