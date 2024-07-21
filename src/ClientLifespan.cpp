@@ -140,15 +140,6 @@ void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 				return ;
 			}
 		}
-		// if ((clt->req.getMethod() == kGet) && access(path.c_str(), R_OK) != 0)
-		// {
-		// 	if (clt->status_code == k000)
-		// 	{
-		// 		clt->status_code = k403;
-		// 		clt->consume_body = false;
-		// 		return ;
-		// 	}
-		// }
 		if (stat(path.c_str(), &clt->stat_buff) != 0)
 		{
 			if (clt->status_code == k000)
