@@ -57,7 +57,7 @@ http {
         root /var/www/html;
         index index.html;
         autoindex on;
-        error_page 404 /404.html;
+        error_pages 404 /404.html;
         access_log /var/log/access.log;
         error_log /var/log/error.log;
         location / {
@@ -101,7 +101,7 @@ Generating a response from a requested file:
 - `root` - The root directory of the server.
 - `index` - The index files of the server. If autonindex is off, a HTTP request that ends with a '/' will try to return the first found index file instead.
 - `types` - Map response file name extensions to MIME types
-- `error_page` - The error page of the server
+- `error_pages` - The error page of the server
 
 Generating a response by other means:
 
