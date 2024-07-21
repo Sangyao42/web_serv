@@ -65,7 +65,11 @@ void	PrintIndentation(int indentation)
   if (indentation > 256)
   {
     indentation = 256;
-    std::cout << std::string(spaces, indentation);
   }
+  else if (indentation < 0)
+  {
+    indentation = 0;
+  }
+  std::cout << std::string(spaces, indentation);
 }
 

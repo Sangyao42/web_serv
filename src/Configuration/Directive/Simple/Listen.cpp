@@ -47,7 +47,7 @@ namespace directive
 	  it->print();
       for (; it != sockets_.end(); it++)
 	  {
-	    std::cout << ",";
+	    std::cout << ", ";
 		it->print();
 	  }
 	}

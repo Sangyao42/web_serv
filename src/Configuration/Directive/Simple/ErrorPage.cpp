@@ -43,7 +43,7 @@ namespace directive
 
   void  ErrorPage::print(int) const
   {
-    std::cout << file_path_ << " (" << error_code_ << ")";
+    std::cout << "File path: [" << file_path_ << "] Error code: [" << error_code_ << ']';
   }
 
   void ErrorPage::set(int error_code, const std::string& file_path)

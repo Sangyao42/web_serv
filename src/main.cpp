@@ -117,6 +117,7 @@ int main(int argc, char **argv)
 		if (parsed_main_block.is_valid())
 		{
 			directive::MainBlock *main_block = static_cast<directive::MainBlock *>(parsed_main_block.result);
+			main_block->print(0);
 			ws_database.set_main_block(main_block);
 		}
 		else

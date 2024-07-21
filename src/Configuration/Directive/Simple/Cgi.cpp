@@ -43,7 +43,7 @@ namespace directive
 
   void  Cgi::print(int) const
   {
-    std::cout << extension_ << " : " << cgi_path_;
+    std::cout << "Extension: [" << extension_ << "] Path: [" << cgi_path_ << ']';
   }
 
   void Cgi::set(const std::string& extension, const std::string& cgi_path)

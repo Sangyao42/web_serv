@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include "Configuration/Directive.hpp"
 
@@ -36,6 +37,19 @@ namespace directive
   Directive::Type ServerName::type() const
   {
     return Directive::kDirectiveServerName;
+  }
+
+  void ServerName::print(int) const
+  {
+    if (server_names_.size() > 0)
+	{
+      std::vector<std::string>::const_iterator it = server_names_.begin();
+	  std::cout << '[' << *it << ']';
+      for (; it != server_names_.end(); it++)
+	  {
+	    std::cout << ", [" << *it << ']';
+	  }
+	}
   }
 
   void ServerName::add(const std::string& server_name)
