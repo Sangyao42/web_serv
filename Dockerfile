@@ -10,11 +10,13 @@ RUN apt-get update -y && \
         g++ \
         valgrind \
         strace \
+		python3 \
         git
 
 COPY Makefile /web_serv/
 COPY src /web_serv/src
 COPY www /web_serv/www
+COPY config /web_serv/config
 WORKDIR /web_serv
 RUN make
-CMD  ./webserv || tail -f /dev/null
+CMD ./webserv ./config/default_docker.conf
