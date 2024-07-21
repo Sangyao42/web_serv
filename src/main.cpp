@@ -270,22 +270,6 @@ int main(int argc, char **argv)
 				}
 				else
 				{
-					// TEST: the request buffer
-					//  std::string whatigot = sm.get_one_client(pfds[i].fd)->req_buf;
-					//  std::cout << "client request: " << std::endl;
-					//  std::cout << whatigot << std::endl;
-					//  std::cout << "recv_len: " << recv_len << std::endl;
-					//  // unsigned long pos = whatigot.find("\r\n\r\n");
-					//  if (pos != std::string::npos && pos + 4 == whatigot.size())
-					//  	std::cout << "end of request(only headers)" << std::endl;
-					//  else
-					//  {
-					//  	unsigned long pos = whatigot.find_last_of("\r\n");
-					//  	if (pos != std::string::npos && pos + 1 == whatigot.size())
-					//  		std::cout << "end of request(with body)" << std::endl;
-					//  	else
-					//  		std::cout << "not end of request" << std::endl;
-					//  }
 					sm.set_first_recv_time(pfds[i].fd); // set first recv time if it is not set
 					if (!clt->continue_reading)
 					{
