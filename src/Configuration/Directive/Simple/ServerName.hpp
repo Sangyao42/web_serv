@@ -18,6 +18,7 @@ namespace directive
 
       virtual bool                    is_block() const;
       virtual Type                    type() const;
+	  virtual void					  print(int) const;
 
       void                            add(const std::string& server_name);
       const std::vector<std::string>& get() const;

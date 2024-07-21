@@ -22,6 +22,7 @@ namespace directive
 
       virtual bool                  is_block() const;
       virtual Type                  type() const;
+	  virtual void					print(int indentation) const;
 
       void                          add(const Extension& extension, const MimeType& mime_type);
       const std::map<Extension, MimeType>& get() const;

@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cctype>
 
+#include <iostream>
 #include <bitset>
 #include <algorithm>
 
@@ -139,5 +140,10 @@ namespace uri
   unsigned int Authority::family() const
   {
     return host.type;
+  }
+
+  void Authority::print() const
+  {
+    std::cout << "Host: " << host.value << " Port: " << port;
   }
 } // namespace uri

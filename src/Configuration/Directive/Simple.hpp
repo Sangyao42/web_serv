@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Configuration/Directive.hpp"
+#include <iostream>
 
 namespace directive
 {
@@ -17,6 +18,7 @@ namespace directive
 
       virtual bool  is_block() const;
       virtual Type  type() const;
+	  virtual void  print(int) const;
 
       void          set(const T& value);
       const T&      get() const;
@@ -81,6 +83,12 @@ namespace directive
   Directive::Type DirectiveSimple<T, TypeEnum>::type() const
   {
     return TypeEnum;
+  }
+
+  template <typename T, Directive::Type TypeEnum>
+  void DirectiveSimple<T, TypeEnum>::print(int) const
+  {
+	std::cout << "[" << value_ << "]";
   }
 
   template <typename T, Directive::Type TypeEnum>

@@ -26,6 +26,7 @@ namespace directive
 
       virtual bool  is_block() const;
       virtual Type  type() const;
+	  virtual void  print(int) const;
 
       void          set(int method);
       Methods       get() const;

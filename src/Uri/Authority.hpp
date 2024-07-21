@@ -40,6 +40,7 @@ namespace uri
     ~Authority();
 
     bool  operator==(const Authority& other) const;
+	void  print() const;
   
     unsigned int  family() const;
   };

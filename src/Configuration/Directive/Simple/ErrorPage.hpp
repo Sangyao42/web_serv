@@ -18,6 +18,7 @@ namespace directive
 
       virtual bool        is_block() const;
       virtual Type        type() const;
+	  virtual void		  print(int) const;
 
       void                set(int error_code, const std::string& ErrorPage_path);
 

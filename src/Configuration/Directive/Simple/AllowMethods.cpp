@@ -1,6 +1,7 @@
 #include "AllowMethods.hpp"
 
 #include <cassert>
+#include <iostream>
 
 #include <bitset>
 
@@ -37,6 +38,23 @@ namespace directive
   Directive::Type AllowMethods::type() const
   {
     return Directive::kDirectiveAllowMethods;
+  }
+
+  void  AllowMethods::print(int) const
+  {
+    if (accepted_methods_ == 0)
+	{
+	  std::cout << "NONE";
+	}
+    else
+	{
+      if (accepted_methods_ & kMethodGet)
+	    std::cout << "GET ";
+      if (accepted_methods_ & kMethodPost)
+	    std::cout << "POST ";
+      if (accepted_methods_ & kMethodDelete)
+	    std::cout << "DELETE";
+	}
   }
 
   void AllowMethods::set(int method)
