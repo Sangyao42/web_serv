@@ -144,6 +144,6 @@ namespace uri
 
   void Authority::print() const
   {
-    std::cout << "Host: " << host.value << " Port: " << port;
+    std::cout << "Host: [" << host.value << "] Port: [" << port << ']';
   }
 } // namespace uri

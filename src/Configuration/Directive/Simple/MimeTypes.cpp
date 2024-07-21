@@ -2,6 +2,7 @@
 
 #include <string>
 #include <map>
+#include <iostream>
 
 #include "misc/Maybe.hpp"
 #include "misc/Nothing.hpp"
@@ -46,6 +47,18 @@ namespace directive
   Directive::Type MimeTypes::type() const
   {
     return Directive::kDirectiveMimeTypes;
+  }
+
+  void MimeTypes::print(int indentation) const
+  {
+    std::cout << '{' << std::endl;
+	for (std::map<Extension, MimeType>::const_iterator it = mime_types_.begin(); it != mime_types_.end(); it++)
+	{
+      PrintIndentation(indentation);
+	  std::cout << '[' << it->first << "]: [" << it->second << ']' << std::endl;
+	}
+    PrintIndentation(indentation - 2);
+    std::cout << '}';
   }
 
   void MimeTypes::add(const MimeTypes::Extension& extension, const MimeTypes::MimeType& mime_type)

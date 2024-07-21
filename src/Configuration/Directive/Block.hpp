@@ -28,6 +28,7 @@ namespace directive
 
       virtual bool            is_block() const;
       virtual Type            type() const = 0;
+      virtual void            print(int indentation) const;
       const Directives&       directives() const;
       DirectiveBlock*         parent();
       const DirectiveBlock*   parent() const;
