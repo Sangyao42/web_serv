@@ -14,6 +14,7 @@ class Response : public HTTPMessage
 		const std::string	&getResponseBody() const;
 
 		void	setResponseBody(const std::string &responseBody);
+		void	reset();
 
 	private:
 		std::string responseBody_;

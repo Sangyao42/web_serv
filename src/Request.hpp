@@ -30,6 +30,7 @@ class Request : public HTTPMessage
 		void	setRequestTarget(const struct Uri &requestTarget);
 		void	setVersion(const Version &version);
 		void	setRequestBody(const std::string &requestBody);
+		void	reset();
 
 	public:
     Method	    method_;
