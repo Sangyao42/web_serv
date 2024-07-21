@@ -150,10 +150,8 @@ $(NAME): $(OBJ)
 -include $(DEPENDS)
 
 .SECONDEXPANSION:
-$(OBJS_DIR)/%.o: $(SRC_DIR)/$$(subst @,/,$$*).cpp
-	@$(CC) $(CXXFLAGS) $(addprefix -iquote ,$(INCLUDE_DIR)) -c $< -o $@
-
-$(OBJ): $(OBJS_DIR)
+$(OBJS_DIR)/%.o:  $(SRC_DIR)/$$(subst @,/,$$*).cpp | $(OBJS_DIR)
+	$(CC) $(CXXFLAGS) $(addprefix -iquote ,$(INCLUDE_DIR)) -c $< -o $@
 
 $(OBJS_DIR):
 	@mkdir -p $(OBJS_DIR)
