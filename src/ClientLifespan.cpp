@@ -21,6 +21,7 @@ void	client_lifespan::InitClient(struct Client &client, struct ClientSocket *cli
 	client.continue_reading = false;
 	client.exceed_max_body_size = false;
 	client.is_chunked = false;
+	client.is_chunk_end = false;
 	client.consume_body = true;
 	new (&client.req) Request();
 	new (&client.res) Response();
@@ -42,6 +43,7 @@ void	client_lifespan::ResetClient(struct Client &client)
 	client.continue_reading = false;
 	client.exceed_max_body_size = false;
 	client.is_chunked = false;
+	client.is_chunk_end = false;
 	client.consume_body = true;
 	client.location_created.clear();
 	client.cgi_content_type.clear();
@@ -138,16 +140,36 @@ void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 				return ;
 			}
 		}
+		if (access(path.c_str(), R_OK) != 0)
+		{
+			if (clt->status_code == k000)
+			{
+				clt->status_code = k403;
+				clt->consume_body = false;
+				return ;
+			}
+		}
 		if (stat(path.c_str(), &clt->stat_buff) != 0)
 		{
 			if (clt->status_code == k000)
 			{
+				write(2, "stat error\n", 11);
 				clt->status_code = k500;
 				clt->consume_body = false;
 				return ;
 			}
 		}
 	}
+
+	//For POST with Content-Length (normal request, without chunks)
+	HeaderInt *content_length = static_cast<HeaderInt *>(clt->req.returnValueAsPointer("Content-Length"));
+	if ((clt->req.getMethod() == kPost) && !content_length && !clt->is_chunked)
+	{
+		clt->status_code = k411;
+		clt->consume_body = false;
+		return ;
+	}
+
 	return ;
 }
 

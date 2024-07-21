@@ -5,7 +5,7 @@
 void	res_builder::AddLocationHeader(struct Client *clt)
 {
 	std::string file_path = clt->location_created;
-	size_t root_pos = file_path.find(clt->config.query->root) + clt->config.query->root.size() - 1;
+	size_t root_pos = file_path.find(clt->config.query->root) + clt->config.query->root.size();
 	std::string location = file_path.substr(root_pos);
 	clt->res.addNewPair("Location", new HeaderString(location));
 }
@@ -52,6 +52,10 @@ void	res_builder::BuildContentHeadersCGI(struct Client *clt)
 
 	// add content-type header
 	clt->res.addNewPair("Content-Type", new HeaderString(clt->cgi_content_type));
+
+	// add location header if created
+	if (!clt->location_created.empty())
+		AddLocationHeader(clt);
 }
 
 void	res_builder::BuildContentHeaders(struct Client *clt, std::string extension, std::string path)

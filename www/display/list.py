@@ -35,7 +35,8 @@ def index():
 	f.close()
 	# # End of TODO
 
-	print("Content-Type: text/html", end='\r\n\r\n')
+	print("Content-Type: text/html", end='\r\n')
+	print("Location: ", end='\r\n\r\n')
 	print(html, end='')
 
 

@@ -50,6 +50,7 @@ struct Client
 	bool continue_reading;
 	bool exceed_max_body_size;
 	bool is_chunked;
+	bool is_chunk_end;
 	bool consume_body;
 	//END: request status before processing
 	Request	req;
@@ -89,6 +90,7 @@ namespace process
 
 	namespace file
 	{
+		
 		bool	ModifyFile(struct Client *clt);
 		bool	UploadFile(struct Client *clt);
 		bool	DeleteFile(struct Client *clt);
@@ -114,6 +116,7 @@ namespace cgi
 	struct CgiOutput
 	{
 		std::string content_type;
+		std::string content_location;
 		std::string	content_body;
 	};
 	int		SetPipes(int *cgi_input, int *cgi_output, const Method method);

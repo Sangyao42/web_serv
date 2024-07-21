@@ -5,6 +5,11 @@ void	res_builder::BuildPostResponseBody(struct Client *clt)
 {
 	std::string body;
 
+	std::string path = clt->location_created;
+
+	if (path.compare(0, 5,"./www") == 0)
+		path = "http://localhost:8080" + path.substr(5);
+
 	assert((clt->status_code == k201 || clt->status_code == k200) && "Invalid status code");
 
 	body = "<!DOCTYPE html>\r\n";
@@ -16,9 +21,9 @@ void	res_builder::BuildPostResponseBody(struct Client *clt)
 		body += "<body>\r\n";
 		body += "<h1>Resource Created</h1>\r\n";
 		body += "<p>Your resource has been created successfully.</p>\r\n";
-		body += "<p><a href=\"";
-		body += clt->location_created;
-		body += "\">View Resource</a></p>\r\n";
+		body += "<p>Location";
+		body += path;
+		body += "</p>\r\n";
 		body += "</body>\r\n";
 		body += "</html>\r\n";
 	}
@@ -28,9 +33,9 @@ void	res_builder::BuildPostResponseBody(struct Client *clt)
 		body += "<body>\r\n";
 		body += "<h1>Resource Modified</h1>\r\n";
 		body += "<p>Your resource has been modified successfully.</p>\r\n";
-		body += "<p><a href=\"";
-		body += clt->location_created;
-		body += "\">View Resource</a></p>\r\n";
+		body += "<p>Location: ";
+		body += path;
+		body += "</p>\r\n";
 		body += "</body>\r\n";
 		body += "</html>\r\n";
 	}
@@ -74,6 +79,8 @@ void	res_builder::GenerateSuccessResponse(struct Client *clt)
 				extension = "application/json";
 			else if (extension == "png")
 				extension = "image/png";
+			else if (extension == "jpg" || extension == "jpeg")
+				extension = "image/jpeg";
 			else
 				extension = "application/octet-stream";
 			BuildContentHeaders(clt, extension, clt->path);

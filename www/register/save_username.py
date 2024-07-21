@@ -26,7 +26,8 @@ def save_registry():
     f = open(root + '/usernames/usernames.txt', 'a+')
     f.write(user_name + '\n')
     f.close()
-    print("Content-Type: text/html", end='\r\n\r\n')
+    print("Content-Type: text/html", end='\r\n')
+    print("Location: ",end='\r\n\r\n')
     print("<!DOCTYPE html><html><body><h1>Registration Success!</h1></body></html>", end='')
     return
 

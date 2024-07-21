@@ -366,80 +366,126 @@ int main(int argc, char **argv)
 					}
 					if (clt->is_chunked)
 					{
-						// find delimiter
-						// int	chunk_size = 0;
-						// clt->continue_reading = false;
-						// bool syntax_error_during_unchunk = false;
-						// do
-						// {
-						// 	std::pair<ParseMetaData, int> chunk_size_line = ParseChunkSizeLine(clt->client_socket->req_buf);
-						// 	if (chunk_size_line.first.parse_error_flags == kNoCRLFFound)
-						// 	{
-						// 		clt->continue_reading = true;
-						// 		break;
-						// 	}
-						// 	else if (chunk_size_line.first.parse_error_flags == kSyntaxError)
-						// 	{
-						// 		// handle syntax error
-						// 		syntax_error_during_unchunk = true;
-						// 		break;
-						// 	}
-						// 	else
-						// 	{
-						// 		chunk_size = chunk_size_line.second;
-						// 		clt->client_socket->req_buf.erase(0, chunk_size_line.first.parse_length);
-						// 	}
-						// 	if ((clt->req.requestBody_.size() + chunk_size) > clt->max_body_size)
-						// 	{
-						// 		clt->exceed_max_body_size = true;
-						// 	}
-						// 	ParseMetaData = ParseChunkData(clt->client_socket->req_buf, chunk_size);
-						// 	if (ParseMetaData.parse_error_flags == kNoCRLFFound)
-						// 	{
-						// 		clt->continue_reading = true;
-						// 		break;
-						// 	}
-						// 	else if (ParseMetaData.parse_error_flags ==  kSyntaxError)
-						// 	{
-						// 		// handle syntax error
-						// 		syntax_error_during_unchunk = true;
-						// 		break;
-						// 	}
-						// 	std::string chunk = clt->client_socket->req_buf.substr(0, chunk_size);
-						// 	if (!clt->exceed_max_body_size)
-						// 	{
-						// 		if (clt->consume_body)
-						// 			clt->req.requestBody_.append(chunk);
-						// 	}
-						// 	clt->client_socket->req_buf.erase(0, chunk_size);
-						// } while (chunk_size > 0);
-						// if (syntax_error_during_unchunk) // when syntax error happens
-						// {
-						// 	clt->status_code = k400;
-						// 	clt->keepAlive = false;
-						// 	process::ProcessRequest(clt);
-						// 	pfds[i].events = POLLOUT;
-						// 	continue;
-						// }
-						// IgnoreEntityHeaders(clt->client_socket->req_buf);
-						// if (!CheckCrlf(clt->client_socket->req_buf))
-						// {
-						// 	clt->status_code = k400;
-						// 	clt->keepAlive = false;
-						// 	process::ProcessRequest(clt);
-						// 	pfds[i].events = POLLOUT;
-						// 	continue;
-						// }
-						// clt->client_socket->req_buf.erase(0, 2);
-						// if (clt->continue_reading)
-						// 	continue;
-						// if (clt->exceed_max_body_size)
-						// {
-						// 	clt->status_code = k413;
-						// 	clt->keepAlive = false;
-						// }
-						// process::ProcessRequest(clt);
-						// pfds[i].events = POLLOUT;
+						clt->continue_reading = true;
+						bool require_more_bytes = false;
+						if (!clt->is_chunk_end)
+						{
+							bool syntax_error_during_unchunk = false;
+							int	chunk_size = 0;
+							do
+							{
+								unsigned long index = clt->client_socket->req_buf.find("\r\n");
+								if (index == std::string::npos)
+								{
+									require_more_bytes = true;
+									break;
+								}
+								http_parser::ParseOutput chunk_size_line = http_parser::ParseChunkSizeLine(http_parser::Input(clt->client_socket->req_buf.c_str(), index));
+								if (!chunk_size_line.is_valid())
+								{
+									syntax_error_during_unchunk = true;
+									break;
+								}
+								unsigned int bytes_before_chunk_data = chunk_size_line.length + 2;
+								if (!http_parser::ScanNewLine(http_parser::Input(clt->client_socket->req_buf.c_str() + chunk_size_line.length, 2)).is_valid())
+								{
+									syntax_error_during_unchunk = true;
+									break;
+								}
+								else
+								{
+									chunk_size = *static_cast<int*>(chunk_size_line.result);
+									if (chunk_size == 0)
+									{
+										// last chunk
+										clt->client_socket->req_buf.erase(0, bytes_before_chunk_data);
+										break;
+									}
+								}
+								if ((clt->req.requestBody_.size() + chunk_size) > clt->max_body_size)
+								{
+									clt->exceed_max_body_size = true;
+								}
+								unsigned int bytes_entire_chunk = bytes_before_chunk_data + chunk_size + 2;
+								if (clt->client_socket->req_buf.length() < bytes_entire_chunk)
+								{
+									require_more_bytes = true;
+									break;
+								}
+								else if (!http_parser::ScanNewLine(http_parser::Input(clt->client_socket->req_buf.c_str() + bytes_before_chunk_data + chunk_size, 2)).is_valid())
+								{
+									syntax_error_during_unchunk = true;
+									break;
+								}
+								if (!clt->exceed_max_body_size && clt->consume_body)
+								{
+									std::string chunk = clt->client_socket->req_buf.substr(bytes_before_chunk_data, chunk_size);
+									clt->req.requestBody_.append(chunk);
+								}
+								clt->client_socket->req_buf.erase(0, bytes_entire_chunk);
+							} while (chunk_size > 0);
+							if (require_more_bytes)
+							{
+								continue;
+							}
+							else if (syntax_error_during_unchunk) // when syntax error happens
+							{
+								clt->status_code = k400;
+								clt->keepAlive = false;
+								process::ProcessRequest(clt);
+								pfds[i].events = POLLOUT;
+								continue;
+							}
+						}
+						clt->is_chunk_end = true;
+						if (clt->client_socket->req_buf.empty())
+							continue;
+						if (!http_parser::ScanNewLine(http_parser::Input(clt->client_socket->req_buf.c_str(), 2)).is_valid())
+						{
+							bool	is_error = false;
+							while (!clt->client_socket->req_buf.empty())
+							{
+								unsigned long index = clt->client_socket->req_buf.find("\r\n");
+								if (index == std::string::npos)
+								{
+									require_more_bytes = true;
+									break;
+								}
+								ArenaSnapshot snapshot = temporary::arena.snapshot();
+								http_parser::ParseOutput parsed_field_line = http_parser::ParseFieldLine(http_parser::Input(clt->client_socket->req_buf.c_str(), index));
+								if (parsed_field_line.is_valid())
+								{
+									temporary::arena.rollback(snapshot);
+									clt->client_socket->req_buf.erase(0, parsed_field_line.length + 2);
+								}
+								else
+								{
+									is_error = true;
+									break;
+								}
+							}
+							if (!is_error)
+							{
+								clt->status_code = k400;
+								clt->keepAlive = false;
+								process::ProcessRequest(clt);
+								pfds[i].events = POLLOUT;
+								continue;
+							}
+							if (require_more_bytes)
+								continue;
+						}
+						else
+						{
+							clt->client_socket->req_buf.erase(0, 2);
+						}
+						if (clt->exceed_max_body_size)
+						{
+							clt->status_code = k413;
+							clt->keepAlive = false;
+						}
+						process::ProcessRequest(clt);
+						pfds[i].events = POLLOUT;
 					}
 					else
 					{
@@ -485,7 +531,7 @@ int main(int argc, char **argv)
 				if (!clt->client_socket->res_buf.empty())
 				{
 					ssize_t sent_len = sm.send_to_client(pfds[i].fd);
-					if (sent_len == -1)
+					if (sent_len <= 0)
 					{
 						PrintDebugMessage("POLLOUT send() error (removed from pdfs)", pfds[i].fd);
 						close(pfds[i].fd);

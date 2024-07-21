@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html><body><h1>Directory Listing</h1><ul><li><a href='/upload/abc.txt'>abc.txt</a></li><input type='button' value='delete' id='delete' onclick='del_file("/upload/abc.txt")'></ul><ul><li><a href='/upload/test'>test</a></li><input type='button' value='delete' id='delete' onclick='del_file("/upload/test")'></ul><ul><li><a href='/upload/2024-07-19T14-22-55Z.txt'>2024-07-19T14-22-55Z.txt</a></li><input type='button' value='delete' id='delete' onclick='del_file("/upload/2024-07-19T14-22-55Z.txt")'></ul></body>
+<script>function del_file(file_path)
+{
+	fetch('http://localhost:8080' + file_path, {
+		method: 'DELETE',
+	})
+	.then(response => response.text())
+	.then(data => {
+		console.log(data);
+	})
+	.catch(error => {
+		console.error(error);
+	});
+}
+</script></html>

@@ -593,6 +593,10 @@ namespace http_parser
   partial-URI = relative-part [ "?" query ] */
   ParseOutput ParseFieldReferer(Input input);
 
+  ///////// Chunk body
+
+  ParseOutput ParseChunkSizeLine(Input input);
+
   /////////////////////////////////////////////////////
   ///  fields used only in response (unimplemented) ///
   /////////////////////////////////////////////////////

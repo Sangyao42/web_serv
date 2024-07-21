@@ -20,7 +20,7 @@ bool process::file::ModifyFile(struct Client *clt)
 	return false;
 }
 
-bool process::file::UploadFile(struct Client *clt)
+enum process::file::FileManiError process::file::UploadFile(struct Client *clt)
 {
 	//example path1: ../www/html/files/
 	//example path2: ../www/html/files/filename.txt
@@ -44,17 +44,18 @@ bool process::file::UploadFile(struct Client *clt)
 	}
 
 	//create file and all the directories in the path
-	if (!CreateDirRecurs(file_path))
-		return false;
+	enum FileManiError file_error = CreateDirRecurs(file_path);
+	if (!file_error)
+		return file_error;
 	std::ofstream file(file_path.c_str());
 	if (!file.is_open())
-		return false;
+		return kFileManiOtherError;
 	//write to file
 	file << clt->req.getRequestBody();
 	if (!file.good())
 	{
 		file.close();
-		return false;
+		return kFileManiOtherError;
 	}
 	file.close();
 
@@ -63,7 +64,7 @@ bool process::file::UploadFile(struct Client *clt)
 	// size_t root_pos = file_path.find(clt->config->query->root) + clt->config->query->root.size() - 1;
 	// clt->location_created = file_path.substr(root_pos);
 	clt->location_created = file_path;
-	return true;
+	return kFileManiNoError;
 }
 
 bool process::file::DeleteFile(struct Client *clt)
@@ -97,14 +98,17 @@ std::string	process::file::GenerateFileExtension(std::string content_type, const
 	return "";
 }
 
-bool process::file::CreateDir(std::string dir)
+enum process::file::FileManiError process::file::CreateDir(std::string dir)
 {
 	struct stat buffer;
 	int status = stat(dir.c_str(), &buffer);
 	if (status == 0 && S_ISDIR(buffer.st_mode))
 	{
 		std::cout << "Directory exists" << std::endl;
-		return true;
+		if (access(dir.c_str(), W_OK) == 0)
+			return kFileManiNoError;
+		else
+			return kFileManiPermissionError;
 	}
 	else
 	{
@@ -113,31 +117,33 @@ bool process::file::CreateDir(std::string dir)
 		{
 			std::cout << "Error creating directory" << std::endl;
 			std::cerr << strerror(errno) << std::endl;
-			return false;
+			return kFileManiOtherError;
 		}
 		else
 		{
 			std::cout << "Directory created" << std::endl;
-			return true;
+			return kFileManiNoError;
 		}
 	}
 }
 
-bool process::file::CreateDirRecurs(std::string path)
+enum process::file::FileManiError process::file::CreateDirRecurs(std::string path)
 {
+	enum FileManiError file_error = kFileManiNoError;
 	size_t pos = 0;
 	pos = path.find_first_of("/", pos + 1);
 	std::string create_dir = path.substr(0, pos);
 	std::cout << create_dir << std::endl;
 	while (pos != std::string::npos)
 	{
-		if (!CreateDir(create_dir))
+		file_error = CreateDir(create_dir);
+		if (!file_error)
 		{
-			return false;
+			return (file_error);
 		}
 		pos = path.find_first_of("/", pos + 1);
 		create_dir = path.substr(0, pos);
 		std::cout << create_dir << std::endl;
 	}
-	return true;
+	return kFileManiNoError;
 }
