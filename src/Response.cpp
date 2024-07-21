@@ -25,3 +25,9 @@ void	Response::setResponseBody(const std::string &responseBody)
 {
 	responseBody_ = responseBody;
 }
+
+void Response::reset()
+{
+	cleanHeaderMap();
+	responseBody_.clear();
+}

@@ -1,5 +1,6 @@
 #include "Directive.hpp"
 #include <iostream>
+#include <cstring>
 
 ///////////////////////////////////////////////
 ////////////   Directive Context   ////////////

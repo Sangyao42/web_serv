@@ -77,3 +77,11 @@ void	Request::setRequestBody(const std::string &requestBody)
 	requestBody_ = requestBody;
 }
 
+void	Request::reset()
+{
+	cleanHeaderMap();
+	method_ = kGet;
+	request_target_ = Uri();
+	version_ = kStandard;
+	requestBody_.clear();
+}

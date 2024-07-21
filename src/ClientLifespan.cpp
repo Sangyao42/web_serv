@@ -23,8 +23,6 @@ void	client_lifespan::InitClient(struct Client &client, struct ClientSocket *cli
 	client.is_chunked = false;
 	client.is_chunk_end = false;
 	client.consume_body = true;
-	new (&client.req) Request();
-	new (&client.res) Response();
 }
 
 void	client_lifespan::ResetClient(struct Client &client)
@@ -48,10 +46,8 @@ void	client_lifespan::ResetClient(struct Client &client)
 	client.location_created.clear();
 	client.cgi_content_type.clear();
 	client.cgi_content_length = 0;
-	client.req.cleanHeaderMap();
-	client.res.cleanHeaderMap();
-	new (&client.req) Request();
-	new (&client.res) Response();
+	client.req.reset();
+	client.res.reset();
 }
 
 int	client_lifespan::DeleteClientFromVector(std::vector<struct Client> &clients, int client_fd)
