@@ -18,6 +18,7 @@ namespace directive
 
       virtual bool                is_block() const;
       virtual Type                type() const;
+	  virtual void				  print(int) const;
 
       void                        add(const uri::Authority& socket);
       const std::vector<uri::Authority>&  get() const;

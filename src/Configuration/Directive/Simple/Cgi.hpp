@@ -18,6 +18,7 @@ namespace directive
 
       virtual bool        is_block() const;
       virtual Type        type() const;
+	  virtual void		  print(int) const;
 
       void                set(const std::string& extension, const std::string& cgi_path);
 

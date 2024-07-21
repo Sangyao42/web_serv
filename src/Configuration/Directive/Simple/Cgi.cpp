@@ -1,6 +1,7 @@
 #include "Cgi.hpp"
 
 #include <string>
+#include <iostream>
 
 #include "misc/Maybe.hpp"
 #include "misc/Nothing.hpp"
@@ -38,6 +39,11 @@ namespace directive
   Directive::Type Cgi::type() const
   {
     return Directive::kDirectiveCgi;
+  }
+
+  void  Cgi::print(int) const
+  {
+    std::cout << extension_ << " : " << cgi_path_;
   }
 
   void Cgi::set(const std::string& extension, const std::string& cgi_path)

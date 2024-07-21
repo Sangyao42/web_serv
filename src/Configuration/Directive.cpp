@@ -1,6 +1,5 @@
 #include "Directive.hpp"
-
-#include <utility>
+#include <iostream>
 
 ///////////////////////////////////////////////
 ////////////   Directive Context   ////////////
@@ -52,3 +51,21 @@ int Directive::index() const
 {
   return context_.index;
 }
+
+void	PrintIndentation(int indentation)
+{
+  static char spaces[256];
+  static bool is_initialized = false;
+
+  if (!is_initialized)
+  {
+    is_initialized = true;
+    memset(spaces, ' ', 256);
+  }
+  if (indentation > 256)
+  {
+    indentation = 256;
+    std::cout << std::string(spaces, indentation);
+  }
+}
+

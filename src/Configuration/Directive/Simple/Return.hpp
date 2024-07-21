@@ -17,6 +17,7 @@ namespace directive
 
       virtual bool        is_block() const;
       virtual Type        type() const;
+	  virtual void		  print(int) const;
 
       void                set(const std::string& path, int status_code);
       int                 get() const;

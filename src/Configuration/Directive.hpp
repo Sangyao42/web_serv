@@ -52,6 +52,7 @@ class Directive
 
     virtual bool          is_block() const = 0;
     virtual Type          type() const = 0;
+	virtual void		  print(int indentation) const = 0;
     const Context&        context() const;
     void                  set_context(const Context& context);
     int                   index() const;
@@ -59,3 +60,5 @@ class Directive
   protected:
     Context context_;
 };
+
+void	PrintIndentation(int indentation);
