@@ -199,7 +199,12 @@ void	process::ProcessDeleteRequest(struct Client *clt)
 			clt->status_code = k403;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
-		// ? delete the file: do I need to check if remove() fails ?
+		size_t pos = clt->path.find_last_of('/');
+		if(access(clt->path.substr(0, pos).c_str(), W_OK) !=0)
+		{
+			clt->status_code = k403;
+			return (res_builder::GenerateErrorResponse(clt));
+		}
 		if (file::DeleteFile(clt) == false)
 		{
 			clt->status_code = k500;
