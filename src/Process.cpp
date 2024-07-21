@@ -76,6 +76,11 @@ void	process::ProcessGetRequest(struct Client *clt)
 				clt->path = index_path;
 				if (process::IsCgi(clt->cgi_argv, clt->path, location))
 					return (cgi::ProcessGetRequestCgi(clt));
+				if (access(index_path.c_str(), F_OK) != 0)
+				{
+					clt->status_code = k403;
+					return (res_builder::GenerateErrorResponse(clt));
+				}
 				if (access(index_path.c_str(), R_OK) != 0)
 				{
 					clt->status_code = k403;
