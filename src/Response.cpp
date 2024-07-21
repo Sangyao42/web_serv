@@ -28,5 +28,6 @@ void	Response::setResponseBody(const std::string &responseBody)
 
 void Response::reset()
 {
+	cleanHeaderMap();
 	responseBody_.clear();
 }
