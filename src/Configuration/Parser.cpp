@@ -911,6 +911,9 @@ namespace directive_parser
       if (http_parser::ConsumeByScanFunction(&input_tmp, &ScanRequiredWhitespace).is_valid())
       {
         ArenaSnapshot snapshot = temporary::arena.snapshot();
+		unsigned long index = input_tmp.to_string().find(";");
+		if (index != std::string::npos)
+		  input_tmp.length = index;
         const char* uri_start = input_tmp.bytes;
         ParseOutput parsed_uri = http_parser::ConsumeByParserFunction(&input_tmp, &http_parser::ParseUri);
         if (!parsed_uri.is_valid())
