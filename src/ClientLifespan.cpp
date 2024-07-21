@@ -140,7 +140,7 @@ void	client_lifespan::CheckHeaderBeforeProcess(struct Client *clt)
 		{
 			if (clt->status_code == k000)
 			{
-				write(2, "stat error\n", 11);
+				std::cerr << "stat error" << std::endl;
 				clt->status_code = k500;
 				clt->consume_body = false;
 				return ;
