@@ -140,17 +140,6 @@ const ConfigurationQueryResult  Configuration::query(int server_socket_fd,
       }
     }
   }
-  else
-  {
-    // find the location property according to the server name
-    for (std::vector<cache::LocationQuery>::iterator it = location_cache_.begin(); it != location_cache_.end(); ++it)
-    {
-      if (it->server_block == server_block)
-      {
-        return ConfigurationQueryResult(location_block, &(*it));
-      }
-    }
-  }
   cache::LocationQuery* query = NULL;
   // if the location property is not found, then create a new location property
   if (location_cache_.size() == location_cache_.capacity())
