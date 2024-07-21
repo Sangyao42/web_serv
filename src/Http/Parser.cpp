@@ -883,7 +883,7 @@ namespace http_parser
       total_length += scan_result.length;
       scan_result = ConsumeByScanFunction(&input, &ScanPathChar);
     }
-    if (total_length > 1)
+    if (total_length >= 1)
       output.length = total_length;
     else
       output.bytes = NULL;
