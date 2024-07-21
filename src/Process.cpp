@@ -59,6 +59,11 @@ void	process::ProcessGetRequest(struct Client *clt)
 	{
 		if (location->autoindex == true)
 		{
+			if (access(clt->path.c_str(), R_OK) != 0)
+			{
+				clt->status_code = k403;
+				return (res_builder::GenerateErrorResponse(clt));
+			}
 			clt->status_code = k200;
 			return (res_builder::GenerateAutoindexResponse(clt));
 		}
