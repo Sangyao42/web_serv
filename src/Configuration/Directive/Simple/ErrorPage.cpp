@@ -1,6 +1,7 @@
 #include "ErrorPage.hpp"
 
 #include <string>
+#include <iostream>
 
 #include "misc/Maybe.hpp"
 #include "misc/Nothing.hpp"
@@ -40,12 +41,16 @@ namespace directive
     return Directive::kDirectiveErrorPage;
   }
 
+  void  ErrorPage::print(int) const
+  {
+    std::cout << "File path: [" << file_path_ << "] Error code: [" << error_code_ << ']';
+  }
+
   void ErrorPage::set(int error_code, const std::string& file_path)
   {
     error_code_ = error_code;
     file_path_ = file_path;
   }
-
 
   int ErrorPage::error_code() const
   {

@@ -31,8 +31,10 @@ void	cgi::ProcessGetRequestCgi(struct Client *clt)
 		close(cgi_output[kRead]);
 		dup2(cgi_output[kWrite], STDOUT_FILENO);
 		assert(!clt->cgi_argv.empty() && "ProcessGetRequestCgi: clt->cgi_argv is NULL");
-		if (access(clt->cgi_argv[0].c_str(), F_OK | X_OK) != 0 || \
-		access(clt->cgi_argv[1].c_str(), F_OK | R_OK) != 0)
+		if (access(clt->cgi_argv[0].c_str(), F_OK) != 0 || \
+		access(clt->cgi_argv[0].c_str(), X_OK) != 0 || \
+		access(clt->cgi_argv[1].c_str(), F_OK) != 0 || \
+		access(clt->cgi_argv[1].c_str(), R_OK) != 0)
 		{
 			close(cgi_output[kWrite]);
 			exit(2);
@@ -143,8 +145,10 @@ void	cgi::ProcessPostRequestCgi(struct Client *clt)
 		dup2(cgi_output[kWrite], STDOUT_FILENO);
 		close(cgi_input[kWrite]);
 		dup2(cgi_input[kRead], STDIN_FILENO);
-		if (access(clt->cgi_argv[0].c_str(), F_OK | X_OK) != 0 || \
-		access(clt->cgi_argv[1].c_str(), F_OK | R_OK) != 0)
+		if (access(clt->cgi_argv[0].c_str(), F_OK) != 0 || \
+		access(clt->cgi_argv[0].c_str(), X_OK) != 0 || \
+		access(clt->cgi_argv[1].c_str(), F_OK) != 0 || \
+		access(clt->cgi_argv[1].c_str(), R_OK) != 0)
 		{
 			close(cgi_input[kRead]);
 			close(cgi_output[kWrite]);

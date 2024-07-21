@@ -1,6 +1,7 @@
 #include "Listen.hpp"
 
 #include <vector>
+#include <iostream>
 
 #include "Uri/Authority.hpp"
 #include "Configuration/Directive.hpp"
@@ -36,6 +37,20 @@ namespace directive
   Directive::Type Listen::type() const
   {
     return Directive::kDirectiveListen;
+  }
+
+  void  Listen::print(int) const
+  {
+	if (sockets_.size() > 0)
+	{
+	  std::vector<uri::Authority>::const_iterator it = sockets_.begin();
+	  it->print();
+      for (; it != sockets_.end(); it++)
+	  {
+	    std::cout << ", ";
+		it->print();
+	  }
+	}
   }
 
   void Listen::add(const uri::Authority& socket)

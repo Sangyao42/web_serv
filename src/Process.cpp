@@ -59,6 +59,11 @@ void	process::ProcessGetRequest(struct Client *clt)
 	{
 		if (location->autoindex == true)
 		{
+			if (access(clt->path.c_str(), R_OK) != 0)
+			{
+				clt->status_code = k403;
+				return (res_builder::GenerateErrorResponse(clt));
+			}
 			clt->status_code = k200;
 			return (res_builder::GenerateAutoindexResponse(clt));
 		}
@@ -76,6 +81,11 @@ void	process::ProcessGetRequest(struct Client *clt)
 				clt->path = index_path;
 				if (process::IsCgi(clt->cgi_argv, clt->path, location))
 					return (cgi::ProcessGetRequestCgi(clt));
+				if (access(index_path.c_str(), F_OK) != 0)
+				{
+					clt->status_code = k404;
+					return (res_builder::GenerateErrorResponse(clt));
+				}
 				if (access(index_path.c_str(), R_OK) != 0)
 				{
 					clt->status_code = k403;
@@ -199,7 +209,12 @@ void	process::ProcessDeleteRequest(struct Client *clt)
 			clt->status_code = k403;
 			return (res_builder::GenerateErrorResponse(clt));
 		}
-		// ? delete the file: do I need to check if remove() fails ?
+		size_t pos = clt->path.find_last_of('/');
+		if(access(clt->path.substr(0, pos).c_str(), W_OK) !=0)
+		{
+			clt->status_code = k403;
+			return (res_builder::GenerateErrorResponse(clt));
+		}
 		if (file::DeleteFile(clt) == false)
 		{
 			clt->status_code = k500;

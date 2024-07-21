@@ -1,6 +1,7 @@
 #include "Return.hpp"
 
 #include <string>
+#include <iostream>
 
 #include "Configuration/Directive.hpp"
 
@@ -36,6 +37,11 @@ namespace directive
   Directive::Type Return::type() const
   {
     return Directive::kDirectiveReturn;
+  }
+
+  void Return::print(int) const
+  {
+    std::cout << "Path: [" << path_ << "] Status code: [" << status_code_ << ']';
   }
 
   void Return::set(const std::string& path, int status_code)
