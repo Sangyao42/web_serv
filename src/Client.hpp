@@ -90,16 +90,21 @@ namespace process
 
 	namespace file
 	{
-		
+		enum FileManiError
+		{
+			kFileManiNoError,
+			kFileManiPermissionError,
+			kFileManiOtherError
+		};
 		bool	ModifyFile(struct Client *clt);
-		bool	UploadFile(struct Client *clt);
+		enum FileManiError	UploadFile(struct Client *clt);
 		bool	DeleteFile(struct Client *clt);
 
 		//helper functions
 		std::string	GenerateFileName(std::string path); //base on timestamp
 		std::string GenerateFileExtension(std::string content_type, const directive::MimeTypes* mime_types);
-		bool CreateDir(std::string dir);
-		bool CreateDirRecurs(std::string path);
+		enum FileManiError CreateDir(std::string dir);
+		enum FileManiError CreateDirRecurs(std::string path);
 	}
 }
 
