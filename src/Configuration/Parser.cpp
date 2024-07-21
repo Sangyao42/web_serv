@@ -941,6 +941,9 @@ namespace directive_parser
     directive::ServerName* server_name = new directive::ServerName(); 
 
     ArenaSnapshot snapshot = temporary::arena.snapshot();
+	unsigned long index = input.to_string().find(";");
+	if (index != std::string::npos)
+	  input.length = index;
     ParseOutput parsed_regname = http_parser::ConsumeByParserFunction(&input, &http_parser::ParseRegName);
     if (parsed_regname.is_valid())
     {
