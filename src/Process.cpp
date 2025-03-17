@@ -113,7 +113,7 @@ void	process::ProcessPostRequest(struct Client *clt)
 		req_content_type = "application/octet-stream";
 	else
 		req_content_type = content_type->content();
-	if ( !IsSupportedMediaType(req_content_type, location->mime_types)) // checkt content type from request with MIME type
+	if (!IsSupportedMediaType(req_content_type, location->mime_types)) // check content type from request with MIME type
 	{
 		clt->status_code = k415;
 		return (res_builder::GenerateErrorResponse(clt));
@@ -146,21 +146,21 @@ void	process::ProcessPostRequest(struct Client *clt)
 				clt->status_code = k403;
 				return (res_builder::GenerateErrorResponse(clt));
 			}
-			std::string existing_file_extension = GetReqExtension(clt->path);
-			if (!existing_file_extension.empty())
-			{
-				Maybe<directive::MimeTypes::MimeType> mime_type = location->mime_types->query(existing_file_extension);
-				if (!mime_type.is_ok())
-				{
-					clt->status_code = k415;
-					return (res_builder::GenerateErrorResponse(clt));
-				}
-				if (req_content_type != mime_type.value())
-				{
-					clt->status_code = k415;
-					return (res_builder::GenerateErrorResponse(clt));
-				}
-			}
+			// std::string existing_file_extension = GetReqExtension(clt->path);
+			// if (!existing_file_extension.empty())
+			// {
+			// 	Maybe<directive::MimeTypes::MimeType> mime_type = location->mime_types->query(existing_file_extension);
+			// 	if (!mime_type.is_ok())
+			// 	{
+			// 		clt->status_code = k415;
+			// 		return (res_builder::GenerateErrorResponse(clt));
+			// 	}
+			// 	if (req_content_type != mime_type.value())
+			// 	{
+			// 		clt->status_code = k415;
+			// 		return (res_builder::GenerateErrorResponse(clt));
+			// 	}
+			// }
 			if (file::ModifyFile(clt) == false)
 			{
 				clt->status_code = k500;
