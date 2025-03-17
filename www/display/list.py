@@ -8,14 +8,14 @@ def index():
 	root = os.environ['DOCUMENT_ROOT']
 
 	upload_folder = root + '/upload'
-	files = os.listdir(upload_folder)
+	files = os.listdir(upload_folder) if os.path.exists(upload_folder) else []
 
 	# for generating uri
 	dir_path = '/upload'
 
 	# load script for list all the files
 	dir_cgi = os.path.dirname(__file__)
-	script_file = open( os.path.join(dir_cgi, 'del.js'), "r")
+	script_file = open(os.path.join(dir_cgi, 'del.js'), "r")
 	print(os.path.join(dir_cgi, 'del.js'), file=sys.stderr)
 
 	script = script_file.read()
@@ -29,10 +29,10 @@ def index():
 	html += "</body>\n"
 	html += "<script>" + script + "</script></html>"
 
-	# # TODO: For testing generated html, can be deleted aftertesting
-	f = open( os.path.join(dir_cgi, 'delete.html'), "w+")
-	f.write(html)
-	f.close()
+	# # TODO: For testing generated html, can be deleted after testing
+	# f = open(os.path.join(dir_cgi, 'delete.html'), "w+")
+	# f.write(html)
+	# f.close()
 	# # End of TODO
 
 	print("Content-Type: text/html", end='\r\n')
